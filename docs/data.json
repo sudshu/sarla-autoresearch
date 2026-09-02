@@ -1,6 +1,80 @@
 {
- "updated": "2026-09-01 21:52 PDT",
- "runs": [],
- "best_G_dev": null,
- "aggregates": {}
+ "updated": "2026-09-02 02:18 PDT",
+ "runs": [
+  {
+   "run": 1,
+   "iteration": 0,
+   "variant": "v3_baseline",
+   "hypothesis": "H0",
+   "category": "baseline",
+   "metric": 1.1895396549127126,
+   "metrics": {
+    "G_dev": 1.1895396549127126,
+    "G_holdout": 2.0049276045599003,
+    "G_devB": null,
+    "per_site": {
+     "178": 0.5967676076074664,
+     "183": 0.7941721533226374,
+     "26": 2.5911891331862282,
+     "55": 1.2061334480119632,
+     "57": 1.0513381256329413,
+     "58": 0.7760297255345182,
+     "71": 4.1818114436469935,
+     "82": 1.580427400947704
+    },
+    "wall_median": 3270.0405745506287
+   },
+   "status": "baseline",
+   "description": "Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.",
+   "commit": "9ef54de",
+   "timestamp": 1788340660,
+   "protocol_version": 1
+  }
+ ],
+ "best_G_dev": 1.1895396549127126,
+ "aggregates": {
+  "0": {
+   "v3_baseline": {
+    "G_dev_per_seed": [
+     1.10107333198379,
+     1.3117561882632067,
+     1.155789444491141
+    ],
+    "sd_dev": 0.10932119652719967,
+    "delta": 0.21864239305439934,
+    "G_dev": 1.1895396549127126,
+    "n_dev": 4,
+    "G_holdout": 2.0049276045599003,
+    "n_holdout": 4,
+    "G_devB": null,
+    "wall_median": 3270.0405745506287
+   }
+  },
+  "1": {
+   "h1_walkers512": {
+    "G_dev": 1.608217938594133,
+    "n_dev": 3,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2580.0488317012787
+   },
+   "h3_stretch512": {
+    "G_dev": 0.9172197212655485,
+    "n_dev": 1,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2010.0311563014984
+   },
+   "h2_de512": {
+    "G_dev": 1.555881646884553,
+    "n_dev": 3,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2160.0349626541138
+   }
+  }
+ }
 }

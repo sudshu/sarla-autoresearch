@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-01 21:52 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 02:18 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -26,8 +26,8 @@ sampler, tests it at four development sites, keeps it only if G improves, and pe
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
 <div class="kpi">
-<div><b>0</b>experiments</div><div><b>0</b>improvements kept</div>
-<div><b>--</b>best G (dev sites)</div>
+<div><b>1</b>experiments</div><div><b>0</b>improvements kept</div>
+<div><b>1.19</b>best G (dev sites)</div>
 <div><b>~30 min</b>per site (vs 33 h)</div>
 </div>
 
@@ -44,7 +44,7 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 
 <h2>Experiments</h2>
 <table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
-</table>
+<tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#4d4d4d'><b>baseline</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
 
 <h2>Log</h2>
 <h2>Log</h2>
@@ -61,6 +61,47 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p>  fit: at every site checked, feasible prior draws are near-dead ecosystems</p>
 <p>  with GPP below 5% of the observed value. Truths are now jittered real-data</p>
 <p>  modes with a GPP and biomass plausibility check.</p>
+<h3>Iteration 0 (baseline), launched 2026-09-01 22:15 PDT</h3>
+<ul>
+<li>What: the current fast path (v3, <code>variants/v3_baseline.json</code>) at the four</li>
+</ul>
+<p>  development sites with three kernel seeds each, and once at the four</p>
+<p>  holdout sites. 16 fits, five GPU slots.</p>
+<ul>
+<li>Why: fixes the noise floor delta (2 sd of G over seeds) that every later</li>
+</ul>
+<p>  accept/reject decision uses, and the baseline G on both site sets.</p>
+<ul>
+<li>Smoke tests before launch: new fitter reproduces v3 bitwise on CPU; the</li>
+</ul>
+<p>  DE, stretch and adaptive-covariance kernels run without error at toy scale;</p>
+<p>  the queue ran two tiny jobs end to end on the H100.</p>
+<h3>Iteration 0 result (2026-09-02 02:40 PDT): baseline G = 1.19 on the development sites, 2.01 on holdout</h3>
+<ul>
+<li>The v3 fast path is well calibrated at two sites (ES-LJu G 0.60, DE-Gri 0.78),</li>
+</ul>
+<p>  acceptable at NL-Loo (0.79, but one of three seeds never reached the typical</p>
+<p>  set: density rank 1.00), and poor at BE-Vie (2.59): there, 22 to 31 of the 89</p>
+<p>  parameters sit more than 2 sd from the truth and the LAI projection band</p>
+<p>  misses the truth almost everywhere. The BE-Vie truth has a nearly empty wood</p>
+<p>  pool, and the sampler&#x27;s posterior does not contain that solution.</p>
+<ul>
+<li>Holdout: CZ-wet 1.21, DE-Geb 1.05, FR-Pue 1.58, DK-Sor 4.18 (the flagged</li>
+</ul>
+<p>  relaxed-plausibility truth; the sampler never found its region at all).</p>
+<ul>
+<li>Noise floor: the dev-set mean G over three kernel seeds has sd 0.11, so the</li>
+</ul>
+<p>  acceptance threshold delta is fixed at 0.22 from here on.</p>
+<ul>
+<li>Cost: median 53 min per fit with three fits sharing the H100 or one per</li>
+</ul>
+<p>  Blackwell GPU (about 25 min alone on the H100), 2.4M model evaluations.</p>
+<ul>
+<li>No chain was stuck at any site (the region screen and restarts from the</li>
+</ul>
+<p>  earlier OSSE work hold up), so the remaining error is mixing and coverage,</p>
+<p>  not junk regions.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -68,11 +109,11 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p>Priority 1 = try first. Variant configs live in <code>variants/</code>.</p>
 <table>
 <tr><th>id</th><th>pri</th><th>status</th><th>source</th><th>category</th><th>hypothesis</th><th>variant</th></tr>
-<tr><td>H1</td><td>1</td><td>open</td><td>claude</td><td>walkers</td><td>Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free</td><td>n_chains=512 n_steps=4000; n_chains=256 n_steps=8000</td></tr>
-<tr><td>H2</td><td>1</td><td>open</td><td>claude</td><td>moves</td><td>Chart move mixed 50/50 with differential-evolution moves (CARDAMOM&#x27;s STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see</td><td>kernel=chart_de mix=0.5 n_chains=512 n_steps=4000</td></tr>
-<tr><td>H3</td><td>1</td><td>open</td><td>claude</td><td>moves</td><td>Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers</td><td>kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000</td></tr>
+<tr><td>H1</td><td>1</td><td>running</td><td>claude</td><td>walkers</td><td>Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free</td><td>n_chains=512 n_steps=4000; n_chains=256 n_steps=8000</td></tr>
+<tr><td>H2</td><td>1</td><td>running</td><td>claude</td><td>moves</td><td>Chart move mixed 50/50 with differential-evolution moves (CARDAMOM&#x27;s STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see</td><td>kernel=chart_de mix=0.5 n_chains=512 n_steps=4000</td></tr>
+<tr><td>H3</td><td>1</td><td>running</td><td>claude</td><td>moves</td><td>Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers</td><td>kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000</td></tr>
 <tr><td>H4</td><td>2</td><td>open</td><td>claude</td><td>moves</td><td>Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves</td><td>kernel=chart_adaptcov mix=0.5</td></tr>
-<tr><td>H5</td><td>2</td><td>open</td><td>claude</td><td>charts</td><td>Inflate chart variance in flat (prior-capped) eigendirections x3</td><td>flat_mult=3</td></tr>
+<tr><td>H5</td><td>2</td><td>running</td><td>claude</td><td>charts</td><td>Inflate chart variance in flat (prior-capped) eigendirections x3</td><td>flat_mult=3</td></tr>
 <tr><td>H6</td><td>3</td><td>open</td><td>claude</td><td>restarts</td><td>Restarts through the whole burn-in, tighter gap</td><td>restart_until=0.5 restart_gap=50 restart_every=250</td></tr>
 <tr><td>H7</td><td>3</td><td>open</td><td>claude</td><td>budget</td><td>64 L-BFGS seeds instead of 128, evaluations moved to sampling</td><td>n_seeds=64 n_steps=...</td></tr>
 <tr><td>H8</td><td>3</td><td>open</td><td>claude</td><td>speed</td><td>Cheaper atlas: 3 rounds, 2048 audit draws (speed path)</td><td>atlas_rounds=3 n_audit=2048</td></tr>
