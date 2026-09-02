@@ -264,8 +264,13 @@ def main():
                 st = poll(True)
                 rebalance(st)
                 print(f"[{time.strftime('%H:%M:%S')}] {summarize(st)}", flush=True)
-            except Exception as e:
-                print(f"poll error: {e}", flush=True)
+            except BaseException as e:          # incl. OSError from a full disk
+                if isinstance(e, KeyboardInterrupt):
+                    raise
+                try:
+                    print(f"poll error: {e!r}", flush=True)
+                except Exception:
+                    pass
             if os.path.exists(os.path.join(AR, "STOP")):
                 print("STOP present; dispatcher exiting")
                 return
