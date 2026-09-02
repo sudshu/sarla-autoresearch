@@ -13,6 +13,7 @@ Job id: i<NNN>_<variant>_<site><tag>_s<seed>
 """
 import argparse
 import glob
+import numpy as np
 import json
 import os
 import subprocess
@@ -149,7 +150,17 @@ def aggregate(it):
         hold = [per_site[f"{s}"]["G"] for s in HOLDOUT if f"{s}" in per_site]
         devB = [per_site[f"{s}B"]["G"] for s in DEV if f"{s}B" in per_site]
         walls = [e["wall_job"] for es in sites.values() for e in es if e.get("wall_job")]
+        # noise floor: sd over kernel seeds of the dev-set mean G (seeds present at all dev sites)
+        seed_sets = [set(e["seed"] for e in sites[(s, "")]) for s in DEV if (s, "") in sites]
+        common = set.intersection(*seed_sets) if len(seed_sets) == len(DEV) else set()
+        per_seed = []
+        for sd in sorted(common):
+            per_seed.append(float(np.mean([[e["G"] for e in sites[(s, "")] if e["seed"] == sd][0]
+                                           for s in DEV])))
+        sd_dev = float(np.std(per_seed, ddof=1)) if len(per_seed) >= 2 else None
         summary[variant] = dict(
+            G_dev_per_seed=per_seed, sd_dev=sd_dev,
+            delta=(max(0.10, 2 * sd_dev) if sd_dev is not None else None),
             G_dev=float(sum(dev) / len(dev)) if dev else None, n_dev=len(dev),
             G_holdout=float(sum(hold) / len(hold)) if hold else None, n_holdout=len(hold),
             G_devB=float(sum(devB) / len(devB)) if devB else None,
@@ -158,7 +169,9 @@ def aggregate(it):
     json.dump(summary, open(os.path.join(ed, "aggregate.json"), "w"), indent=1)
     for v, s in summary.items():
         print(f"{v:28s} G_dev {fmt(s['G_dev'])} ({s['n_dev']}/4)  G_holdout {fmt(s['G_holdout'])} "
-              f"({s['n_holdout']}/4)  G_devB {fmt(s['G_devB'])}  wall med {fmt(s['wall_median'], 0)}s")
+              f"({s['n_holdout']}/4)  G_devB {fmt(s['G_devB'])}  wall med {fmt(s['wall_median'], 0)}s"
+              + (f"  per-seed dev G {['%.3f' % g for g in s['G_dev_per_seed']]} sd {s['sd_dev']:.3f} "
+                 f"delta {s['delta']:.3f}" if s['sd_dev'] is not None else ""))
         for k, ps in s["per_site"].items():
             e = ps["entries"][0]
             print(f"   {k:5s} G {ps['G']:.3f} {['%.2f' % g for g in ps['G_seeds']]}  c90 {e['cover90']:.2f} "
