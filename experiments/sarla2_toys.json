@@ -1,0 +1,295 @@
+{
+ "A": {
+  "v1": {
+   "K": 9,
+   "ranks": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "kl": 0.3911831081073326,
+   "n_eval_atlas": 124757,
+   "acc": 0.42152083333333334,
+   "err_mean_sd": 0.17796317957844793,
+   "err_sd_rel": 0.44968902143615375,
+   "labels": [
+    "extend",
+    "split",
+    "extend",
+    "extend",
+    "extend",
+    "extend",
+    "extend",
+    "extend"
+   ],
+   "trace": [
+    "round 0: K=1 ESS=0.016 flags=4",
+    "round 1: K=5 ESS=0.068 flags=1",
+    "round 2: K=6 ESS=0.061 flags=1",
+    "round 3: K=7 ESS=0.389 flags=0",
+    "round 4: K=7 ESS=0.059 flags=2",
+    "round 5: K=9 ESS=0.412 flags=0",
+    "round 6: K=9 ESS=0.421 flags=0"
+   ],
+   "wall": 3.617875814437866
+  },
+  "v2": {
+   "K": 10,
+   "ranks": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "kl": 0.4274833905934312,
+   "n_eval_atlas": 129281,
+   "acc": 0.4360104166666667,
+   "err_mean_sd": 0.1665888535145206,
+   "err_sd_rel": 0.3944071975113388,
+   "labels": [
+    "refine",
+    "split",
+    "rank-change",
+    "refine",
+    "patch",
+    "patch",
+    "refine",
+    "patch",
+    "refine"
+   ],
+   "trace": [
+    "audit 0: 7 uncovered (q95 1.1), K=1 ranks=[0, 1] ESS=0.016 -> 1 refine, 1 split, 1 rank-change  (1 dup)",
+    "audit 1: 7 uncovered (q95 1.6), K=4 ranks=[2, 2] ESS=0.012 -> 1 refine  (3 dup)",
+    "audit 2: 8 uncovered (q95 1.8), K=5 ranks=[2, 3] ESS=0.012 -> 1 patch  (5 dup)",
+    "audit 3: 1 uncovered (q95 1.8), K=6 ranks=[2, 4] ESS=0.091 -> 1 patch  (1 dup)",
+    "audit 4: 2 uncovered (q95 1.6), K=7 ranks=[2, 5] ESS=0.116 -> 1 refine  (1 dup)",
+    "audit 5: 1 uncovered (q95 1.7), K=8 ranks=[2, 6] ESS=0.075 -> 1 patch  (1 dup)",
+    "audit 6: 1 uncovered (q95 1.5), K=9 ranks=[2, 7] ESS=0.094 -> 1 refine",
+    "audit 7: 0 uncovered (q95 1.7), K=10 ranks=[2, 8] ESS=0.433 -> nothing"
+   ],
+   "wall": 3.301609992980957,
+   "branches": 4
+  }
+ },
+ "B": {
+  "v1": {
+   "K": 2,
+   "ranks": [
+    0,
+    0
+   ],
+   "kl": 0.031751224543756285,
+   "n_eval_atlas": 145194,
+   "acc": 0.9511041666666666,
+   "err_mean_sd": 0.0029829305921267755,
+   "err_sd_rel": 0.0067787242137302695,
+   "labels": [
+    "split",
+    "duplicate"
+   ],
+   "trace": [
+    "round 0: K=1 ESS=0.001 flags=2",
+    "round 1: K=2 ESS=0.955 flags=0",
+    "round 2: K=2 ESS=0.953 flags=0"
+   ],
+   "wall": 2.912749767303467,
+   "right_mass": 0.5014375
+  },
+  "v2": {
+   "K": 2,
+   "ranks": [
+    0,
+    0
+   ],
+   "kl": 0.031751224543756285,
+   "n_eval_atlas": 145199,
+   "acc": 0.9496354166666666,
+   "err_mean_sd": 0.0083764097676241,
+   "err_sd_rel": 0.0005399005609907359,
+   "labels": [
+    "branch"
+   ],
+   "trace": [
+    "audit 0: 12 uncovered (q95 0.0), K=1 ranks=[1] ESS=0.001 -> 1 branch  (1 dup)",
+    "audit 1: 0 uncovered (q95 0.0), K=2 ranks=[2] ESS=0.954 -> nothing",
+    "audit 2: 0 uncovered (q95 0.0), K=2 ranks=[2] ESS=0.952 -> nothing"
+   ],
+   "wall": 2.825517177581787,
+   "right_mass": 0.504140625,
+   "branches": 2
+  }
+ },
+ "C": {
+  "v1": {
+   "K": 2,
+   "ranks": [
+    1,
+    1
+   ],
+   "kl": 0.5782291501145818,
+   "n_eval_atlas": 108326,
+   "acc": 0.4304895833333333,
+   "err_mean_sd": 0.02336936880003653,
+   "err_sd_rel": 0.04361439327468841,
+   "labels": [
+    "extend"
+   ],
+   "trace": [
+    "round 0: K=1 ESS=0.167 flags=1",
+    "round 1: K=2 ESS=0.342 flags=0",
+    "round 2: K=2 ESS=0.332 flags=0"
+   ],
+   "wall": 2.3914151191711426
+  },
+  "v2": {
+   "K": 1,
+   "ranks": [
+    1
+   ],
+   "kl": 0.23259210491397087,
+   "n_eval_atlas": 108331,
+   "acc": 0.676625,
+   "err_mean_sd": 0.02725051303759846,
+   "err_sd_rel": 0.04235087760053213,
+   "labels": [
+    "extend"
+   ],
+   "trace": [
+    "audit 0: 1 uncovered (q95 1.5), K=1 ranks=[0, 1] ESS=0.177 -> 1 extend",
+    "audit 1: 0 uncovered (q95 0.7), K=1 ranks=[0, 1] ESS=0.746 -> nothing",
+    "audit 2: 0 uncovered (q95 0.7), K=1 ranks=[0, 1] ESS=0.740 -> nothing"
+   ],
+   "wall": 2.254312038421631,
+   "branches": 1
+  }
+ },
+ "C2": {
+  "v1": {
+   "K": 5,
+   "ranks": [
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "kl": 0.31276845397351427,
+   "n_eval_atlas": 108349,
+   "acc": 0.61121875,
+   "err_mean_sd": 0.01696842260808095,
+   "err_sd_rel": 0.029432630798785997,
+   "labels": [
+    "rank-change",
+    "extend",
+    "refine",
+    "duplicate",
+    "refine"
+   ],
+   "trace": [
+    "round 0: K=1 ESS=0.006 flags=5",
+    "round 1: K=5 ESS=0.481 flags=0",
+    "round 2: K=5 ESS=0.554 flags=0"
+   ],
+   "wall": 2.4974989891052246
+  },
+  "v2": {
+   "K": 7,
+   "ranks": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1
+   ],
+   "kl": 0.6080070078214722,
+   "n_eval_atlas": 124837,
+   "acc": 0.3748020833333333,
+   "err_mean_sd": 0.023121454364904363,
+   "err_sd_rel": 0.04447195827541517,
+   "labels": [
+    "rank-change",
+    "extend",
+    "split",
+    "extend",
+    "extend",
+    "split",
+    "extend",
+    "split",
+    "refine",
+    "split"
+   ],
+   "trace": [
+    "audit 0: 33 uncovered (q95 2.9), K=1 ranks=[1] ESS=0.005 -> 2 extend, 1 split, 1 rank-change  (1 dup)",
+    "audit 1: 35 uncovered (q95 4.2), K=3 ranks=[2, 1] ESS=0.145 -> 2 extend, 1 split  (1 dup)",
+    "audit 2: 383 uncovered (q95 5.4), K=4 ranks=[3, 1] ESS=0.203 -> 1 split  (3 dup)",
+    "audit 3: 1 uncovered (q95 3.2), K=5 ranks=[3, 2] ESS=0.304 -> 1 refine",
+    "audit 4: 20 uncovered (q95 4.1), K=6 ranks=[3, 3] ESS=0.281 -> 1 split",
+    "audit 5: 0 uncovered (q95 2.6), K=7 ranks=[3, 4] ESS=0.389 -> nothing",
+    "audit 6: 0 uncovered (q95 2.2), K=7 ranks=[3, 4] ESS=0.400 -> nothing"
+   ],
+   "wall": 2.9316489696502686,
+   "branches": 1
+  }
+ },
+ "D": {
+  "v1": {
+   "K": 6,
+   "ranks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "kl": null,
+   "n_eval_atlas": 104230,
+   "acc": 0.79971875,
+   "err_mean_sd": 0.013316990511997698,
+   "err_sd_rel": 0.004975364932772397,
+   "labels": [],
+   "trace": [
+    "round 0: K=6 ESS=0.885 flags=0",
+    "round 1: K=6 ESS=0.886 flags=0"
+   ],
+   "wall": 2.425853729248047
+  },
+  "v2": {
+   "K": 6,
+   "ranks": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "kl": null,
+   "n_eval_atlas": 104230,
+   "acc": 0.79940625,
+   "err_mean_sd": 0.00949142728733021,
+   "err_sd_rel": 0.004812468638972667,
+   "labels": [],
+   "trace": [
+    "audit 0: 0 uncovered (q95 0.4), K=6 ranks=[6] ESS=0.889 -> nothing",
+    "audit 1: 0 uncovered (q95 0.4), K=6 ranks=[6] ESS=0.882 -> nothing"
+   ],
+   "wall": 2.4497435092926025,
+   "branches": 1
+  }
+ }
+}

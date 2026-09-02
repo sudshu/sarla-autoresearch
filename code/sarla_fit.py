@@ -29,9 +29,10 @@ for cand in (os.path.join(_here, "..", "CARDAMOM", "PYTHON", "dalec_jax", "src")
 import jax
 
 import sarla as S
+import sarla2 as S2
 from osse_fit import (make_target, density_clusters, balanced_init,
                       live_regions, D, SCALE)
-from sarla_kernels import run_kernel
+from sarla_kernels import run_kernel, warmup_ensemble
 
 
 @dataclasses.dataclass
@@ -46,6 +47,39 @@ class Variant:
     atlas_rounds: int = 6
     n_audit: int = 4096
     atlas_seed: int = 3
+    warmup_steps: int = 0           # chart-free ensemble steps over the seeds before the atlas
+    warmup_kind: str = "stretch"    # stretch | de
+    # atlas engine: "v1" (sarla.py, the v3 baseline) or "surgery" (sarla2.py:
+    # topology-aware rank-adaptive atlas with real extend/refine/split/branch/
+    # rank-change/merge operations). sg_* knobs apply to "surgery" only.
+    atlas_engine: str = "v1"
+    sg_rank_tau: float = 1.0
+    sg_gap_min: float = 10.0
+    sg_gap_cap: float = 100.0
+    sg_var_cap: float = 1.0
+    sg_flag_topk: int = 8
+    sg_flag_thresh: float = 5.0
+    sg_eta: float = 0.05
+    sg_weight_rule: str = "uniform"
+    sg_normal_projection: bool = True
+    sg_extend_sigma: float = 2.0
+    sg_model_tol: float = 2.0
+    sg_merge_tol: float = 1.0
+    sg_overlap_tol: float = 2.0
+    sg_branch_tau: float = 10.0
+    sg_split_offset: float = 0.5
+    sg_refine_shrink: float = 1.0
+    sg_rank_hysteresis: float = 2.0
+    sg_bend_tol: float = 1.0
+    sg_fallback_patch: bool = True
+    sg_do_extend: bool = True
+    sg_do_refine: bool = True
+    sg_do_split: bool = True
+    sg_do_rank: bool = True
+    sg_do_branch: bool = True
+    sg_do_merge: bool = True
+    sg_clean_stop: int = 2
+    sg_stop_ess: float = None
     # regions and starts
     tau: float = 10.0
     n_mid: int = 7
@@ -176,9 +210,32 @@ def main():
     ev_seeds = n_eval[0]
     print(f"  {cfg.n_seeds} seeds in {wall['seeds']:.0f}s", flush=True)
 
+    if cfg.warmup_steps > 0:
+        t0 = time.time()
+        Xw, lpw = warmup_ensemble(target, seeds / SCALE, SCALE, cfg.warmup_steps,
+                                  np.random.default_rng(cfg.seed_seed + 1),
+                                  kind=cfg.warmup_kind,
+                                  report=max(cfg.warmup_steps // 5, 100))
+        print(f"  warm-up {cfg.warmup_steps} steps x {len(Xw)} walkers: best "
+              f"{lpw.max():.2f} median {np.median(lpw):.2f} (seeds were best "
+              f"{np.max(target['logpost_batch'](seeds)):.2f}) in {time.time()-t0:.0f}s",
+              flush=True)
+        wall["warmup"] = time.time() - t0
+        seeds = Xw * SCALE
     t0 = time.time()
-    atlas = S.sarla(target, seeds, rounds=cfg.atlas_rounds, n_audit=cfg.n_audit,
-                    seed=cfg.atlas_seed)
+    atlas_history = None
+    if cfg.atlas_engine == "surgery":
+        sg = S2.SurgeryConfig(rounds=cfg.atlas_rounds, n_audit=cfg.n_audit,
+                              **{k[3:]: v for k, v in dataclasses.asdict(cfg).items()
+                                 if k.startswith("sg_")})
+        atlas = S2.sarla2(target, seeds, sg, seed=cfg.atlas_seed)
+        atlas_history = atlas.history
+        print(S2.history_table(atlas), flush=True)
+        flat_cap = sg.var_cap
+    else:
+        atlas = S.sarla(target, seeds, rounds=cfg.atlas_rounds, n_audit=cfg.n_audit,
+                        seed=cfg.atlas_seed)
+        flat_cap = S.VAR_CAP
     degraded = sum(1 for c in atlas.charts if np.all(c.eigvals == 0))
     wall["atlas"] = time.time() - t0
     ev_atlas = n_eval[0] - ev_seeds
@@ -199,15 +256,29 @@ def main():
                            within=cfg.within if cfg.within is not None else 45.0)
     elif cfg.start_policy == "proportional":
         ks = proportional_init(lab, cfg.n_chains, rng_i, keep_regs, lp0)
+    elif cfg.start_policy == "seeds":
+        # H9: start from the polished L-BFGS seeds that fall in a kept region
+        # (all of them, with replacement), not from chart centres
+        W = seeds / SCALE
+        near = np.argmin(np.stack([c.maha2(W) for c in atlas.charts], 1), 1)
+        okmask = np.isin(lab[near], keep_regs)
+        pool = W[okmask] if okmask.any() else W
+        pick = rng_i.choice(len(pool), cfg.n_chains, replace=len(pool) < cfg.n_chains)
+        init_X = pool[pick]
+        ks = near[okmask][pick] if okmask.any() else near[pick]
+        print(f"  seed starts: {len(pool)} seeds in kept regions, "
+              f"{len(np.unique(pick))} distinct used", flush=True)
     else:
         raise ValueError(cfg.start_policy)
+    init_X = init_X if cfg.start_policy == "seeds" else None
     print(f"  init charts: {len(np.unique(ks))} distinct, centre logpost "
           f"{lp0[ks].min():.1f}..{lp0[ks].max():.1f}", flush=True)
 
     t0 = time.time()
     draws, acc, bestlp, diag = run_kernel(
         atlas, target, cfg, cfg.n_steps, cfg.n_chains, seed=cfg.kernel_seed,
-        init_ks=ks, report=max(cfg.n_steps // 8, 500), flat_cap=S.VAR_CAP)
+        init_ks=ks, report=max(cfg.n_steps // 8, 500), flat_cap=flat_cap,
+        init_X=init_X)
     wall["kernel"] = time.time() - t0
     ev_kernel = n_eval[0] - ev_seeds - ev_atlas
     wall["total"] = time.time() - t_all
@@ -225,7 +296,9 @@ def main():
              wall=json.dumps(wall), final_lp=diag["final_lp"],
              n_eval=np.array([ev_seeds, ev_atlas, ev_kernel]),
              acc_pop=diag["acc_pop"], n_restart=diag["n_restart"],
-             n_charts=len(atlas.charts), n_degraded=degraded)
+             n_charts=len(atlas.charts), n_degraded=degraded,
+             chart_ranks=np.array([c.rank for c in atlas.charts]),
+             atlas_history=json.dumps(atlas_history, default=str) if atlas_history else "")
     print(f"wrote {a.out}  total {wall['total']:.0f}s", flush=True)
 
 

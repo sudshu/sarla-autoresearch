@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-02 04:53 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 08:54 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -171,9 +171,96 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <li>No advisor call for this iteration (invalid truths). The GPUs idle until the</li>
 </ul>
 <p>  v2 datasets exist; the truth chains are about 60% through.</p>
+<h3>v2 truths (2026-09-02 05:15 PDT)</h3>
+<ul>
+<li>The reference chains converged at NL-Loo, DE-Gri, BE-Vie, DK-Sor and CZ-wet</li>
+</ul>
+<p>  (soft-EDC penalty of the last 30% of draws: median -11 to -14, the same as</p>
+<p>  the 33-h NL-Loo reference), and not at ES-LJu, FR-Pue, DE-Geb (-28 to -125).</p>
+<p>  Development set under v2 is therefore NL-Loo, DE-Gri, BE-Vie, DK-Sor; the</p>
+<p>  three slow sites join CZ-wet as holdout once their 60k-iteration runs finish</p>
+<p>  (about 4 h). Iteration 4 (v2 baseline) starts as soon as the first five</p>
+<p>  datasets are generated.</p>
+<h3>2026-09-02 05:50 PDT: disk quota, and iterations 4-5 launched</h3>
+<ul>
+<li>The home directory has a 100 GB quota, and the 32 truth chains (8.5 GB) plus</li>
+</ul>
+<p>  the running 33-h NL-Loo arm filled it while the last v2 datasets were being</p>
+<p>  written. Freed by thinning the finished truth chains to compact files</p>
+<p>  (last 30%, every 10th draw; the truth selection is unchanged) and deleting</p>
+<p>  the v1 fit outputs, which are fully represented by their scores. Fits are</p>
+<p>  pruned after scoring from now on.</p>
+<ul>
+<li>v2 truths at NL-Loo, DE-Gri, BE-Vie, DK-Sor and CZ-wet all sit at their</li>
+</ul>
+<p>  site&#x27;s pooled-median log-posterior (-213 to -226) with soft-EDC penalties of</p>
+<p>  -9 to -17, the converged range. ES-LJu, FR-Pue and DE-Geb are re-running at</p>
+<p>  60k iterations with a smaller output footprint.</p>
+<ul>
+<li>Iteration 4 (v2 baseline, 4 dev sites x 3 seeds) and iteration 5 (stretch at</li>
+</ul>
+<p>  128 x 16k, seed starts, DE at 128 x 16k) are on the GPUs; 24 fits, about</p>
+<p>  4.5 h.</p>
+<h3>2026-09-02 08:20 PDT: the v2 baseline fails by not finding the basin, and L-BFGS cannot help</h3>
+<ul>
+<li>First v2 baseline scores: NL-Loo G 0.94 to 1.66 with density rank 1.00 for</li>
+</ul>
+<p>  all three seeds (the truth, a typical posterior draw at log-posterior -284,</p>
+<p>  has higher density than every one of 20,000 draws; the atlas&#x27;s best chart</p>
+<p>  sits at -310 to -340). DK-Sor is worse: truth -276, seeds -946 at best, the</p>
+<p>  kernel climbs to -351 in 32k steps and never arrives (G 14, 85 of 89</p>
+<p>  parameters off). BE-Vie and DE-Gri are fine (rank 0.4 to 0.8).</p>
+<ul>
+<li>Diagnostic: L-BFGS from the DK-Sor seeds makes no progress at all, even</li>
+</ul>
+<p>  with 3,000 iterations (the EDC penalties make the surface piecewise, and</p>
+<p>  the optimizer stops at once). Every nat of climbing in the fast path has</p>
+<p>  been done by the MCMC kernel. The seed/atlas stage therefore needs an</p>
+<p>  ensemble warm-up (queued as iterations 6 and 7: 1,000 and 4,000 stretch</p>
+<p>  steps over the seed population before the atlas is built).</p>
+<h3>2026-09-02 09:30 PDT: research target redirected to the atlas itself</h3>
+<ul>
+<li>An external review (relayed by the user) asked the loop to make the</li>
+</ul>
+<p>  self-correcting, rank-adaptive Laplace atlas its primary target instead of</p>
+<p>  the downstream kernel. Review of <code>sarla.py</code>: rank detection, the importance</p>
+<p>  audit, normal projection and the diagnostic labels existed, but every label</p>
+<p>  ended in &quot;append another Gaussian&quot;; there were no neighbours, extents,</p>
+<p>  strata or rank transitions.</p>
+<ul>
+<li>Implemented <code>sarla2.py</code> (see ATLAS_SURGERY.md): charts with rank, tangent</li>
+</ul>
+<p>  extents, neighbours, branch ids and typed links; extend grows a chart instead</p>
+<p>  of adding one; refine caps and tiles at a bend; split replaces a chart by two;</p>
+<p>  branch starts a new stratum when the corrected point is not density-connected;</p>
+<p>  rank-change links strata of different local dimension; merge fuses redundant</p>
+<p>  neighbours. Exact MH is preserved (mixture weights known; atlas frozen before</p>
+<p>  sampling). Round-by-round diagnostics are logged and reach the score files.</p>
+<ul>
+<li>Box problems: the hidden mode is now classified as a branch (exact 0.50</li>
+</ul>
+<p>  mass); on a ridge that turns into a bump, true extend gives KL 0.23 vs 0.58</p>
+<p>  for v1 with one chart instead of two; the banana is on par; seeding on the</p>
+<p>  bump fires rank-change correctly but repeated splits cost coverage.</p>
+<ul>
+<li>The idea bank now carries an atlas-geometry family S1-S10 with priority</li>
+</ul>
+<p>  over kernel tuning. Iteration 8 tests S1 (surgery defaults), S2 (no normal</p>
+<p>  projection) and S3 (tangent-volume weights). The surgery knobs are</p>
+<p>  first-class Variant fields (prefix sg_).</p>
+<ul>
+<li>The v2 baseline&#x27;s defect fits this redirect exactly: at NL-Loo, DK-Sor and</li>
+</ul>
+<p>  CZ-wet the atlas never covers the posterior&#x27;s basin (baseline G 0.9-1.7,</p>
+<p>  3.0-14, 5.2 respectively), while BE-Vie and DE-Gri are fine.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
+<p><b>Primary research direction (from 2026-09-02): the self-correcting atlas.</b></p>
+<p>The S-family below (atlas geometry and surgery, engine <code>sarla2.py</code>, see</p>
+<p>ATLAS_SURGERY.md) has priority over kernel tuning. The v2 baseline fails by</p>
+<p>never finding the posterior&#x27;s basin (NL-Loo, DK-Sor, CZ-wet), which is an</p>
+<p>atlas-coverage problem, not a kernel problem.</p>
 <p>Status: open | running | kept | discarded | dev-only | blocked. Source: claude | codex | user.</p>
 <p>Priority 1 = try first. Variant configs live in <code>variants/</code>.</p>
 <table>
@@ -190,6 +277,16 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <tr><td>H10</td><td>3</td><td>open</td><td>claude</td><td>burn-in</td><td>Burn-in 25% instead of 50% at fixed steps</td><td>burn_frac=0.25</td></tr>
 <tr><td>H11</td><td>2</td><td>open</td><td>codex</td><td>moves</td><td>Tune the DE step (de_gamma around 2.38/sqrt(2D)) if H2 shows promise</td><td>de_gamma=0.12 / 0.25</td></tr>
 <tr><td>R1</td><td>-</td><td>rule</td><td>codex</td><td>protocol</td><td>Confirm any apparent winner with three kernel seeds and on the dev-B truths before promotion; require improvement outside BE-Vie, which holds 54% of the baseline gap</td><td>-</td></tr>
+<tr><td>S1</td><td>1</td><td>open</td><td>external+claude</td><td>atlas_geometry</td><td>Does topology-aware surgery (extend/refine/split/branch/rank-change/merge) reduce importance discrepancies faster per evaluation than v1&#x27;s add-a-chart, and does the final posterior improve?</td><td>atlas_engine=surgery</td></tr>
+<tr><td>S2</td><td>1</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Does normal projection place repair points better than repairing at the raw flagged draw?</td><td>atlas_engine=surgery sg_normal_projection=false (ablation)</td></tr>
+<tr><td>S3</td><td>1</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Do tangent-volume mixture weights (long ridges get more proposal mass) beat uniform weights?</td><td>sg_weight_rule=volume</td></tr>
+<tr><td>S4</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>More repair per round: 16 flags, 10 audit rounds</td><td>sg_flag_topk=16 atlas_rounds=10</td></tr>
+<tr><td>S5</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Does true splitting help or hurt? (C2 box problem: repeated splits cost coverage)</td><td>sg_do_split=false</td></tr>
+<tr><td>S6</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Rank-detection criterion: gap_min 3 vs 10 vs 30; rank_tau 0.5 / 2</td><td>sg_gap_min=3; sg_rank_tau=0.5</td></tr>
+<tr><td>S7</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Branch criterion: branch_tau 5 vs 10 vs 20 (how easily a discrepancy becomes a new stratum)</td><td>sg_branch_tau=5 / 20</td></tr>
+<tr><td>S8</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Audit sample size 16384 with ESS-based stop: can fewer downstream MCMC evaluations achieve the same G after a better atlas?</td><td>n_audit=16384 sg_stop_ess=0.3 n_steps=16000</td></tr>
+<tr><td>S9</td><td>3</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Warm-up (H12) + surgery: does a better seed population change which operations fire?</td><td>warmup_steps=1000 atlas_engine=surgery</td></tr>
+<tr><td>S10</td><td>3</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Merge criterion: merge_tol 0.5 vs 2 (cost vs coverage)</td><td>sg_merge_tol=2.0</td></tr>
 </table>
 
 <h2>Protocol (frozen)</h2>
@@ -301,4 +398,10 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>budget, metric, accept rule, milestones) is unchanged. Iteration numbering</p>
 <p>continues (iteration 4 is the v2 baseline); the baseline and noise floor are</p>
 <p>re-measured.</p>
+<p><b>Sites under v2.</b> The truth source changed which sites are usable: DK-Sor</p>
+<p>now has a converged reference chain and plausible draws, while ES-LJu,</p>
+<p>FR-Pue and DE-Geb did not converge in 30,000 iterations (soft-EDC penalties</p>
+<p>still -28 to -125) and are re-run at 60,000 iterations. Development set under</p>
+<p>v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),</p>
+<p>DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.</p>
 </body></html>

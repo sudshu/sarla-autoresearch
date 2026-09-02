@@ -28,7 +28,7 @@ D = 89
 
 
 def run_kernel(atlas, target, cfg, n_steps, n_chains, seed=5, init_ks=None,
-               report=None, flat_cap=1.0):
+               report=None, flat_cap=1.0, init_X=None):
     rng = np.random.default_rng(seed)
     charts, scale = atlas.charts, atlas.scale
     K = len(charts)
@@ -48,6 +48,8 @@ def run_kernel(atlas, target, cfg, n_steps, n_chains, seed=5, init_ks=None,
     ks0 = rng.integers(0, K, n_chains) if init_ks is None else \
         np.asarray(init_ks, int)
     X = C[ks0] + 0.01 * rng.standard_normal((n_chains, D))
+    if init_X is not None:                 # explicit whitened start points
+        X = np.asarray(init_X, float) + 0.01 * rng.standard_normal((n_chains, D))
     lpi = np.array(batch(X * scale), dtype=float)
     bad = ~np.isfinite(lpi)
     while bad.any():
@@ -161,3 +163,58 @@ def run_kernel(atlas, target, cfg, n_steps, n_chains, seed=5, init_ks=None,
                 s_ad_final=float(s_ad), thin=thin,
                 final_lp=lpi.copy())
     return np.concatenate(keep), acc[0] / max(acc[1], 1), float(lpi.max()), diag
+
+
+def warmup_ensemble(target, X0, scale, n_steps, rng, kind="stretch", a=2.0,
+                    report=None):
+    """Chart-free population warm-up between the L-BFGS seeds and the atlas.
+
+    2026-09-02, protocol-v2 baseline at NL-Loo: the truth's log-posterior was
+    -284 while the atlas's best chart centre was -310..-340 and no draw of
+    20,000 reached the truth's density. The seed stage (L-BFGS from pilot
+    points, which carry soft-EDC penalties of ~500 nats) does not find the
+    posterior's basin. This runs Goodman-Weare stretch (or DE) moves over the
+    whole seed population so the atlas is built where the mass is.
+    Returns (X, lp) of the final population, whitened coordinates.
+    """
+    X = np.array(X0, float)
+    n, d = X.shape
+    batch = target["logpost_batch"]
+    lp = np.array(batch(X * scale), dtype=float)
+    bad = ~np.isfinite(lp)
+    X, lp = X[~bad], lp[~bad]
+    n = len(X)
+    half = n // 2
+    halves = (np.arange(half), np.arange(half, n))
+    acc = [0, 0]
+    de_gamma = 2.38 / np.sqrt(2 * d)
+    t0 = time.time()
+    for t in range(n_steps):
+        for S1, S2 in (halves, halves[::-1]):
+            n1 = len(S1)
+            if kind == "stretch":
+                j = S2[rng.integers(0, len(S2), n1)]
+                u = rng.random(n1)
+                z = ((a - 1.0) * u + 1.0) ** 2 / a
+                Y = X[j] + z[:, None] * (X[S1] - X[j])
+                logq = (d - 1) * np.log(z)
+            else:
+                aa = S2[rng.integers(0, len(S2), n1)]
+                bb = S2[rng.integers(0, len(S2), n1)]
+                same = aa == bb
+                while same.any():
+                    bb[same] = S2[rng.integers(0, len(S2), int(same.sum()))]
+                    same = aa == bb
+                g = np.where(rng.random(n1) < 0.9, de_gamma, 1.0)
+                Y = X[S1] + g[:, None] * (X[aa] - X[bb]) + 1e-6 * rng.standard_normal((n1, d))
+                logq = 0.0
+            lpy = np.array(batch(Y * scale), dtype=float)
+            loga = np.where(np.isfinite(lpy), lpy - lp[S1] + logq, -np.inf)
+            take = np.log(rng.random(n1)) < loga
+            acc[0] += int(take.sum()); acc[1] += n1
+            X[S1[take]], lp[S1[take]] = Y[take], lpy[take]
+        if report and t % report == 0:
+            print(f"    warmup {t:5d}/{n_steps} acc {acc[0]/max(acc[1],1):.3f} "
+                  f"best {lp.max():.2f} median {np.median(lp):.2f} {time.time()-t0:.0f}s",
+                  flush=True)
+    return X, lp

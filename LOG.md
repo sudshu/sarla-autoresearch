@@ -134,3 +134,30 @@ setup notes. Times are US Pacific.
   been done by the MCMC kernel. The seed/atlas stage therefore needs an
   ensemble warm-up (queued as iterations 6 and 7: 1,000 and 4,000 stretch
   steps over the seed population before the atlas is built).
+
+## 2026-09-02 09:30 PDT: research target redirected to the atlas itself
+
+- An external review (relayed by the user) asked the loop to make the
+  self-correcting, rank-adaptive Laplace atlas its primary target instead of
+  the downstream kernel. Review of `sarla.py`: rank detection, the importance
+  audit, normal projection and the diagnostic labels existed, but every label
+  ended in "append another Gaussian"; there were no neighbours, extents,
+  strata or rank transitions.
+- Implemented `sarla2.py` (see ATLAS_SURGERY.md): charts with rank, tangent
+  extents, neighbours, branch ids and typed links; extend grows a chart instead
+  of adding one; refine caps and tiles at a bend; split replaces a chart by two;
+  branch starts a new stratum when the corrected point is not density-connected;
+  rank-change links strata of different local dimension; merge fuses redundant
+  neighbours. Exact MH is preserved (mixture weights known; atlas frozen before
+  sampling). Round-by-round diagnostics are logged and reach the score files.
+- Box problems: the hidden mode is now classified as a branch (exact 0.50
+  mass); on a ridge that turns into a bump, true extend gives KL 0.23 vs 0.58
+  for v1 with one chart instead of two; the banana is on par; seeding on the
+  bump fires rank-change correctly but repeated splits cost coverage.
+- The idea bank now carries an atlas-geometry family S1-S10 with priority
+  over kernel tuning. Iteration 8 tests S1 (surgery defaults), S2 (no normal
+  projection) and S3 (tangent-volume weights). The surgery knobs are
+  first-class Variant fields (prefix sg_).
+- The v2 baseline's defect fits this redirect exactly: at NL-Loo, DK-Sor and
+  CZ-wet the atlas never covers the posterior's basin (baseline G 0.9-1.7,
+  3.0-14, 5.2 respectively), while BE-Vie and DE-Gri are fine.

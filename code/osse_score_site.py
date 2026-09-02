@@ -37,9 +37,19 @@ def load_fit(path):
     for k in ("wall", "variant"):
         if k in d.files:
             meta[k] = json.loads(str(d[k]))
-    for k in ("n_eval", "acc_pop", "n_restart", "n_charts", "n_degraded"):
+    for k in ("n_eval", "acc_pop", "n_restart", "n_charts", "n_degraded", "chart_ranks"):
         if k in d.files:
             meta[k] = np.asarray(d[k]).tolist()
+    if "atlas_history" in d.files and str(d["atlas_history"]):
+        h = json.loads(str(d["atlas_history"]))
+        meta["atlas_history"] = h
+        tot = {}
+        for row in h:
+            for kk, vv in (row.get("ops") or {}).items():
+                tot[kk] = tot.get(kk, 0) + vv
+        meta["atlas_summary"] = dict(rounds=len(h), K_final=h[-1]["K_after"], ess_final=h[-1]["ess"],
+                                     uncovered_final=h[-1]["n_uncovered"], ops_total=tot,
+                                     n_eval_atlas=h[-1]["n_eval"], ranks_final=h[-1]["ranks"])
     return Z, meta
 
 
