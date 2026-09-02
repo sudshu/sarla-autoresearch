@@ -103,10 +103,17 @@ elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)
 were judged against invalid truths and are kept on the page as protocol v1
 for the record only; they carry no weight in any decision.
 
-**Truth rule, v2.** As v1 (plausible real-data L-BFGS mode plus random jitter
-in z), with one added requirement: the jittered point's total soft-EDC
-penalty must lie within 10 nats of the mode's own. The jitter starts at 0.3
-prior sd and is halved (0.15, then 0.1) if no such point is found in 40
-batches of 64. Everything else (sites, split, noise model, budget, metric,
-accept rule, milestones) is unchanged. Iteration numbering continues
-(iteration 4 is the v2 baseline); the baseline and noise floor are re-measured.
+**Truth rule, v2.** The truth is a typical accepted draw of CARDAMOM's own
+reference sampler on the real data: a short ADEMCMC run per site (4 chains x
+30,000 iterations, 400 walkers each), second half of every chain pooled,
+plausibility filter as before (finite trajectory, mean GPP and biomass within
+[0.3x, 3x] of the observed), and the draw whose log-posterior is nearest the
+pooled median. This is the recipe the NL-Loo OSSE used. It is EDC-consistent
+by construction (an accepted draw), independent of the sampler under test,
+and typical rather than mode-adjacent. The first v2 attempt (jittered mode
+with an EDC check) was abandoned before use: the real-data L-BFGS modes from
+the pilot themselves carry soft-EDC penalties near 500 nats, so nothing
+built on them can be consistent. Everything else (sites, split, noise model,
+budget, metric, accept rule, milestones) is unchanged. Iteration numbering
+continues (iteration 4 is the v2 baseline); the baseline and noise floor are
+re-measured.

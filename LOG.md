@@ -75,3 +75,10 @@ setup notes. Times are US Pacific.
 - What survives from v1: the relative behaviour of the kernels (plain chart
   walkers at 512 x 4k do not contract; stretch moves match the baseline in
   62% of the time) and the fact that no chain was ever stuck.
+- Update 03:10 PDT: the EDC-checked jitter cannot work either, because the
+  pilot's real-data modes themselves carry soft-EDC penalties near 500 nats
+  (posterior draws: about 6). The v2 truth is therefore a typical accepted
+  draw from a short run of CARDAMOM's own ADEMCMC on the real data (4 chains
+  x 30k iterations per site, running now on the local CPUs, about 2 h), the
+  same recipe the NL-Loo OSSE used. Independent of the sampler under test and
+  EDC-consistent by construction.
