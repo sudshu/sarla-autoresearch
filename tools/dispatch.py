@@ -71,10 +71,10 @@ def sync(host):
     src = os.path.join(ROOT, HOSTS["dalec_src"])
     push(host, [src], f"{h['workdir']}/scripts/dalec_jax_src",
          strip=os.path.dirname(src))
-    sites = sorted(glob.glob(os.path.join(ROOT, "runs", "osse_sites", "*")))
+    sites = sorted(glob.glob(os.path.join(ROOT, "runs", "osse_sites_v2", "*")))
     if sites:
-        push(host, sites, f"{h['workdir']}/runs/osse_sites",
-             strip=os.path.join(ROOT, "runs", "osse_sites"))
+        push(host, sites, f"{h['workdir']}/runs/osse_sites_v2",
+             strip=os.path.join(ROOT, "runs", "osse_sites_v2"))
     var = sorted(glob.glob(os.path.join(AR, "variants", "*.json")))
     if var:
         push(host, var, f"{h['workdir']}/variants", strip=os.path.join(AR, "variants"))

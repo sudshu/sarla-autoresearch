@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 02:51 PDT",
+ "updated": "2026-09-02 02:57 PDT",
  "runs": [
   {
    "run": 1,
@@ -24,7 +24,7 @@
     },
     "wall_median": 3270.0405745506287
    },
-   "status": "baseline",
+   "status": "v1-invalid",
    "description": "Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.",
    "commit": "9ef54de",
    "timestamp": 1788340660,
@@ -49,7 +49,7 @@
     },
     "wall_median": 2580.0488317012787
    },
-   "status": "discard",
+   "status": "v1-invalid",
    "description": "8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.",
    "commit": "ce8a25c",
    "timestamp": 1788342627,
@@ -74,7 +74,7 @@
     },
     "wall_median": 2160.0349626541138
    },
-   "status": "discard",
+   "status": "v1-invalid",
    "description": "Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).",
    "commit": "ce8a25c",
    "timestamp": 1788342627,
@@ -99,14 +99,14 @@
     },
     "wall_median": 2040.0381622314453
    },
-   "status": "discard",
+   "status": "v1-invalid",
    "description": "Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.",
    "commit": "ce8a25c",
    "timestamp": 1788342627,
    "protocol_version": 1
   }
  ],
- "best_G_dev": 1.1895396549127126,
+ "best_G_dev": null,
  "aggregates": {
   "0": {
    "v3_baseline": {

@@ -25,6 +25,8 @@ AR = os.path.dirname(HERE)
 ROOT = os.path.dirname(AR)
 LOCAL = os.path.join(ROOT, "runs", "autoresearch")
 PY = os.path.join(ROOT, ".venv", "bin", "python")
+PROTOCOL_VERSION = 2
+SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites_v2")
 DEV = [183, 58, 178, 26]
 HOLDOUT = [55, 57, 82, 71]
 SITE_NAMES = {26: "BE-Vie", 55: "CZ-wet", 57: "DE-Geb", 58: "DE-Gri", 71: "DK-Sor",
@@ -47,7 +49,7 @@ def make_jobs(it, variant, sites, seeds, tag, overrides):
     for site in sites:
         for seed in seeds:
             jid = job_id(it, variant, site, tag, seed)
-            job = dict(id=jid, site_dir=f"runs/osse_sites/{site}{tag}",
+            job = dict(id=jid, site_dir=f"runs/osse_sites_v2/{site}{tag}",
                        variant_file=f"variants/{variant}.json", kernel_seed=seed,
                        overrides=overrides, attempts=0, iteration=it, variant=variant,
                        site=site, tag=tag)
@@ -86,7 +88,7 @@ def score(it, ndraw=500):
         if not todo:
             continue
         cmd = [PY, os.path.join(ROOT, "scripts", "osse_score_site.py"),
-               "--site-dir", os.path.join(ROOT, "runs", "osse_sites", f"{site}{tag}"),
+               "--site-dir", os.path.join(SITES_ROOT, f"{site}{tag}"),
                "--out", out + ".part", "--ndraw", str(ndraw),
                "--fig-dir", os.path.join(ed, "figures")]
         for k, v in d.items():          # rescore all fits of the site together
@@ -196,7 +198,7 @@ def record(it, variant, status, description, hypothesis, category, commit):
                               per_site={k: v["G"] for k, v in s["per_site"].items()},
                               wall_median=s["wall_median"]),
                  status=status, description=description, commit=commit,
-                 timestamp=int(time.time()), protocol_version=1)
+                 timestamp=int(time.time()), protocol_version=PROTOCOL_VERSION)
     with open(os.path.join(AR, "autoresearch.jsonl"), "a") as f:
         f.write(json.dumps(entry) + "\n")
     print(json.dumps(entry))

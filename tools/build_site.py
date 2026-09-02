@@ -25,7 +25,9 @@ HOLDOUT = [55, 57, 82, 71]
 NAMES = {26: "BE-Vie (MF)", 55: "CZ-wet (WET)", 57: "DE-Geb (CRO)", 58: "DE-Gri (GRA)",
          71: "DK-Sor (DBF)", 82: "FR-Pue (EBF)", 178: "ES-LJu (OSH)", 183: "NL-Loo (ENF)"}
 STATUS_COLOR = {"keep": "#2166ac", "discard": "#b2182b", "dev-only": "#e08214",
-                "crash": "#777777", "baseline": "#4d4d4d", "running": "#999999"}
+                "crash": "#777777", "baseline": "#4d4d4d", "running": "#999999",
+                "v1-invalid": "#bbbbbb"}
+PROTOCOL_VERSION = 2
 ADEMCMC_H = 33.0
 plt.rcParams.update({"font.size": 11, "axes.spines.top": False, "axes.spines.right": False,
                      "figure.dpi": 110, "savefig.bbox": "tight"})
@@ -37,6 +39,8 @@ def load_runs():
         if l.strip():
             d = json.loads(l)
             if d.get("type") != "config":
+                if d.get("protocol_version", 1) < PROTOCOL_VERSION:
+                    d = dict(d, status="v1-invalid")
                 runs.append(d)
     return runs
 
@@ -257,6 +261,8 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <img src="charts/speed.png" alt="speed chart">
 
 <h2>Experiments</h2>
+<p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own
+ecological constraints reject (see the log entry "Protocol v2"); they are kept for the record and decide nothing.</p>
 <table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
 {rows}</table>
 

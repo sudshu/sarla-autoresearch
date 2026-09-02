@@ -91,3 +91,22 @@ under a later version.
 **Data on this page.** Aggregate metrics and public FLUXNET site IDs only; no
 observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)
 via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).
+
+## Protocol version 2 (2026-09-02 04:00 PDT)
+
+**What changed and why.** Decomposing the log-posterior at the protocol-v1
+truths showed that the data terms at the truth equal those at the sampler's
+best draw, while the soft EDC (ecological-constraint) penalties differ by 580
+to 1,220 nats. The 0.3-sd jitter had pushed every truth into territory the
+model's own constraints reject, so the pseudo-data posterior was legitimately
+elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)
+were judged against invalid truths and are kept on the page as protocol v1
+for the record only; they carry no weight in any decision.
+
+**Truth rule, v2.** As v1 (plausible real-data L-BFGS mode plus random jitter
+in z), with one added requirement: the jittered point's total soft-EDC
+penalty must lie within 10 nats of the mode's own. The jitter starts at 0.3
+prior sd and is halved (0.15, then 0.1) if no such point is found in 40
+batches of 64. Everything else (sites, split, noise model, budget, metric,
+accept rule, milestones) is unchanged. Iteration numbering continues
+(iteration 4 is the v2 baseline); the baseline and noise floor are re-measured.

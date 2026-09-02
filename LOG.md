@@ -57,3 +57,21 @@ setup notes. Times are US Pacific.
   the steps.
 - BE-Vie stayed at G 2.3 to 2.8 under every variant: no kernel tried so far
   reaches the near-zero-wood truth there.
+
+## Protocol v2 (2026-09-02 04:00 PDT): the v1 truths were invalid
+
+- While iteration 2 ran, I checked why BE-Vie was so poor and why one NL-Loo
+  seed never reached the truth's density: the truth itself sits 780 (BE-Vie)
+  to 1,230 (NL-Loo) nats below the posterior's bulk. The data terms are fine;
+  the difference is entirely the model's soft ecological-constraint (EDC)
+  penalties, which the random jitter had violated. A truth the model's own
+  priors reject at e^-1000 is not a recovery test of the sampler.
+- Consequence: runs 1-4 stay on the page as "protocol v1" but decide nothing.
+  All twelve site datasets are being regenerated with an EDC-consistency check
+  on the truth (within 10 nats of the mode's penalty). Iteration 4 will be
+  the v2 baseline; the noise floor is re-measured there. The
+  pending iteration-3 jobs were cancelled; the running iteration-2 jobs are
+  allowed to finish and will be logged as v1.
+- What survives from v1: the relative behaviour of the kernels (plain chart
+  walkers at 512 x 4k do not contract; stretch moves match the baseline in
+  62% of the time) and the fact that no chain was ever stuck.

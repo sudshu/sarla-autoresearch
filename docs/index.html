@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-02 02:51 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 02:57 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -27,7 +27,7 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 
 <div class="kpi">
 <div><b>4</b>experiments</div><div><b>0</b>improvements kept</div>
-<div><b>1.19</b>best G (dev sites)</div>
+<div><b>--</b>best G (dev sites)</div>
 <div><b>~30 min</b>per site (vs 33 h)</div>
 </div>
 
@@ -43,8 +43,10 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <img src="charts/speed.png" alt="speed chart">
 
 <h2>Experiments</h2>
+<p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own
+ecological constraints reject (see the log entry "Protocol v2"); they are kept for the record and decide nothing.</p>
 <table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
-<tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#b2182b'><b>discard</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#b2182b'><b>discard</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#b2182b'><b>discard</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#4d4d4d'><b>baseline</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
+<tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
 
 <h2>Log</h2>
 <h2>Log</h2>
@@ -125,6 +127,28 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <li>BE-Vie stayed at G 2.3 to 2.8 under every variant: no kernel tried so far</li>
 </ul>
 <p>  reaches the near-zero-wood truth there.</p>
+<h3>Protocol v2 (2026-09-02 04:00 PDT): the v1 truths were invalid</h3>
+<ul>
+<li>While iteration 2 ran, I checked why BE-Vie was so poor and why one NL-Loo</li>
+</ul>
+<p>  seed never reached the truth&#x27;s density: the truth itself sits 780 (BE-Vie)</p>
+<p>  to 1,230 (NL-Loo) nats below the posterior&#x27;s bulk. The data terms are fine;</p>
+<p>  the difference is entirely the model&#x27;s soft ecological-constraint (EDC)</p>
+<p>  penalties, which the random jitter had violated. A truth the model&#x27;s own</p>
+<p>  priors reject at e^-1000 is not a recovery test of the sampler.</p>
+<ul>
+<li>Consequence: runs 1-4 stay on the page as &quot;protocol v1&quot; but decide nothing.</li>
+</ul>
+<p>  All twelve site datasets are being regenerated with an EDC-consistency check</p>
+<p>  on the truth (within 10 nats of the mode&#x27;s penalty). Iteration 4 will be</p>
+<p>  the v2 baseline; the noise floor is re-measured there. The</p>
+<p>  pending iteration-3 jobs were cancelled; the running iteration-2 jobs are</p>
+<p>  allowed to finish and will be logged as v1.</p>
+<ul>
+<li>What survives from v1: the relative behaviour of the kernels (plain chart</li>
+</ul>
+<p>  walkers at 512 x 4k do not contract; stretch moves match the baseline in</p>
+<p>  62% of the time) and the fact that no chain was ever stuck.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -232,4 +256,20 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p><b>Data on this page.</b> Aggregate metrics and public FLUXNET site IDs only; no</p>
 <p>observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)</p>
 <p>via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).</p>
+<h3>Protocol version 2 (2026-09-02 04:00 PDT)</h3>
+<p><b>What changed and why.</b> Decomposing the log-posterior at the protocol-v1</p>
+<p>truths showed that the data terms at the truth equal those at the sampler&#x27;s</p>
+<p>best draw, while the soft EDC (ecological-constraint) penalties differ by 580</p>
+<p>to 1,220 nats. The 0.3-sd jitter had pushed every truth into territory the</p>
+<p>model&#x27;s own constraints reject, so the pseudo-data posterior was legitimately</p>
+<p>elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)</p>
+<p>were judged against invalid truths and are kept on the page as protocol v1</p>
+<p>for the record only; they carry no weight in any decision.</p>
+<p><b>Truth rule, v2.</b> As v1 (plausible real-data L-BFGS mode plus random jitter</p>
+<p>in z), with one added requirement: the jittered point&#x27;s total soft-EDC</p>
+<p>penalty must lie within 10 nats of the mode&#x27;s own. The jitter starts at 0.3</p>
+<p>prior sd and is halved (0.15, then 0.1) if no such point is found in 40</p>
+<p>batches of 64. Everything else (sites, split, noise model, budget, metric,</p>
+<p>accept rule, milestones) is unchanged. Iteration numbering continues</p>
+<p>(iteration 4 is the v2 baseline); the baseline and noise floor are re-measured.</p>
 </body></html>
