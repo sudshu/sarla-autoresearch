@@ -93,3 +93,13 @@ setup notes. Times are US Pacific.
   BE-Vie with density rank 0.01).
 - No advisor call for this iteration (invalid truths). The GPUs idle until the
   v2 datasets exist; the truth chains are about 60% through.
+
+## v2 truths (2026-09-02 05:15 PDT)
+
+- The reference chains converged at NL-Loo, DE-Gri, BE-Vie, DK-Sor and CZ-wet
+  (soft-EDC penalty of the last 30% of draws: median -11 to -14, the same as
+  the 33-h NL-Loo reference), and not at ES-LJu, FR-Pue, DE-Geb (-28 to -125).
+  Development set under v2 is therefore NL-Loo, DE-Gri, BE-Vie, DK-Sor; the
+  three slow sites join CZ-wet as holdout once their 60k-iteration runs finish
+  (about 4 h). Iteration 4 (v2 baseline) starts as soon as the first five
+  datasets are generated.

@@ -117,3 +117,10 @@ built on them can be consistent. Everything else (sites, split, noise model,
 budget, metric, accept rule, milestones) is unchanged. Iteration numbering
 continues (iteration 4 is the v2 baseline); the baseline and noise floor are
 re-measured.
+
+**Sites under v2.** The truth source changed which sites are usable: DK-Sor
+now has a converged reference chain and plausible draws, while ES-LJu,
+FR-Pue and DE-Geb did not converge in 30,000 iterations (soft-EDC penalties
+still -28 to -125) and are re-run at 60,000 iterations. Development set under
+v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),
+DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.
