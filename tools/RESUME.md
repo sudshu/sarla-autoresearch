@@ -32,3 +32,11 @@ Run `tools/loop.py prune --iter N` after an iteration is scored (deletes the
 runs/ademcmc_truth/site_N/thinned_last30.npz and delete the .cbr. The 33-h
 NL-Loo OSSE arm (runs/ademcmc_osse_full) grows to ~9 GB and must never be
 starved.
+
+## Storage (2026-09-02)
+Bulky outputs live on the local data volume /export/data1/spandey/cardamom/
+(no user quota): autoresearch_jobs/ (symlinked from runs/autoresearch/jobs),
+ademcmc_truth/ and ademcmc_truth60k/ (thinned truth chains, symlinked from
+runs/). The sibling session's reference arm restarts under
+/export/data1/spandey/cardamom/ademcmc_osse_full. Never write large files
+under /home/spandey (100 GB hard quota shared with everything else).
