@@ -1,0 +1,29 @@
+{
+  "hosts": {
+    "h100": {
+      "ssh": ["ssh", "-o", "ConnectTimeout=20", "aws_kyo", "ssh -o RemoteCommand=none -o RequestTTY=no -o ConnectTimeout=20 az-ms"],
+      "rsync_target": null,
+      "workdir": "/home/azureuser/cardamom_osse",
+      "python": "/home/azureuser/cardamom_osse/.venv/bin/python",
+      "slots": [
+        {"slot": 0, "gpu": 0, "mem_frac": 0.30},
+        {"slot": 1, "gpu": 0, "mem_frac": 0.30},
+        {"slot": 2, "gpu": 0, "mem_frac": 0.30}
+      ],
+      "gpu_name": "H100 NVL 96GB"
+    },
+    "kyo": {
+      "ssh": ["ssh", "-o", "ConnectTimeout=20", "aws_kyo"],
+      "rsync_target": "aws_kyo:/home/pandeysu/sarla",
+      "workdir": "/home/pandeysu/sarla",
+      "python": "/home/pandeysu/sarla/.venv/bin/python",
+      "slots": [
+        {"slot": 0, "gpu": 0, "mem_frac": 0.90},
+        {"slot": 1, "gpu": 1, "mem_frac": 0.90}
+      ],
+      "gpu_name": "RTX PRO 4500 Blackwell 32GB"
+    }
+  },
+  "code_files": ["sarla.py", "osse_fit.py", "sarla_fit.py", "sarla_kernels.py", "sarla_forward.py"],
+  "dalec_src": "CARDAMOM/PYTHON/dalec_jax/src/dalec_jax"
+}

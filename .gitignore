@@ -1,0 +1,8 @@
+*.nc
+*.cbr
+*.npz
+*.npy
+__pycache__/
+*.pyc
+queue/
+jobs/
