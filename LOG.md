@@ -221,3 +221,7 @@ setup notes. Times are US Pacific.
   tolerances scaled for 89-D (model_tol 20, bend_tol 3, branch_tau 100, 16
   flags per round, volume weights).
 - Wall-clock: surgery adds no time (49 to 61 min per fit, same as baseline).
+- Advisor (iteration 8): combine volume-weighted surgery with the DE kernel,
+  confirm S3 with two more seeds, test branch_tau 20 next to the queued 100.
+  Queued as iteration 12 (12 fits). Kernel-only DE/stretch confirmations
+  (iteration 9) and surgery+DE / branch_tau 100 (iteration 10) are running.
