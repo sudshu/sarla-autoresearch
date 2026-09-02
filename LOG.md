@@ -230,3 +230,8 @@ setup notes. Times are US Pacific.
   sit at soft-EDC penalties near -118 for every draw, so the consistency rule
   is now relative to each site's reference chain (see autoresearch.md). Their
   baseline fits are queued to complete the baseline's holdout score.
+- 16:30 PDT: the 33-h NL-Loo ADEMCMC reference arm (run by a sibling session)
+  had crashed at 05:57 with a write error: the home-directory quota that my
+  truth chains filled. It is being restarted on the large local data volume.
+  The loop's job mirror and truth-chain archives now live there as well
+  (symlinked from runs/), so the loop can no longer starve the home quota.
