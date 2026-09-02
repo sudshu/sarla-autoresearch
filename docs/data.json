@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 08:54 PDT",
+ "updated": "2026-09-02 09:19 PDT",
  "runs": [
   {
    "run": 1,
@@ -179,9 +179,35 @@
    "commit": "ce8a25c",
    "timestamp": 1788349994,
    "protocol_version": 1
+  },
+  {
+   "run": 8,
+   "iteration": 4,
+   "variant": "v3_baseline",
+   "hypothesis": "H0",
+   "category": "baseline",
+   "metric": 1.7174271559161076,
+   "metrics": {
+    "G_dev": 1.7174271559161076,
+    "G_holdout": 5.0,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.4162991297568477,
+     "26": 1.1126698757489557,
+     "55": 5.0,
+     "58": 0.8173387673432765,
+     "71": 3.5234008508153507
+    },
+    "wall_median": 3060.038473844528
+   },
+   "status": "baseline",
+   "description": "Protocol v2/v3 baseline: the v3 fast path at 4 dev sites x 3 seeds (+ CZ-wet holdout). Fails by never reaching the posterior basin at NL-Loo (density rank 1.00 all seeds), DK-Sor (G 14/2.6/3.0) and CZ-wet (5.2); fine at BE-Vie and DE-Gri.",
+   "commit": "453ea9f",
+   "timestamp": 1788365941,
+   "protocol_version": 3
   }
  ],
- "best_G_dev": null,
+ "best_G_dev": 1.7174271559161076,
  "aggregates": {
   "0": {
    "v3_baseline": {
@@ -280,6 +306,23 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3060.041935443878
+   }
+  },
+  "4": {
+   "v3_baseline": {
+    "G_dev_per_seed": [
+     2.1616033850369685,
+     1.304248126011807,
+     1.686429956699547
+    ],
+    "sd_dev": 0.42951732190213093,
+    "delta": 0.8590346438042619,
+    "G_dev": 1.7174271559161076,
+    "n_dev": 4,
+    "G_holdout": 5.0,
+    "n_holdout": 1,
+    "G_devB": null,
+    "wall_median": 3060.038473844528
    }
   }
  }

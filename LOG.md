@@ -166,3 +166,20 @@ setup notes. Times are US Pacific.
   after the remaining kernel jobs of iteration 5; the warm-up jobs are
   resubmitted once iteration 8 is on the GPUs (job files kept under
   runs/autoresearch/queue/deferred).
+
+## Iteration 4 result (2026-09-02 09:45 PDT): v2 baseline G = 1.72 on the development sites (capped), 5.0 on the one holdout site scored
+
+- With valid truths the fast path's problem is no longer under-dispersion but
+  coverage: at NL-Loo every seed gives density rank 1.00 (the truth has
+  higher density than all 20,000 draws; the atlas's best chart sits 30 to 60
+  nats below the truth), at DK-Sor the posterior sits in the wrong basin
+  altogether (G 14.0 / 2.6 / 3.0 across seeds, 85 of 89 parameters more than
+  2 sd off in the worst case), and CZ-wet (holdout) scores 5.2. BE-Vie (1.11)
+  and DE-Gri (0.82) are fine.
+- Protocol v3: site G capped at 5 in aggregates, because DK-Sor's fat tail
+  alone had set the acceptance threshold to 3.4. Under v3 the baseline is
+  G_dev 1.72, noise floor delta 0.86 (still large: the baseline itself is
+  erratic at the two hard sites).
+- Consequence for the research direction: the atlas must find and cover the
+  posterior's basin. Iteration 8 (surgery engine, three variants) is next in
+  the queue after the remaining kernel jobs of iteration 5.

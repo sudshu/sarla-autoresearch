@@ -124,3 +124,16 @@ FR-Pue and DE-Geb did not converge in 30,000 iterations (soft-EDC penalties
 still -28 to -125) and are re-run at 60,000 iterations. Development set under
 v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),
 DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.
+
+## Protocol version 3 (2026-09-02 09:40 PDT)
+
+**What changed and why.** The first valid (v2) baseline showed that one site
+can dominate everything: DK-Sor scored G = 14.0, 2.6 and 3.0 over three
+kernel seeds, so the seed-to-seed sd of the development mean was 1.7 and the
+acceptance threshold delta = 2 sd = 3.4, which no realistic improvement could
+clear. From v3 every site's G is capped at 5 in every aggregate (per-fit
+scores stay uncapped in the score files): a catastrophic site counts as a
+failure, not as a lever on the mean, and the noise floor is 2 sd of the
+capped development mean over kernel seeds. Nothing else changes; no decision
+had been taken under v2, so no result is re-judged. v2 truths and datasets
+are unchanged and remain the reference.

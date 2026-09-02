@@ -27,7 +27,8 @@ NAMES = {26: "BE-Vie (MF)", 55: "CZ-wet (WET)", 57: "DE-Geb (CRO)", 58: "DE-Gri 
 STATUS_COLOR = {"keep": "#2166ac", "discard": "#b2182b", "dev-only": "#e08214",
                 "crash": "#777777", "baseline": "#4d4d4d", "running": "#999999",
                 "v1-invalid": "#bbbbbb"}
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
+FIRST_VALID_PROTOCOL = 2
 ADEMCMC_H = 33.0
 plt.rcParams.update({"font.size": 11, "axes.spines.top": False, "axes.spines.right": False,
                      "figure.dpi": 110, "savefig.bbox": "tight"})
@@ -39,7 +40,7 @@ def load_runs():
         if l.strip():
             d = json.loads(l)
             if d.get("type") != "config":
-                if d.get("protocol_version", 1) < PROTOCOL_VERSION:
+                if d.get("protocol_version", 1) < FIRST_VALID_PROTOCOL:
                     d = dict(d, status="v1-invalid")
                 runs.append(d)
     return runs

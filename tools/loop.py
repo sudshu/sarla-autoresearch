@@ -25,7 +25,8 @@ AR = os.path.dirname(HERE)
 ROOT = os.path.dirname(AR)
 LOCAL = os.path.join(ROOT, "runs", "autoresearch")
 PY = os.path.join(ROOT, ".venv", "bin", "python")
-PROTOCOL_VERSION = 2
+PROTOCOL_VERSION = 3
+G_CAP = 5.0   # protocol v3: a site's G is capped at 5 in every aggregate (a catastrophic site is a failure, not a lever)
 SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites_v2")
 if os.environ.get("SITES_V1"): SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites")
 DEV = [183, 58, 26, 71]
@@ -147,7 +148,8 @@ def aggregate(it):
         per_site = {}
         for (site, tag), es in sites.items():
             Gs = [e["G"] for e in es]
-            per_site[f"{site}{tag}"] = dict(G=float(sum(Gs) / len(Gs)), G_seeds=Gs,
+            Gc = [min(g, G_CAP) for g in Gs]
+            per_site[f"{site}{tag}"] = dict(G=float(sum(Gc) / len(Gc)), G_seeds=Gs, G_raw=float(sum(Gs) / len(Gs)),
                                             n=len(es), entries=es)
         dev = [per_site[f"{s}"]["G"] for s in DEV if f"{s}" in per_site]
         hold = [per_site[f"{s}"]["G"] for s in HOLDOUT if f"{s}" in per_site]
@@ -158,7 +160,7 @@ def aggregate(it):
         common = set.intersection(*seed_sets) if len(seed_sets) == len(DEV) else set()
         per_seed = []
         for sd in sorted(common):
-            per_seed.append(float(np.mean([[e["G"] for e in sites[(s, "")] if e["seed"] == sd][0]
+            per_seed.append(float(np.mean([[min(e["G"], G_CAP) for e in sites[(s, "")] if e["seed"] == sd][0]
                                            for s in DEV])))
         sd_dev = float(np.std(per_seed, ddof=1)) if len(per_seed) >= 2 else None
         summary[variant] = dict(
@@ -177,7 +179,7 @@ def aggregate(it):
                  f"delta {s['delta']:.3f}" if s['sd_dev'] is not None else ""))
         for k, ps in s["per_site"].items():
             e = ps["entries"][0]
-            print(f"   {k:5s} G {ps['G']:.3f} {['%.2f' % g for g in ps['G_seeds']]}  c90 {e['cover90']:.2f} "
+            print(f"   {k:5s} G {ps['G']:.3f} (raw {ps['G_raw']:.2f}) {['%.2f' % g for g in ps['G_seeds']]}  c90 {e['cover90']:.2f} "
                   f"c50 {e['cover50']:.2f} rank {e['rank']:.2f} rms_z {e['rms_z']:.2f} stuck {e['stuck_frac']:.2f} "
                   f"proj {['%.2f' % p for p in e['proj']]}")
     return summary

@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-02 08:54 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 09:19 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -26,8 +26,8 @@ sampler, tests it at four development sites, keeps it only if G improves, and pe
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
 <div class="kpi">
-<div><b>7</b>experiments</div><div><b>0</b>improvements kept</div>
-<div><b>--</b>best G (dev sites)</div>
+<div><b>8</b>experiments</div><div><b>0</b>improvements kept</div>
+<div><b>1.72</b>best G (dev sites)</div>
 <div><b>~30 min</b>per site (vs 33 h)</div>
 </div>
 
@@ -46,7 +46,7 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own
 ecological constraints reject (see the log entry "Protocol v2"); they are kept for the record and decide nothing.</p>
 <table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
-<tr><td>7</td><td>2</td><td>h5_flat3</td><td>charts</td><td>1.447</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart proposal inflated x sqrt(3) in flat directions: 1.45 (v1 truths); worse at NL-Loo and BE-Vie.</td></tr><tr><td>6</td><td>2</td><td>h3_stretch128</td><td>moves</td><td>1.188</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + stretch at 128 walkers x 16k steps: 1.19 (v1 truths), equal to baseline at equal wall-clock.</td></tr><tr><td>5</td><td>2</td><td>h2_de128</td><td>moves</td><td>1.358</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + DE at 128 walkers x 16k steps: 1.36 (v1 truths). Good at ES-LJu (0.37) and DE-Gri, but collapsed at BE-Vie (3.57, rank 0.01).</td></tr><tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
+<tr><td>8</td><td>4</td><td>v3_baseline</td><td>baseline</td><td>1.717</td><td>5.000</td><td style='color:#4d4d4d'><b>baseline</b></td><td>Protocol v2/v3 baseline: the v3 fast path at 4 dev sites x 3 seeds (+ CZ-wet holdout). Fails by never reaching the posterior basin at NL-Loo (density rank 1.00 all seeds), DK-Sor (G 14/2.6/3.0) and CZ-wet (5.2); fine at BE-Vie and DE-Gri.</td></tr><tr><td>7</td><td>2</td><td>h5_flat3</td><td>charts</td><td>1.447</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart proposal inflated x sqrt(3) in flat directions: 1.45 (v1 truths); worse at NL-Loo and BE-Vie.</td></tr><tr><td>6</td><td>2</td><td>h3_stretch128</td><td>moves</td><td>1.188</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + stretch at 128 walkers x 16k steps: 1.19 (v1 truths), equal to baseline at equal wall-clock.</td></tr><tr><td>5</td><td>2</td><td>h2_de128</td><td>moves</td><td>1.358</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + DE at 128 walkers x 16k steps: 1.36 (v1 truths). Good at ES-LJu (0.37) and DE-Gri, but collapsed at BE-Vie (3.57, rank 0.01).</td></tr><tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
 
 <h2>Log</h2>
 <h2>Log</h2>
@@ -253,6 +253,34 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 </ul>
 <p>  CZ-wet the atlas never covers the posterior&#x27;s basin (baseline G 0.9-1.7,</p>
 <p>  3.0-14, 5.2 respectively), while BE-Vie and DE-Gri are fine.</p>
+<ul>
+<li>09:15 PDT: queue reordered. The 16 not-yet-started warm-up jobs (iterations</li>
+</ul>
+<p>  6 and 7) were withdrawn so the surgery experiments (iteration 8) run right</p>
+<p>  after the remaining kernel jobs of iteration 5; the warm-up jobs are</p>
+<p>  resubmitted once iteration 8 is on the GPUs (job files kept under</p>
+<p>  runs/autoresearch/queue/deferred).</p>
+<h3>Iteration 4 result (2026-09-02 09:45 PDT): v2 baseline G = 1.72 on the development sites (capped), 5.0 on the one holdout site scored</h3>
+<ul>
+<li>With valid truths the fast path&#x27;s problem is no longer under-dispersion but</li>
+</ul>
+<p>  coverage: at NL-Loo every seed gives density rank 1.00 (the truth has</p>
+<p>  higher density than all 20,000 draws; the atlas&#x27;s best chart sits 30 to 60</p>
+<p>  nats below the truth), at DK-Sor the posterior sits in the wrong basin</p>
+<p>  altogether (G 14.0 / 2.6 / 3.0 across seeds, 85 of 89 parameters more than</p>
+<p>  2 sd off in the worst case), and CZ-wet (holdout) scores 5.2. BE-Vie (1.11)</p>
+<p>  and DE-Gri (0.82) are fine.</p>
+<ul>
+<li>Protocol v3: site G capped at 5 in aggregates, because DK-Sor&#x27;s fat tail</li>
+</ul>
+<p>  alone had set the acceptance threshold to 3.4. Under v3 the baseline is</p>
+<p>  G_dev 1.72, noise floor delta 0.86 (still large: the baseline itself is</p>
+<p>  erratic at the two hard sites).</p>
+<ul>
+<li>Consequence for the research direction: the atlas must find and cover the</li>
+</ul>
+<p>  posterior&#x27;s basin. Iteration 8 (surgery engine, three variants) is next in</p>
+<p>  the queue after the remaining kernel jobs of iteration 5.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -404,4 +432,15 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>still -28 to -125) and are re-run at 60,000 iterations. Development set under</p>
 <p>v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),</p>
 <p>DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.</p>
+<h3>Protocol version 3 (2026-09-02 09:40 PDT)</h3>
+<p><b>What changed and why.</b> The first valid (v2) baseline showed that one site</p>
+<p>can dominate everything: DK-Sor scored G = 14.0, 2.6 and 3.0 over three</p>
+<p>kernel seeds, so the seed-to-seed sd of the development mean was 1.7 and the</p>
+<p>acceptance threshold delta = 2 sd = 3.4, which no realistic improvement could</p>
+<p>clear. From v3 every site&#x27;s G is capped at 5 in every aggregate (per-fit</p>
+<p>scores stay uncapped in the score files): a catastrophic site counts as a</p>
+<p>failure, not as a lever on the mean, and the noise floor is 2 sd of the</p>
+<p>capped development mean over kernel seeds. Nothing else changes; no decision</p>
+<p>had been taken under v2, so no result is re-judged. v2 truths and datasets</p>
+<p>are unchanged and remain the reference.</p>
 </body></html>
