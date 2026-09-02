@@ -183,3 +183,7 @@ setup notes. Times are US Pacific.
 - Consequence for the research direction: the atlas must find and cover the
   posterior's basin. Iteration 8 (surgery engine, three variants) is next in
   the queue after the remaining kernel jobs of iteration 5.
+- Advisor (iteration 4) concurs: surgery first, then seed starts and
+  tangent-volume weights (all queued), restart tuning afterwards; kernel tuning
+  paused until the basin is shown to be represented. Page redesigned: live
+  "right now" panel, per-site heatmap, protocol bands, reading guide.

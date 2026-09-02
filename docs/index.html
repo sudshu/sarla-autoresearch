@@ -9,9 +9,10 @@ table{border-collapse:collapse;font-size:.85rem;width:100%} th,td{border:1px sol
 th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#f4f6f8;padding:.6rem;overflow-x:auto}
 .kpi{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0} .kpi div{background:#f4f6f8;border-radius:8px;padding:.6rem 1rem;min-width:9rem}
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
+.now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-02 09:19 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 09:21 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -27,14 +28,32 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 
 <div class="kpi">
 <div><b>8</b>experiments</div><div><b>0</b>improvements kept</div>
-<div><b>1.72</b>best G (dev sites)</div>
-<div><b>~30 min</b>per site (vs 33 h)</div>
+<div><b>1.72</b>current default G (dev sites)</div>
+<div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
+
+<div class="now"><b>Latest:</b> Iteration 4 result (2026-09-02 09:45 PDT): v2 baseline G = 1.72 on the development sites (capped), 5.0 on the one holdout site scored<br>
+<b>Right now:</b> iteration 5: 5 fits running, 5 waiting, 2 done<br>iteration 8: 0 fits running, 12 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-02 09:19 PDT</div>
+
+<h2>How to read this page</h2>
+<ul>
+<li><b>G</b> is the single score: how far the sampler's uncertainty ranges are from being right, averaged over
+several checks (do 90% and 50% intervals hold the truth 90% and 50% of the time; does the truth's probability
+density rank in the middle of the draws; are the forecasts' bands right). <b>0 is perfect</b>; about 0.3 is the
+noise between repeated runs; <b>5 means the sampler landed in the wrong place</b> entirely.</li>
+<li><b>Development sites</b> decide whether a change is kept. <b>Holdout sites</b> are only scored occasionally to
+catch changes that merely fit the development sites.</li>
+<li>Grey experiments were scored against truths later found to be invalid (protocol v1) and decide nothing.</li>
+</ul>
 
 <h2>Progress</h2>
 <img src="charts/progress.png" alt="progress chart">
-<p class="small">Each dot is one experiment (one sampler variant scored at the four development sites). Blue dots were
-kept as the new default; red were discarded. Hollow squares show the same variant scored on the four holdout sites.</p>
+<p class="small">One dot per experiment, coloured by what kind of change was tried; a star marks a change that was
+kept, a square the baseline. Hollow squares are the same variant on the holdout sites. The blue line is the current
+default.</p>
+<img src="charts/heatmap.png" alt="per-site heatmap">
+<p class="small">Same experiments, one row each, one column per site. Green cells are well-calibrated fits, red
+cells are failures. A variant that fixes the red columns without turning green ones yellow is what we are after.</p>
 <img src="charts/categories.png" alt="categories chart">
 <img src="charts/sites.png" alt="per-site chart">
 <p class="small">Left: fraction of the 89 parameters whose 90% posterior interval contains the truth (should be 0.90).
@@ -281,6 +300,12 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 </ul>
 <p>  posterior&#x27;s basin. Iteration 8 (surgery engine, three variants) is next in</p>
 <p>  the queue after the remaining kernel jobs of iteration 5.</p>
+<ul>
+<li>Advisor (iteration 4) concurs: surgery first, then seed starts and</li>
+</ul>
+<p>  tangent-volume weights (all queued), restart tuning afterwards; kernel tuning</p>
+<p>  paused until the basin is shown to be represented. Page redesigned: live</p>
+<p>  &quot;right now&quot; panel, per-site heatmap, protocol bands, reading guide.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -298,7 +323,7 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <tr><td>H3</td><td>1</td><td>running (512: discarded = baseline, faster; 128/256 running)</td><td>claude</td><td>moves</td><td>Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers</td><td>kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000</td></tr>
 <tr><td>H4</td><td>2</td><td>running</td><td>claude</td><td>moves</td><td>Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves</td><td>kernel=chart_adaptcov mix=0.5</td></tr>
 <tr><td>H5</td><td>1</td><td>running</td><td>claude</td><td>charts</td><td>Inflate chart variance in flat (prior-capped) eigendirections x3</td><td>flat_mult=3</td></tr>
-<tr><td>H6</td><td>4</td><td>open</td><td>claude</td><td>restarts</td><td>Restarts through the whole burn-in, tighter gap</td><td>restart_until=0.5 restart_gap=50 restart_every=250</td></tr>
+<tr><td>H6</td><td>3</td><td>open</td><td>claude+codex</td><td>restarts</td><td>Restarts through the whole burn-in, tighter gap</td><td>restart_until=0.5 restart_gap=50 restart_every=250</td></tr>
 <tr><td>H7</td><td>3</td><td>open</td><td>claude</td><td>budget</td><td>64 L-BFGS seeds instead of 128, evaluations moved to sampling</td><td>n_seeds=64 n_steps=...</td></tr>
 <tr><td>H8</td><td>3</td><td>open</td><td>claude</td><td>speed</td><td>Cheaper atlas: 3 rounds, 2048 audit draws (speed path)</td><td>atlas_rounds=3 n_audit=2048</td></tr>
 <tr><td>H9</td><td>1</td><td>running</td><td>claude+codex</td><td>starts</td><td>Chains start from all feasible seeds of the main region, not chart centres; motivated by the 82/18 mode inversion at NL-Loo (fast path never finds the dominant high-allocation mode)</td><td>start_policy=seeds</td></tr>
@@ -315,6 +340,7 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <tr><td>S8</td><td>2</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Audit sample size 16384 with ESS-based stop: can fewer downstream MCMC evaluations achieve the same G after a better atlas?</td><td>n_audit=16384 sg_stop_ess=0.3 n_steps=16000</td></tr>
 <tr><td>S9</td><td>3</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Warm-up (H12) + surgery: does a better seed population change which operations fire?</td><td>warmup_steps=1000 atlas_engine=surgery</td></tr>
 <tr><td>S10</td><td>3</td><td>open</td><td>claude</td><td>atlas_geometry</td><td>Merge criterion: merge_tol 0.5 vs 2 (cost vs coverage)</td><td>sg_merge_tol=2.0</td></tr>
+<tr><td>P1</td><td>-</td><td>rule</td><td>codex (iter 4)</td><td>strategy</td><td>Kernel-tuning family (H1-H4, H11) paused until a valid experiment shows the posterior basin is represented in the atlas; local mixing cannot repair a missing basin</td><td>-</td></tr>
 </table>
 
 <h2>Protocol (frozen)</h2>

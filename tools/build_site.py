@@ -54,34 +54,82 @@ def load_aggregates():
     return out
 
 
+CAT_COLOR = {"baseline": "#4d4d4d", "walkers": "#8c6bb1", "moves": "#1f77b4", "charts": "#ff7f0e",
+             "atlas": "#2ca02c", "atlas_geometry": "#d62728", "starts": "#17becf", "restarts": "#bcbd22",
+             "budget": "#7f7f7f", "speed": "#e377c2", "other": "#999999"}
+
+
 def chart_progress(runs):
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(9, 4.2))
     if runs:
-        x = [r["run"] for r in runs]
-        y = [r["metric"] for r in runs]
+        # protocol bands
+        pv = [r.get("protocol_version", 1) for r in runs]
+        xs = [r["run"] for r in runs]
+        for v in sorted(set(pv)):
+            sel = [x for x, p in zip(xs, pv) if p == v]
+            ax.axvspan(min(sel) - 0.5, max(sel) + 0.5, color="0.92" if v < FIRST_VALID_PROTOCOL else "#eef6ee", zorder=0)
+            ax.text(np.mean(sel), 5.15, f"protocol v{v}" + (" (invalid truths)" if v < FIRST_VALID_PROTOCOL else ""),
+                    ha="center", fontsize=8, color="0.4")
         best, bests = np.inf, []
         for r in runs:
-            if r["status"] in ("keep", "baseline") and r["metric"] is not None:
-                best = min(best, r["metric"])
+            g = None if r["metric"] is None else min(r["metric"], 5.0)
+            valid = r["status"] != "v1-invalid"
+            if valid and r["status"] in ("keep", "baseline") and g is not None:
+                best = min(best, g)
             bests.append(best if np.isfinite(best) else np.nan)
-        for r in runs:
-            if r["metric"] is None:
+            if g is None:
                 continue
-            ax.scatter(r["run"], r["metric"], color=STATUS_COLOR.get(r["status"], "k"), s=45, zorder=3)
+            col = CAT_COLOR.get(r.get("category") or "other", "#999") if valid else "0.75"
+            marker = {"keep": "*", "baseline": "s", "discard": "o", "dev-only": "D", "crash": "x"}.get(r["status"], "o")
+            ax.scatter(r["run"], g, color=col, marker=marker, s=110 if marker == "*" else 55, zorder=3,
+                       edgecolor="k" if valid else "none", linewidth=0.6)
             h = r["metrics"].get("G_holdout")
-            if h is not None:
-                ax.scatter(r["run"], h, marker="s", facecolor="none", edgecolor="k", s=60, zorder=3)
-        ax.step(x, bests, where="post", color="#2166ac", lw=1.5, label="best accepted so far")
-        for st, c in STATUS_COLOR.items():
-            if any(r["status"] == st for r in runs):
-                ax.scatter([], [], color=c, label=st)
-        ax.scatter([], [], marker="s", facecolor="none", edgecolor="k", label="holdout sites (milestone)")
-        ax.legend(fontsize=8, ncol=3)
+            if h is not None and valid:
+                ax.scatter(r["run"], min(h, 5.0), marker="s", facecolor="none", edgecolor="k", s=70, zorder=3)
+        ax.step(xs, bests, where="post", color="#2166ac", lw=1.6, label="current default (best accepted)")
+        for c, col in CAT_COLOR.items():
+            if any((r.get("category") or "other") == c and r["status"] != "v1-invalid" for r in runs):
+                ax.scatter([], [], color=col, label=c)
+        ax.scatter([], [], marker="s", facecolor="none", edgecolor="k", label="holdout sites")
+        ax.scatter([], [], color="0.75", label="invalid truths (v1)")
+        ax.legend(fontsize=7.5, ncol=4, loc="upper left", bbox_to_anchor=(0, -0.18))
     ax.set_xlabel("experiment number")
-    ax.set_ylabel("calibration gap G on the development sites\n(lower is better, 0 = perfectly calibrated)")
-    ax.set_title("Progress", loc="left")
+    ax.set_ylabel("calibration gap G, development sites\n(0 = perfect; capped at 5)")
+    ax.set_ylim(-0.1, 5.4)
+    ax.set_title("Progress: lower is better", loc="left")
     ax.axhline(0, color="0.7", lw=0.8)
     fig.savefig(os.path.join(CH, "progress.png"))
+    plt.close(fig)
+
+
+def chart_heatmap(aggs, runs):
+    """Variants (valid runs) x sites, colour = capped G."""
+    rows = [r for r in runs if r["status"] != "v1-invalid" and r["metric"] is not None]
+    if not rows:
+        return
+    sites = DEV + HOLDOUT
+    M = np.full((len(rows), len(sites)), np.nan)
+    for i, r in enumerate(rows):
+        ps = r["metrics"].get("per_site", {})
+        for j, s_ in enumerate(sites):
+            if str(s_) in ps:
+                M[i, j] = min(ps[str(s_)], 5.0)
+    fig, ax = plt.subplots(figsize=(9, 0.6 + 0.42 * len(rows)))
+    im = ax.imshow(M, cmap="RdYlGn_r", vmin=0, vmax=5, aspect="auto")
+    ax.set_xticks(range(len(sites)))
+    ax.set_xticklabels([NAMES[s_].split(" ")[0] + ("" if s_ in DEV else " (hold)") for s_ in sites], rotation=35, ha="right", fontsize=8)
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([f"#{r['run']} {r['variant']}" for r in rows], fontsize=8)
+    for i in range(len(rows)):
+        for j in range(len(sites)):
+            if np.isfinite(M[i, j]):
+                ax.text(j, i, f"{M[i, j]:.1f}", ha="center", va="center", fontsize=7,
+                        color="w" if M[i, j] > 2.5 else "k")
+    ax.axvline(len(DEV) - 0.5, color="k", lw=1)
+    cb = fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+    cb.set_label("G (0 good, 5 = failed)", fontsize=8)
+    ax.set_title("Where each variant succeeds or fails, by site (green good, red bad)", loc="left", fontsize=10)
+    fig.savefig(os.path.join(CH, "heatmap.png"))
     plt.close(fig)
 
 
@@ -198,11 +246,39 @@ def inline(s):
     return s
 
 
+def now_panel():
+    ROOT = os.path.dirname(AR)
+    st_path = os.path.join(ROOT, "runs", "autoresearch", "status.json")
+    lines = []
+    if os.path.exists(st_path):
+        st = json.load(open(st_path))
+        by_it = {}
+        for jid, j in st["jobs"].items():
+            if jid.startswith("i999"):
+                continue
+            it = jid.split("_")[0]
+            by_it.setdefault(it, {}).setdefault(j["state"], 0)
+            by_it[it][j["state"]] += 1
+        for it in sorted(by_it):
+            c = by_it[it]
+            if c.get("running") or c.get("pending"):
+                lines.append(f"iteration {int(it[1:])}: {c.get('running', 0)} fits running, {c.get('pending', 0)} waiting, {c.get('done', 0)} done")
+        hosts = [f"{h}: {'down' if 'error' in v else str(len(v['running'])) + ' running'}" for h, v in st["hosts"].items()]
+        lines.append("GPU hosts: " + "; ".join(hosts))
+        lines.append(f"queue snapshot {time.strftime('%Y-%m-%d %H:%M %Z', time.localtime(st['time']))}")
+    log = open(os.path.join(AR, "LOG.md")).read()
+    heads = [l[3:] for l in log.splitlines() if l.startswith("## ")]
+    latest = heads[-1] if heads else ""
+    return latest, lines
+
+
 def build():
     os.makedirs(CH, exist_ok=True)
     runs = load_runs()
     aggs = load_aggregates()
     chart_progress(runs); chart_categories(runs); chart_sites(aggs, runs); chart_speed(aggs, runs)
+    chart_heatmap(aggs, runs)
+    latest, now_lines = now_panel()
     kept = [r for r in runs if r["status"] in ("keep", "baseline")]
     best = min((r["metric"] for r in kept if r["metric"] is not None), default=None)
     rows = "".join(
@@ -228,6 +304,7 @@ table{{border-collapse:collapse;font-size:.85rem;width:100%}} th,td{{border:1px 
 th{{background:#f4f6f8}} code{{background:#f4f6f8;padding:0 .2rem}} pre{{background:#f4f6f8;padding:.6rem;overflow-x:auto}}
 .kpi{{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0}} .kpi div{{background:#f4f6f8;border-radius:8px;padding:.6rem 1rem;min-width:9rem}}
 .kpi b{{display:block;font-size:1.4rem}} .small{{color:#666;font-size:.85rem}}
+.now{{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
 <p class="small">Updated {now}. An automated research loop run by a Claude Code session, with a Codex advisor
@@ -246,14 +323,32 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 
 <div class="kpi">
 <div><b>{n_exp}</b>experiments</div><div><b>{n_keep}</b>improvements kept</div>
-<div><b>{'--' if best is None else f'{best:.2f}'}</b>best G (dev sites)</div>
-<div><b>~30 min</b>per site (vs 33 h)</div>
+<div><b>{'--' if best is None else f'{best:.2f}'}</b>current default G (dev sites)</div>
+<div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
+
+<div class="now"><b>Latest:</b> {html.escape(latest)}<br>
+<b>Right now:</b> {"<br>".join(html.escape(l) for l in now_lines) or "idle"}</div>
+
+<h2>How to read this page</h2>
+<ul>
+<li><b>G</b> is the single score: how far the sampler's uncertainty ranges are from being right, averaged over
+several checks (do 90% and 50% intervals hold the truth 90% and 50% of the time; does the truth's probability
+density rank in the middle of the draws; are the forecasts' bands right). <b>0 is perfect</b>; about 0.3 is the
+noise between repeated runs; <b>5 means the sampler landed in the wrong place</b> entirely.</li>
+<li><b>Development sites</b> decide whether a change is kept. <b>Holdout sites</b> are only scored occasionally to
+catch changes that merely fit the development sites.</li>
+<li>Grey experiments were scored against truths later found to be invalid (protocol v1) and decide nothing.</li>
+</ul>
 
 <h2>Progress</h2>
 <img src="charts/progress.png" alt="progress chart">
-<p class="small">Each dot is one experiment (one sampler variant scored at the four development sites). Blue dots were
-kept as the new default; red were discarded. Hollow squares show the same variant scored on the four holdout sites.</p>
+<p class="small">One dot per experiment, coloured by what kind of change was tried; a star marks a change that was
+kept, a square the baseline. Hollow squares are the same variant on the holdout sites. The blue line is the current
+default.</p>
+<img src="charts/heatmap.png" alt="per-site heatmap">
+<p class="small">Same experiments, one row each, one column per site. Green cells are well-calibrated fits, red
+cells are failures. A variant that fixes the red columns without turning green ones yellow is what we are after.</p>
 <img src="charts/categories.png" alt="categories chart">
 <img src="charts/sites.png" alt="per-site chart">
 <p class="small">Left: fraction of the 89 parameters whose 90% posterior interval contains the truth (should be 0.90).
