@@ -110,11 +110,15 @@ def score(it, ndraw=500):
     return sd
 
 
-def aggregate(it):
-    """Per variant: mean G over dev sites (seed-averaged per site), per-site table."""
+def aggregate(it, extra_iters=()):
+    """Per variant: mean G over dev sites (seed-averaged per site), per-site table.
+    extra_iters: earlier iterations whose scores are pooled in (confirmation seeds)."""
     ed = exp_dir(it)
     rows = {}
-    for f in sorted(glob.glob(os.path.join(ed, "scores", "*.json"))):
+    score_files = []
+    for i2 in list(extra_iters) + [it]:
+        score_files += sorted(glob.glob(os.path.join(exp_dir(i2), "scores", "*.json")))
+    for f in score_files:
         s = json.load(open(f))
         site, tag = s["site"], s["tag"]
         for name, r in s["fits"].items():
@@ -130,7 +134,10 @@ def aggregate(it):
                      wall=(r["meta"].get("wall") or {}).get("total"),
                      n_eval=r["meta"].get("n_eval"), host=None))
     # attach host/gpu from result.json
-    for rd in glob.glob(os.path.join(LOCAL, "jobs", f"i{it:03d}_*")):
+    job_dirs = []
+    for i2 in list(extra_iters) + [it]:
+        job_dirs += glob.glob(os.path.join(LOCAL, "jobs", f"i{i2:03d}_*"))
+    for rd in job_dirs:
         rf = os.path.join(rd, "result.json")
         if not os.path.exists(rf):
             continue
@@ -224,6 +231,7 @@ def main():
     ap.add_argument("--commit", default="")
     ap.add_argument("--ndraw", type=int, default=500)
     ap.add_argument("--protocol", type=int, default=None)
+    ap.add_argument("--with-iters", default="", help="comma list of earlier iterations to pool into aggregate")
     a = ap.parse_args()
     if a.mode == "jobs":
         sites = [int(s) for s in a.sites.split(",")]
@@ -233,7 +241,7 @@ def main():
     elif a.mode == "score":
         score(a.iter, a.ndraw)
     elif a.mode == "aggregate":
-        aggregate(a.iter)
+        aggregate(a.iter, [int(x) for x in a.with_iters.split(",") if x])
     elif a.mode == "prune":
         # delete fit.npz of jobs whose site has been scored (scores are in experiments/)
         ed = exp_dir(a.iter)

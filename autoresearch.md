@@ -148,3 +148,23 @@ the five converged sites this selects the same draws as the earlier absolute
 posterior sits at about -118 nats with an interquartile range of 6 nats even
 after 60,000 iterations: the penalty is a property of those sites' posteriors,
 so a typical draw there is the right truth.
+
+## Protocol version 4 (2026-09-02 15:20 PDT; effective for decisions taken from iteration 13 on)
+
+**What changed and why.** Under v3 the threshold delta was 2 sd of the
+BASELINE's development mean over kernel seeds (0.86, driven by the baseline's
+erratic behaviour at DK-Sor). The first three-seed candidate (chart + DE
+moves, iteration 9) scored 1.05 +/- 0.085 against the baseline's 1.72 +/- 0.43:
+a 0.67 improvement, 2.6 standard errors, yet below delta because delta ignores
+the candidate's own, much smaller, spread. From v4 the acceptance test is
+two-sample: a candidate with n_c >= 3 kernel seeds replaces the default with
+n_b seeds iff
+
+    G_default - G_cand  >  2 * sqrt( sd_default^2 / n_b  +  sd_cand^2 / n_c )
+
+with the unchanged guards (no development site worse by more than 0.25 in
+capped G_s; H100 wall-clock <= 1.5x; speed path unchanged) and the milestone
+holdout check. Results judged under v3 are NOT re-judged: the DE kernel's
+iteration-9 verdict stands as "discard under v3", and its v4 test uses three
+fresh kernel seeds (iteration 13). Single-seed screens remain screens: they
+never promote.
