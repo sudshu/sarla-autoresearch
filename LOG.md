@@ -225,3 +225,8 @@ setup notes. Times are US Pacific.
   confirm S3 with two more seeds, test branch_tau 20 next to the queued 100.
   Queued as iteration 12 (12 fits). Kernel-only DE/stretch confirmations
   (iteration 9) and surgery+DE / branch_tau 100 (iteration 10) are running.
+- 14:40 PDT: all twelve v2 datasets exist. The three slow holdout sites'
+  truths come from 60k-iteration reference runs; ES-LJu and FR-Pue posteriors
+  sit at soft-EDC penalties near -118 for every draw, so the consistency rule
+  is now relative to each site's reference chain (see autoresearch.md). Their
+  baseline fits are queued to complete the baseline's holdout score.
