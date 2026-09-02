@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 02:57 PDT",
+ "updated": "2026-09-02 04:53 PDT",
  "runs": [
   {
    "run": 1,
@@ -104,6 +104,81 @@
    "commit": "ce8a25c",
    "timestamp": 1788342627,
    "protocol_version": 1
+  },
+  {
+   "run": 5,
+   "iteration": 2,
+   "variant": "h2_de128",
+   "hypothesis": "H2",
+   "category": "moves",
+   "metric": 1.3580483079331003,
+   "metrics": {
+    "G_dev": 1.3580483079331003,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "178": 0.36794322728355205,
+     "183": 0.8697853751330777,
+     "26": 3.5703078563246335,
+     "58": 0.6241567729911378
+    },
+    "wall_median": 3330.026107788086
+   },
+   "status": "v1-invalid",
+   "description": "Chart + DE at 128 walkers x 16k steps: 1.36 (v1 truths). Good at ES-LJu (0.37) and DE-Gri, but collapsed at BE-Vie (3.57, rank 0.01).",
+   "commit": "ce8a25c",
+   "timestamp": 1788349994,
+   "protocol_version": 1
+  },
+  {
+   "run": 6,
+   "iteration": 2,
+   "variant": "h3_stretch128",
+   "hypothesis": "H3",
+   "category": "moves",
+   "metric": 1.1875092424130078,
+   "metrics": {
+    "G_dev": 1.1875092424130078,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "178": 0.6779215620573456,
+     "183": 0.7384248642285431,
+     "26": 2.491959544191947,
+     "58": 0.8417309991741951
+    },
+    "wall_median": 3300.0278222560883
+   },
+   "status": "v1-invalid",
+   "description": "Chart + stretch at 128 walkers x 16k steps: 1.19 (v1 truths), equal to baseline at equal wall-clock.",
+   "commit": "ce8a25c",
+   "timestamp": 1788349994,
+   "protocol_version": 1
+  },
+  {
+   "run": 7,
+   "iteration": 2,
+   "variant": "h5_flat3",
+   "hypothesis": "H5",
+   "category": "charts",
+   "metric": 1.4469692156846445,
+   "metrics": {
+    "G_dev": 1.4469692156846445,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "178": 0.5120066446253332,
+     "183": 1.4921802385883705,
+     "26": 3.098497443018239,
+     "58": 0.6851925365066359
+    },
+    "wall_median": 3060.041935443878
+   },
+   "status": "v1-invalid",
+   "description": "Chart proposal inflated x sqrt(3) in flat directions: 1.45 (v1 truths); worse at NL-Loo and BE-Vie.",
+   "commit": "ce8a25c",
+   "timestamp": 1788349994,
+   "protocol_version": 1
   }
  ],
  "best_G_dev": null,
@@ -164,6 +239,47 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2040.0381622314453
+   }
+  },
+  "2": {
+   "h2_de128": {
+    "G_dev_per_seed": [
+     1.3580483079331003
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.3580483079331003,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.026107788086
+   },
+   "h3_stretch128": {
+    "G_dev_per_seed": [
+     1.1875092424130078
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1875092424130078,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3300.0278222560883
+   },
+   "h5_flat3": {
+    "G_dev_per_seed": [
+     1.4469692156846445
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.4469692156846445,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3060.041935443878
    }
   }
  }

@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-02 02:57 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-02 04:53 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -26,7 +26,7 @@ sampler, tests it at four development sites, keeps it only if G improves, and pe
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
 <div class="kpi">
-<div><b>4</b>experiments</div><div><b>0</b>improvements kept</div>
+<div><b>7</b>experiments</div><div><b>0</b>improvements kept</div>
 <div><b>--</b>best G (dev sites)</div>
 <div><b>~30 min</b>per site (vs 33 h)</div>
 </div>
@@ -46,7 +46,7 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own
 ecological constraints reject (see the log entry "Protocol v2"); they are kept for the record and decide nothing.</p>
 <table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
-<tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
+<tr><td>7</td><td>2</td><td>h5_flat3</td><td>charts</td><td>1.447</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart proposal inflated x sqrt(3) in flat directions: 1.45 (v1 truths); worse at NL-Loo and BE-Vie.</td></tr><tr><td>6</td><td>2</td><td>h3_stretch128</td><td>moves</td><td>1.188</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + stretch at 128 walkers x 16k steps: 1.19 (v1 truths), equal to baseline at equal wall-clock.</td></tr><tr><td>5</td><td>2</td><td>h2_de128</td><td>moves</td><td>1.358</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + DE at 128 walkers x 16k steps: 1.36 (v1 truths). Good at ES-LJu (0.37) and DE-Gri, but collapsed at BE-Vie (3.57, rank 0.01).</td></tr><tr><td>4</td><td>1</td><td>h3_stretch512</td><td>moves</td><td>1.199</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.</td></tr><tr><td>3</td><td>1</td><td>h2_de512</td><td>moves</td><td>1.299</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).</td></tr><tr><td>2</td><td>1</td><td>h1_walkers512</td><td>walkers</td><td>1.425</td><td></td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.</td></tr><tr><td>1</td><td>0</td><td>v3_baseline</td><td>baseline</td><td>1.190</td><td>2.005</td><td style='color:#bbbbbb'><b>v1-invalid</b></td><td>Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.</td></tr></table>
 
 <h2>Log</h2>
 <h2>Log</h2>
@@ -149,6 +149,28 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 </ul>
 <p>  walkers at 512 x 4k do not contract; stretch moves match the baseline in</p>
 <p>  62% of the time) and the fact that no chain was ever stuck.</p>
+<ul>
+<li>Update 03:10 PDT: the EDC-checked jitter cannot work either, because the</li>
+</ul>
+<p>  pilot&#x27;s real-data modes themselves carry soft-EDC penalties near 500 nats</p>
+<p>  (posterior draws: about 6). The v2 truth is therefore a typical accepted</p>
+<p>  draw from a short run of CARDAMOM&#x27;s own ADEMCMC on the real data (4 chains</p>
+<p>  x 30k iterations per site, running now on the local CPUs, about 2 h), the</p>
+<p>  same recipe the NL-Loo OSSE used. Independent of the sampler under test and</p>
+<p>  EDC-consistent by construction.</p>
+<h3>Iteration 2 result (2026-09-02 05:10 PDT, protocol v1 truths, for the record only)</h3>
+<ul>
+<li>DE at 128 walkers x 16k steps: 1.36; stretch at 128 x 16k: 1.19; flat-direction</li>
+</ul>
+<p>  inflation x sqrt(3): 1.45. Baseline 1.19. Judged against the invalid v1</p>
+<p>  truths, so none of this decides anything; the consistent pattern across</p>
+<p>  iterations 1 and 2 is that stretch moves are the one change that never</p>
+<p>  hurt, and DE moves are erratic (very good at some sites, collapsed at</p>
+<p>  BE-Vie with density rank 0.01).</p>
+<ul>
+<li>No advisor call for this iteration (invalid truths). The GPUs idle until the</li>
+</ul>
+<p>  v2 datasets exist; the truth chains are about 60% through.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -265,11 +287,18 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)</p>
 <p>were judged against invalid truths and are kept on the page as protocol v1</p>
 <p>for the record only; they carry no weight in any decision.</p>
-<p><b>Truth rule, v2.</b> As v1 (plausible real-data L-BFGS mode plus random jitter</p>
-<p>in z), with one added requirement: the jittered point&#x27;s total soft-EDC</p>
-<p>penalty must lie within 10 nats of the mode&#x27;s own. The jitter starts at 0.3</p>
-<p>prior sd and is halved (0.15, then 0.1) if no such point is found in 40</p>
-<p>batches of 64. Everything else (sites, split, noise model, budget, metric,</p>
-<p>accept rule, milestones) is unchanged. Iteration numbering continues</p>
-<p>(iteration 4 is the v2 baseline); the baseline and noise floor are re-measured.</p>
+<p><b>Truth rule, v2.</b> The truth is a typical accepted draw of CARDAMOM&#x27;s own</p>
+<p>reference sampler on the real data: a short ADEMCMC run per site (4 chains x</p>
+<p>30,000 iterations, 400 walkers each), second half of every chain pooled,</p>
+<p>plausibility filter as before (finite trajectory, mean GPP and biomass within</p>
+<p>[0.3x, 3x] of the observed), and the draw whose log-posterior is nearest the</p>
+<p>pooled median. This is the recipe the NL-Loo OSSE used. It is EDC-consistent</p>
+<p>by construction (an accepted draw), independent of the sampler under test,</p>
+<p>and typical rather than mode-adjacent. The first v2 attempt (jittered mode</p>
+<p>with an EDC check) was abandoned before use: the real-data L-BFGS modes from</p>
+<p>the pilot themselves carry soft-EDC penalties near 500 nats, so nothing</p>
+<p>built on them can be consistent. Everything else (sites, split, noise model,</p>
+<p>budget, metric, accept rule, milestones) is unchanged. Iteration numbering</p>
+<p>continues (iteration 4 is the v2 baseline); the baseline and noise floor are</p>
+<p>re-measured.</p>
 </body></html>

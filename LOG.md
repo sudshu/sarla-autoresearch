@@ -82,3 +82,14 @@ setup notes. Times are US Pacific.
   x 30k iterations per site, running now on the local CPUs, about 2 h), the
   same recipe the NL-Loo OSSE used. Independent of the sampler under test and
   EDC-consistent by construction.
+
+## Iteration 2 result (2026-09-02 05:10 PDT, protocol v1 truths, for the record only)
+
+- DE at 128 walkers x 16k steps: 1.36; stretch at 128 x 16k: 1.19; flat-direction
+  inflation x sqrt(3): 1.45. Baseline 1.19. Judged against the invalid v1
+  truths, so none of this decides anything; the consistent pattern across
+  iterations 1 and 2 is that stretch moves are the one change that never
+  hurt, and DE moves are erratic (very good at some sites, collapsed at
+  BE-Vie with density rank 0.01).
+- No advisor call for this iteration (invalid truths). The GPUs idle until the
+  v2 datasets exist; the truth chains are about 60% through.

@@ -27,6 +27,7 @@ LOCAL = os.path.join(ROOT, "runs", "autoresearch")
 PY = os.path.join(ROOT, ".venv", "bin", "python")
 PROTOCOL_VERSION = 2
 SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites_v2")
+if os.environ.get("SITES_V1"): SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites")
 DEV = [183, 58, 178, 26]
 HOLDOUT = [55, 57, 82, 71]
 SITE_NAMES = {26: "BE-Vie", 55: "CZ-wet", 57: "DE-Geb", 58: "DE-Gri", 71: "DK-Sor",
@@ -186,7 +187,7 @@ def fmt(x, p=3):
     return "  --  " if x is None else f"{x:.{p}f}"
 
 
-def record(it, variant, status, description, hypothesis, category, commit):
+def record(it, variant, status, description, hypothesis, category, commit, protocol=None):
     ed = exp_dir(it)
     agg = json.load(open(os.path.join(ed, "aggregate.json")))
     s = agg[variant]
@@ -198,7 +199,8 @@ def record(it, variant, status, description, hypothesis, category, commit):
                               per_site={k: v["G"] for k, v in s["per_site"].items()},
                               wall_median=s["wall_median"]),
                  status=status, description=description, commit=commit,
-                 timestamp=int(time.time()), protocol_version=PROTOCOL_VERSION)
+                 timestamp=int(time.time()),
+                 protocol_version=protocol if protocol is not None else PROTOCOL_VERSION)
     with open(os.path.join(AR, "autoresearch.jsonl"), "a") as f:
         f.write(json.dumps(entry) + "\n")
     print(json.dumps(entry))
@@ -219,6 +221,7 @@ def main():
     ap.add_argument("--category", default="")
     ap.add_argument("--commit", default="")
     ap.add_argument("--ndraw", type=int, default=500)
+    ap.add_argument("--protocol", type=int, default=None)
     a = ap.parse_args()
     if a.mode == "jobs":
         sites = [int(s) for s in a.sites.split(",")]
@@ -230,7 +233,7 @@ def main():
     elif a.mode == "aggregate":
         aggregate(a.iter)
     elif a.mode == "record":
-        record(a.iter, a.variant, a.status, a.description, a.hypothesis, a.category, a.commit)
+        record(a.iter, a.variant, a.status, a.description, a.hypothesis, a.category, a.commit, a.protocol)
 
 
 if __name__ == "__main__":
