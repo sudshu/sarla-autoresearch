@@ -204,3 +204,20 @@ setup notes. Times are US Pacific.
   importance ESS stays near zero through six rounds, so the audit-driven
   repair is far from converged at this scale (a knob problem: branch_tau and
   the segment test are tuned for 2-D). Full verdict when all 12 fits land.
+
+## Iteration 8 result (2026-09-02 13:20 PDT): first surgery experiments, all better than baseline, none by enough yet
+
+- Surgery defaults 1.33, without normal projection 1.29, with tangent-volume
+  weights 1.16; baseline 1.72 (threshold 0.86 below). All discarded on one
+  seed under the rule, but the trend is consistent: the surgery atlas lifts
+  DK-Sor from 3.5 to about 1.0 and the sampler's best draws now reach the
+  truth's density at three of four sites (at NL-Loo still 8 to 14 nats short).
+- What the round-by-round diagnostics say at 89-D: six audit rounds add
+  40 to 50 charts, almost all by "branch" (17 to 35 per fit) and "rank-change"
+  (5 to 28); extend never fires, merge never fires, splits are rare, and the
+  importance ESS stays at 0.0002 with 50 to 114 uncovered draws at the end.
+  The 2-D-tuned tolerances (model error 2 nats, branch dip 10 nats) make
+  every discrepancy a new stratum in 89 dimensions. Iteration 11 tests
+  tolerances scaled for 89-D (model_tol 20, bend_tol 3, branch_tau 100, 16
+  flags per round, volume weights).
+- Wall-clock: surgery adds no time (49 to 61 min per fit, same as baseline).

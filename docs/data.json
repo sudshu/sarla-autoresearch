@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 11:12 PDT",
+ "updated": "2026-09-02 13:09 PDT",
  "runs": [
   {
    "run": 1,
@@ -280,6 +280,81 @@
    "commit": "cdaf445",
    "timestamp": 1788372733,
    "protocol_version": 3
+  },
+  {
+   "run": 12,
+   "iteration": 8,
+   "variant": "s1_surgery",
+   "hypothesis": "S1",
+   "category": "atlas_geometry",
+   "metric": 1.3322147760680534,
+   "metrics": {
+    "G_dev": 1.3322147760680534,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 2.7851350280635834,
+     "26": 0.7686097765581072,
+     "58": 0.7541529831755155,
+     "71": 1.0209613164750078
+    },
+    "wall_median": 3660.0300312042236
+   },
+   "status": "discard",
+   "description": "Topology-aware surgery, defaults: dev G 1.33 vs 1.72 (one seed; below the 0.86 threshold). Better at DK-Sor (1.02 vs 3.5) and BE-Vie, worse at NL-Loo (2.79). 89-D trace: 27 branches, 11 rank-changes, 4 refines, 0 extend/merge; ESS 0.0002 after 6 rounds.",
+   "commit": "4d03d9e",
+   "timestamp": 1788379744,
+   "protocol_version": 3
+  },
+  {
+   "run": 13,
+   "iteration": 8,
+   "variant": "s2_surgery_noproj",
+   "hypothesis": "S2",
+   "category": "atlas_geometry",
+   "metric": 1.286703326534541,
+   "metrics": {
+    "G_dev": 1.286703326534541,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.7404662200471643,
+     "26": 1.0387762213659644,
+     "58": 0.8842350185222193,
+     "71": 1.4833358462028154
+    },
+    "wall_median": 2880.0374796390533
+   },
+   "status": "discard",
+   "description": "Surgery without normal projection: 1.29 (one seed). Worse than with projection at DK-Sor (1.48 vs 1.02), better at NL-Loo (1.74 vs 2.79): no clean signal yet.",
+   "commit": "4d03d9e",
+   "timestamp": 1788379744,
+   "protocol_version": 3
+  },
+  {
+   "run": 14,
+   "iteration": 8,
+   "variant": "s3_surgery_volume",
+   "hypothesis": "S3",
+   "category": "atlas_geometry",
+   "metric": 1.1626281797688118,
+   "metrics": {
+    "G_dev": 1.1626281797688118,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.4369228984438334,
+     "26": 1.467020777390988,
+     "58": 0.7518414624938176,
+     "71": 0.9947275807466082
+    },
+    "wall_median": 3030.0398502349854
+   },
+   "status": "discard",
+   "description": "Surgery with tangent-volume mixture weights: 1.16 (one seed), best of the three; the sampler's best draws reach the truth's density at 3 of 4 sites.",
+   "commit": "4d03d9e",
+   "timestamp": 1788379745,
+   "protocol_version": 3
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -439,6 +514,47 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3000.039076089859
+   }
+  },
+  "8": {
+   "s1_surgery": {
+    "G_dev_per_seed": [
+     1.3322147760680534
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.3322147760680534,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3660.0300312042236
+   },
+   "s2_surgery_noproj": {
+    "G_dev_per_seed": [
+     1.286703326534541
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.286703326534541,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2880.0374796390533
+   },
+   "s3_surgery_volume": {
+    "G_dev_per_seed": [
+     1.1626281797688118
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1626281797688118,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3030.0398502349854
    }
   }
  }
