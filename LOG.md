@@ -119,3 +119,18 @@ setup notes. Times are US Pacific.
 - Iteration 4 (v2 baseline, 4 dev sites x 3 seeds) and iteration 5 (stretch at
   128 x 16k, seed starts, DE at 128 x 16k) are on the GPUs; 24 fits, about
   4.5 h.
+
+## 2026-09-02 08:20 PDT: the v2 baseline fails by not finding the basin, and L-BFGS cannot help
+
+- First v2 baseline scores: NL-Loo G 0.94 to 1.66 with density rank 1.00 for
+  all three seeds (the truth, a typical posterior draw at log-posterior -284,
+  has higher density than every one of 20,000 draws; the atlas's best chart
+  sits at -310 to -340). DK-Sor is worse: truth -276, seeds -946 at best, the
+  kernel climbs to -351 in 32k steps and never arrives (G 14, 85 of 89
+  parameters off). BE-Vie and DE-Gri are fine (rank 0.4 to 0.8).
+- Diagnostic: L-BFGS from the DK-Sor seeds makes no progress at all, even
+  with 3,000 iterations (the EDC penalties make the surface piecewise, and
+  the optimizer stops at once). Every nat of climbing in the fast path has
+  been done by the MCMC kernel. The seed/atlas stage therefore needs an
+  ensemble warm-up (queued as iterations 6 and 7: 1,000 and 4,000 stretch
+  steps over the seed population before the atlas is built).
