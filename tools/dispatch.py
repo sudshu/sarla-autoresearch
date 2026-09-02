@@ -187,6 +187,40 @@ def poll(pull_results=False):
     return status
 
 
+def rebalance(status):
+    """Move pending jobs from the host with the longest expected queue to the
+    one with the shortest, using rate_per_h from hosts.json (work stealing)."""
+    up = {h: st for h, st in status["hosts"].items() if "error" not in st}
+    if len(up) < 2:
+        return
+    def eta(h, extra=0):
+        st = up[h]
+        n = len(st["pending"]) + len(st["running"]) + extra
+        return n / HOSTS["hosts"][h].get("rate_per_h", 1.0)
+    moved = 0
+    while True:
+        slow = max(up, key=lambda h: eta(h))
+        fast = min(up, key=lambda h: eta(h))
+        if slow == fast or not up[slow]["pending"]:
+            return
+        if eta(slow) - eta(fast, 1) < 0.5:      # less than half an hour to gain
+            return
+        jid = up[slow]["pending"][-1]           # newest pending first
+        ws, wf = HOSTS["hosts"][slow]["workdir"], HOSTS["hosts"][fast]["workdir"]
+        r = ssh(slow, f"cat {ws}/queue/pending/{jid}.json && rm {ws}/queue/pending/{jid}.json",
+                timeout=60)
+        if r.returncode or not r.stdout:
+            return
+        r2 = ssh(fast, f"mkdir -p {wf}/queue/pending && cat > {wf}/queue/pending/{jid}.json",
+                 input_bytes=r.stdout, timeout=60)
+        if r2.returncode:
+            ssh(slow, f"cat > {ws}/queue/pending/{jid}.json", input_bytes=r.stdout, timeout=60)
+            return
+        up[slow]["pending"].remove(jid); up[fast]["pending"].append(jid)
+        moved += 1
+        print(f"rebalanced {jid}: {slow} -> {fast}", flush=True)
+
+
 def summarize(status):
     hs = []
     for h, st in status["hosts"].items():
@@ -201,7 +235,7 @@ def summarize(status):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["sync", "workers", "submit", "poll", "loop", "wait"])
+    ap.add_argument("mode", choices=["sync", "workers", "submit", "poll", "loop", "wait", "rebalance"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--host", default=None)
     ap.add_argument("--pull", action="store_true")
@@ -222,10 +256,14 @@ def main():
         submit(a.args)
     elif a.mode == "poll":
         print(summarize(poll(a.pull)))
+    elif a.mode == "rebalance":
+        st = poll(False); rebalance(st); print(summarize(poll(False)))
     elif a.mode == "loop":
         while True:
             try:
-                print(f"[{time.strftime('%H:%M:%S')}] {summarize(poll(True))}", flush=True)
+                st = poll(True)
+                rebalance(st)
+                print(f"[{time.strftime('%H:%M:%S')}] {summarize(st)}", flush=True)
             except Exception as e:
                 print(f"poll error: {e}", flush=True)
             if os.path.exists(os.path.join(AR, "STOP")):

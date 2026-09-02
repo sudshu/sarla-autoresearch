@@ -28,7 +28,8 @@
         }
       ],
       "gpu_name": "H100 NVL 96GB",
-      "hop": "ssh -o RemoteCommand=none -o RequestTTY=no -o ConnectTimeout=20 az-ms"
+      "hop": "ssh -o RemoteCommand=none -o RequestTTY=no -o ConnectTimeout=20 az-ms",
+      "rate_per_h": 3.6
     },
     "kyo": {
       "ssh": [
@@ -53,7 +54,8 @@
         }
       ],
       "gpu_name": "RTX PRO 4500 Blackwell 32GB",
-      "hop": null
+      "hop": null,
+      "rate_per_h": 2.0
     }
   },
   "code_files": [
