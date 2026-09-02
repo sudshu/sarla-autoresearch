@@ -137,3 +137,14 @@ failure, not as a lever on the mean, and the noise floor is 2 sd of the
 capped development mean over kernel seeds. Nothing else changes; no decision
 had been taken under v2, so no result is re-judged. v2 truths and datasets
 are unchanged and remain the reference.
+
+**Truth-source detail (2026-09-02 14:20 PDT, protocol v3, affects no scored
+result).** The truth's soft-EDC consistency check is relative to its
+reference chain: the chosen draw must lie within 10 nats of the pooled median
+soft-EDC penalty of the last 30% of the chains (and the chain must not be
+both far below -20 and widely spread, the signature of non-convergence). At
+the five converged sites this selects the same draws as the earlier absolute
+-20 rule (medians -9 to -17). At ES-LJu and FR-Pue the whole reference
+posterior sits at about -118 nats with an interquartile range of 6 nats even
+after 60,000 iterations: the penalty is a property of those sites' posteriors,
+so a typical draw there is the right truth.
