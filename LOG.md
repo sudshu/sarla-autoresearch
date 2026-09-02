@@ -40,3 +40,20 @@ setup notes. Times are US Pacific.
 - No chain was stuck at any site (the region screen and restarts from the
   earlier OSSE work hold up), so the remaining error is mixing and coverage,
   not junk regions.
+
+## Iteration 1 result (2026-09-02 03:35 PDT): more walkers alone do not help; stretch moves match the baseline faster
+
+- Three variants at the same 2.05M sampling evaluations, 512 walkers x 4,000
+  steps each: H1 plain chart moves G 1.43, H2 chart + differential-evolution
+  moves 1.30, H3 chart + Goodman-Weare stretch moves 1.20. Baseline 1.19,
+  acceptance needs < 0.97. All three discarded.
+- Why H1 got worse: with 4,000 steps a chart-shaped walker does not contract
+  from its diverse start onto the typical set (ES-LJu 50% intervals held the
+  truth 78% of the time; density rank 0.9). Steps per walker matter more than
+  walker count for this kernel.
+- Stretch moves repaired most of that: same quality as the baseline in 34 min
+  instead of 53 (not the 2x needed for the speed path). Iteration 2 tests DE
+  and stretch at 128 walkers x 16k steps, which gives each walker four times
+  the steps.
+- BE-Vie stayed at G 2.3 to 2.8 under every variant: no kernel tried so far
+  reaches the near-zero-wood truth there.

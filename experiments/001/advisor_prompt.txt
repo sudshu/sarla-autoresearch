@@ -1,0 +1,539 @@
+You are the external advisor of an autonomous research loop that improves
+SARLA, a GPU posterior sampler for an 89-parameter land carbon model
+(CARDAMOM / DALEC_1100). Read the protocol, the history and this iteration's
+results below, then answer in <= 600 words with these sections:
+
+1. ASSESSMENT: what the numbers say about this iteration (which terms of the
+   calibration gap moved, per-site consistency, any sign of overfitting to the
+   development sites or to a single truth).
+2. RISKS: anything in the protocol or the results that could mislead us.
+3. NEXT STEPS: 3-5 concrete, testable proposals ranked by expected payoff,
+   each as one sentence of rationale plus the variant knobs to change
+   (use the knob names from the variant JSON). Mark proposals that need new
+   code rather than a config change.
+4. STOP/CONTINUE: whether a hypothesis family should be abandoned.
+
+Be specific and quantitative; do not restate the protocol.
+
+=== PROTOCOL ===
+# SARLA autoresearch: program and pre-registered protocol
+
+**Goal.** Make CARDAMOM's Bayesian calibration of the DALEC_1100 land model
+(89 parameters) fast enough to run at many sites in minutes instead of days,
+without degrading the posterior. The candidate is SARLA, a GPU fast path
+(audited Laplace atlas + population sampler) that today takes ~30 min where
+CARDAMOM's ADEMCMC takes ~33 h at one site. The loop proposes sampler-design
+hypotheses, tests them on synthetic-truth experiments at several FLUXNET
+sites, keeps what helps, and publishes every step.
+
+**Metric.** Calibration gap G (lower is better; 0 = perfectly calibrated
+posterior). Computed per site by `scripts/osse_score_site.py` from an OSSE
+(observing-system simulation experiment): a known truth generates
+pseudo-observations, the sampler fits them, and the posterior is scored
+against the truth.
+
+```
+G_s = mean( |c90-0.90|/0.10,  |c50-0.50|/0.10,  |r-0.5|/0.15,
+            max(0, rms_z-1)/0.5,  mean_streams |p90_s-0.90|/0.10,  stuck_frac/0.10 )
+```
+- c90, c50: fraction of the 89 parameters whose 90% / 50% posterior interval
+  contains the truth (targets 0.90 / 0.50)
+- r: joint density rank P(logpost(draw) < logpost(truth)) (target 0.5)
+- rms_z: RMS over parameters of (truth - posterior mean) / posterior sd
+- p90_s: fraction of truth values inside the 90% band of the posterior's
+  GPP / NBE / ET / LAI projection over the unobserved months (target 0.90)
+- stuck_frac: fraction of chains whose median log-posterior is > 100 nats
+  below the best (a chain that never left a junk region)
+
+Each term is a distance from its target in units of about its binomial
+noise floor (sd(cover90) = 0.032 over 89 parameters).
+
+**Sites and split.** Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).
+Development set, drives accept/reject: NL-Loo (183, ENF), DE-Gri (58, GRA),
+ES-LJu (178, OSH), BE-Vie (26, MF). Holdout set, scored only at milestones,
+never used to choose: CZ-wet (55, WET), DE-Geb (57, CRO), FR-Pue (82, EBF),
+DK-Sor (71, DBF; no real-data mode reaches 30% of its observed GPP, so its
+truth uses a relaxed 20% plausibility bound and is flagged). Every site has 192 monthly steps with observations ending
+by step 113, so the last 78+ months are a projection test at every site.
+
+**Truth.** Per site: a plausible EDC-feasible point near (not at) one of the
+pilot's real-data L-BFGS modes -- a random plausible mode plus N(0, 0.3 prior
+sd) jitter in z, redrawn until feasible and plausible. Plausible = finite
+trajectory, mean GPP within [0.3x, 3x] of the site's observed mean GPP, and
+biomass at the observation month within [0.3x, 3x] of the site's observed
+biomass. The jitter keeps the truth off the seed set the fitter starts from.
+A second truth + noise realisation ("B") exists for each development site and
+is used only at milestones. Iid EDC-feasible prior draws were tried first and
+rejected (2026-09-01): at all five sites checked they are near-dead
+ecosystems (GPP < 5% of observed).
+
+**Pseudo-observations.** The CBF's own declared error model per stream
+(lognormal sigma = ln 3 for GPP and ET, N(0, 1) for NBE, lognormal ln 1.5 for
+LAI, lognormal ln 1.05 for biomass), observation times copied from the real
+site, everything assimilated.
+
+**Budget.** Fixed model-evaluation budget per fit equal to the baseline (128
+L-BFGS seeds, atlas 6 rounds x 4096 audit draws, sampling 64 chains x 32,000
+steps = 2.05M evaluations). Variants that change chains x steps keep the
+sampling-evaluation total. Wall-clock is recorded per job and GPU type.
+
+**Accept rule.** A candidate becomes the new default iff (a) dev G improves
+on the current default by more than delta, where delta = 0.10 until iteration
+0 replaces it with 2 sd(G) over three kernel seeds of the baseline on the
+development set; (b) no development site worsens by more than 0.25 in G_s;
+(c) H100 wall-clock <= 1.5x the default's. Speed path: accept if wall-clock
+<= 0.5x at G <= default + 0.05. An iteration with fewer than 3 of 4
+development sites scored is incomplete and is requeued once, never counted.
+
+**Milestones.** At each new default and at least every 5 iterations, the
+default is scored on the 4 holdout sites and the 4 "B" truths. If holdout G
+worsens by > 0.05 relative to the previous default, the change is labelled
+"dev-only" and reverted. Development and holdout results are always shown
+side by side.
+
+**Advisor.** After each iteration a Codex agent (OpenAI Codex CLI, reasoning
+effort high) receives the protocol, the run history and the iteration's
+scores (aggregate numbers only) and proposes next steps; its reply is saved
+under `experiments/<iter>/advisor.md`, its proposals enter the idea bank
+tagged `codex`, and the Claude session running the loop decides what to
+implement next, combining those with its own.
+
+**Breakthrough notification.** The user is emailed when a new default
+improves dev G by >= 0.20, when the speed path accepts, or when a holdout
+milestone confirms either.
+
+**Frozen.** This protocol is frozen from iteration 1. Any change is logged as
+a new protocol version in `LOG.md`; earlier results are never re-judged
+under a later version.
+
+**Data on this page.** Aggregate metrics and public FLUXNET site IDs only; no
+observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)
+via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).
+
+
+=== RUN HISTORY (autoresearch.jsonl) ===
+{"type":"config","name":"sarla-calibration-gap","metricName":"G_dev","metricUnit":"gap","bestDirection":"lower","protocol_version":1}
+{"run": 1, "iteration": 0, "variant": "v3_baseline", "hypothesis": "H0", "category": "baseline", "metric": 1.1895396549127126, "metrics": {"G_dev": 1.1895396549127126, "G_holdout": 2.0049276045599003, "G_devB": null, "per_site": {"178": 0.5967676076074664, "183": 0.7941721533226374, "26": 2.5911891331862282, "55": 1.2061334480119632, "57": 1.0513381256329413, "58": 0.7760297255345182, "71": 4.1818114436469935, "82": 1.580427400947704}, "wall_median": 3270.0405745506287}, "status": "baseline", "description": "Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.", "commit": "9ef54de", "timestamp": 1788340660, "protocol_version": 1}
+{"run": 2, "iteration": 1, "variant": "h1_walkers512", "hypothesis": "H1", "category": "walkers", "metric": 1.425297000732665, "metrics": {"G_dev": 1.425297000732665, "G_holdout": null, "G_devB": null, "per_site": {"178": 1.1677749683692025, "183": 0.8765341871482605, "26": 2.8377823052795854, "58": 0.8190965421336117}, "wall_median": 2580.0488317012787}, "status": "discard", "description": "8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+{"run": 3, "iteration": 1, "variant": "h2_de512", "hypothesis": "H2", "category": "moves", "metric": 1.2987789575230064, "metrics": {"G_dev": 1.2987789575230064, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.5473121592796363, "183": 0.7568153222436265, "26": 2.568068484070118, "58": 1.322919864498645}, "wall_median": 2160.0349626541138}, "status": "discard", "description": "Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+{"run": 4, "iteration": 1, "variant": "h3_stretch512", "hypothesis": "H3", "category": "moves", "metric": 1.1985113415291837, "metrics": {"G_dev": 1.1985113415291837, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.9121996409442633, "183": 0.6940695606353976, "26": 2.335056052519407, "58": 0.8527201120176672}, "wall_median": 2040.0381622314453}, "status": "discard", "description": "Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+
+
+=== THIS ITERATION: aggregate.json ===
+{
+ "h1_walkers512": {
+  "G_dev_per_seed": [
+   1.425297000732665
+  ],
+  "sd_dev": null,
+  "delta": null,
+  "G_dev": 1.425297000732665,
+  "n_dev": 4,
+  "G_holdout": null,
+  "n_holdout": 0,
+  "G_devB": null,
+  "wall_median": 2580.0488317012787,
+  "per_site": {
+   "178": {
+    "G": 1.1677749683692025,
+    "G_seeds": [
+     1.1677749683692025
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.6629213483146068,
+     "cover50": 2.752808988764045,
+     "rank": 2.5909194731365632,
+     "rms_z": 0.0,
+     "proj": 0.9999999999999998,
+     "stuck": 0.0
+    },
+    "cover90": 0.9662921348314607,
+    "cover50": 0.7752808988764045,
+    "rank": 0.8886379209704844,
+    "rms_z": 0.5764487236052126,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "183": {
+    "G": 0.8765341871482605,
+    "G_seeds": [
+     0.8765341871482605
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 1.0224719101123603,
+     "cover50": 0.6179775280898875,
+     "rank": 2.836761637068268,
+     "rms_z": 0.0,
+     "proj": 0.5476190476190479,
+     "stuck": 0.234375
+    },
+    "cover90": 0.797752808988764,
+    "cover50": 0.43820224719101125,
+    "rank": 0.9255142455602402,
+    "rms_z": 0.915973993446549,
+    "stuck_frac": 0.0234375,
+    "proj_cover90": [
+     0.8333333333333334,
+     0.8095238095238095,
+     0.8571428571428571,
+     0.8809523809523809
+    ]
+   },
+   "26": {
+    "G": 2.8377823052795854,
+    "G_seeds": [
+     2.8377823052795854
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 3.49438202247191,
+     "cover50": 2.752808988764045,
+     "rank": 1.5020842317090703,
+     "rms_z": 6.411139518965047,
+     "proj": 2.8662790697674416,
+     "stuck": 0.0
+    },
+    "cover90": 0.550561797752809,
+    "cover50": 0.2247191011235955,
+    "rank": 0.7253126347563605,
+    "rms_z": 4.205569759482524,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.4186046511627907,
+     0.7558139534883721,
+     0.7674418604651163,
+     0.5116279069767442
+    ]
+   },
+   "58": {
+    "G": 0.8190965421336117,
+    "G_seeds": [
+     0.8190965421336117
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.46067415730337125,
+     "cover50": 0.393258426966292,
+     "rank": 1.7274679926260426,
+     "rms_z": 0.28555962828691683,
+     "proj": 2.0476190476190474,
+     "stuck": 0.0
+    },
+    "cover90": 0.8539325842696629,
+    "cover50": 0.4606741573033708,
+    "rank": 0.7591201988939064,
+    "rms_z": 1.1427798141434584,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.38095238095238093,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ },
+ "h2_de512": {
+  "G_dev_per_seed": [
+   1.2987789575230066
+  ],
+  "sd_dev": null,
+  "delta": null,
+  "G_dev": 1.2987789575230064,
+  "n_dev": 4,
+  "G_holdout": null,
+  "n_holdout": 0,
+  "G_devB": null,
+  "wall_median": 2160.0349626541138,
+  "per_site": {
+   "178": {
+    "G": 0.5473121592796363,
+    "G_seeds": [
+     0.5473121592796363
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.43820224719101075,
+     "cover50": 1.067415730337079,
+     "rank": 0.9890983516437046,
+     "rms_z": 0.0,
+     "proj": 0.7891566265060237,
+     "stuck": 0.0
+    },
+    "cover90": 0.9438202247191011,
+    "cover50": 0.6067415730337079,
+    "rank": 0.6483647527465557,
+    "rms_z": 0.7601128724754111,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.927710843373494,
+     0.9879518072289156,
+     1.0
+    ]
+   },
+   "183": {
+    "G": 0.7568153222436265,
+    "G_seeds": [
+     0.7568153222436265
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 1.3595505617977532,
+     "cover50": 0.955056179775281,
+     "rank": 0.7442643191178089,
+     "rms_z": 0.4760684918185345,
+     "proj": 1.005952380952381,
+     "stuck": 0.0
+    },
+    "cover90": 0.7640449438202247,
+    "cover50": 0.4044943820224719,
+    "rank": 0.38836035213232867,
+    "rms_z": 1.2380342459092673,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.9880952380952381,
+     0.7261904761904762,
+     0.9404761904761905,
+     1.0
+    ]
+   },
+   "26": {
+    "G": 2.568068484070118,
+    "G_seeds": [
+     2.568068484070118
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 3.2696629213483153,
+     "cover50": 2.865168539325843,
+     "rank": 0.2727887705056653,
+     "rms_z": 5.93056901626414,
+     "proj": 3.0116279069767447,
+     "stuck": 0.05859375
+    },
+    "cover90": 0.5730337078651685,
+    "cover50": 0.21348314606741572,
+    "rank": 0.5409183155758498,
+    "rms_z": 3.96528450813207,
+    "stuck_frac": 0.005859375,
+    "proj_cover90": [
+     0.686046511627907,
+     0.813953488372093,
+     0.7209302325581395,
+     0.1744186046511628
+    ]
+   },
+   "58": {
+    "G": 1.322919864498645,
+    "G_seeds": [
+     1.322919864498645
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 1.2471910112359552,
+     "cover50": 1.1797752808988764,
+     "rank": 2.508857826598003,
+     "rms_z": 1.1028855444495127,
+     "proj": 1.8988095238095237,
+     "stuck": 0.0
+    },
+    "cover90": 0.7752808988764045,
+    "cover50": 0.38202247191011235,
+    "rank": 0.1236713260102996,
+    "rms_z": 1.5514427722247564,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.44047619047619047,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ },
+ "h3_stretch512": {
+  "G_dev_per_seed": [
+   1.1985113415291837
+  ],
+  "sd_dev": null,
+  "delta": null,
+  "G_dev": 1.1985113415291837,
+  "n_dev": 4,
+  "G_holdout": null,
+  "n_holdout": 0,
+  "G_devB": null,
+  "wall_median": 2040.0381622314453,
+  "per_site": {
+   "178": {
+    "G": 0.9121996409442633,
+    "G_seeds": [
+     0.9121996409442633
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.6629213483146068,
+     "cover50": 2.191011235955056,
+     "rank": 1.7999881529621828,
+     "rms_z": 0.0,
+     "proj": 0.8192771084337347,
+     "stuck": 0.0
+    },
+    "cover90": 0.9662921348314607,
+    "cover50": 0.7191011235955056,
+    "rank": 0.7699982229443274,
+    "rms_z": 0.6519999332549792,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.927710843373494,
+     1.0,
+     1.0
+    ]
+   },
+   "183": {
+    "G": 0.6940695606353976,
+    "G_seeds": [
+     0.6940695606353976
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.3258426966292127,
+     "cover50": 0.056179775280899014,
+     "rank": 2.5681091776165594,
+     "rms_z": 0.0,
+     "proj": 1.2142857142857142,
+     "stuck": 0.0
+    },
+    "cover90": 0.9325842696629213,
+    "cover50": 0.4943820224719101,
+    "rank": 0.8852163766424839,
+    "rms_z": 0.9822371342509271,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.9761904761904762,
+     0.6666666666666666,
+     0.9761904761904762,
+     1.0
+    ]
+   },
+   "26": {
+    "G": 2.335056052519407,
+    "G_seeds": [
+     2.335056052519407
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 3.044943820224719,
+     "cover50": 2.303370786516854,
+     "rank": 1.244990107046827,
+     "rms_z": 5.393775787374552,
+     "proj": 2.0232558139534884,
+     "stuck": 0.0
+    },
+    "cover90": 0.5955056179775281,
+    "cover50": 0.2696629213483146,
+    "rank": 0.686748516057024,
+    "rms_z": 3.696887893687276,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.7093023255813954,
+     0.8372093023255814,
+     0.7558139534883721,
+     0.4883720930232558
+    ]
+   },
+   "58": {
+    "G": 0.8527201120176672,
+    "G_seeds": [
+     0.8527201120176672
+    ],
+    "n": 1,
+    "terms": {
+     "cover90": 0.12359550561797827,
+     "cover50": 0.730337078651685,
+     "rank": 2.317097919837646,
+     "rms_z": 0.37386159657012197,
+     "proj": 1.5714285714285714,
+     "stuck": 0.0
+    },
+    "cover90": 0.8876404494382022,
+    "cover50": 0.5730337078651685,
+    "rank": 0.8475646879756469,
+    "rms_z": 1.186930798285061,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.5714285714285714,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ }
+}
+
+=== IDEA BANK ===
+# Idea bank
+
+Status: open | running | kept | discarded | dev-only | blocked. Source: claude | codex | user.
+Priority 1 = try first. Variant configs live in `variants/`.
+
+| id | pri | status | source | category | hypothesis | variant |
+|---|---|---|---|---|---|---|
+| H1 | 1 | running | claude | walkers | Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free | n_chains=512 n_steps=4000; n_chains=256 n_steps=8000 |
+| H2 | 1 | running | claude | moves | Chart move mixed 50/50 with differential-evolution moves (CARDAMOM's STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see | kernel=chart_de mix=0.5 n_chains=512 n_steps=4000 |
+| H3 | 1 | running | claude | moves | Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers | kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000 |
+| H4 | 2 | open | claude | moves | Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves | kernel=chart_adaptcov mix=0.5 |
+| H5 | 1 | running | claude | charts | Inflate chart variance in flat (prior-capped) eigendirections x3 | flat_mult=3 |
+| H6 | 4 | open | claude | restarts | Restarts through the whole burn-in, tighter gap | restart_until=0.5 restart_gap=50 restart_every=250 |
+| H7 | 3 | open | claude | budget | 64 L-BFGS seeds instead of 128, evaluations moved to sampling | n_seeds=64 n_steps=... |
+| H8 | 3 | open | claude | speed | Cheaper atlas: 3 rounds, 2048 audit draws (speed path) | atlas_rounds=3 n_audit=2048 |
+| H9 | 1 | open | claude+codex | starts | Chains start from all feasible seeds of the main region, not chart centres; motivated by the 82/18 mode inversion at NL-Loo (fast path never finds the dominant high-allocation mode) | start_policy=seeds |
+| H10 | 3 | open | claude | burn-in | Burn-in 25% instead of 50% at fixed steps | burn_frac=0.25 |
+| H11 | 2 | open | codex | moves | Tune the DE step (de_gamma around 2.38/sqrt(2D)) if H2 shows promise | de_gamma=0.12 / 0.25 |
+| R1 | - | rule | codex | protocol | Confirm any apparent winner with three kernel seeds and on the dev-B truths before promotion; require improvement outside BE-Vie, which holds 54% of the baseline gap | - |
+
+
+=== BASELINE VARIANT (knob names) ===
+{
+ "name": "v3_baseline",
+ "category": "baseline",
+ "notes": "",
+ "n_seeds": 128,
+ "lbfgs_maxiter": 300,
+ "seed_seed": 0,
+ "atlas_rounds": 6,
+ "n_audit": 4096,
+ "atlas_seed": 3,
+ "tau": 10.0,
+ "n_mid": 7,
+ "region_gap": 100.0,
+ "within": null,
+ "start_policy": "balanced",
+ "init_seed": 99,
+ "kernel": "chart_rwm",
+ "mix": 0.0,
+ "n_chains": 64,
+ "n_steps": 32000,
+ "burn_frac": 0.5,
+ "gamma0": 0.05,
+ "target_acc": 0.23,
+ "flat_mult": 1.0,
+ "de_gamma": null,
+ "stretch_a": 2.0,
+ "adapt_start": 0.25,
+ "adapt_every": 200,
+ "restart_gap": 100.0,
+ "restart_every": 500,
+ "restart_until": 0.5,
+ "max_draws": 40000,
+ "kernel_seed": 5
+}
