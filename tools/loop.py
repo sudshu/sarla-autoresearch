@@ -208,7 +208,7 @@ def record(it, variant, status, description, hypothesis, category, commit, proto
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["jobs", "score", "aggregate", "record"])
+    ap.add_argument("mode", choices=["jobs", "score", "aggregate", "record", "prune"])
     ap.add_argument("--iter", type=int, required=True)
     ap.add_argument("--variant")
     ap.add_argument("--sites", default=",".join(map(str, DEV)))
@@ -232,6 +232,16 @@ def main():
         score(a.iter, a.ndraw)
     elif a.mode == "aggregate":
         aggregate(a.iter)
+    elif a.mode == "prune":
+        # delete fit.npz of jobs whose site has been scored (scores are in experiments/)
+        ed = exp_dir(a.iter)
+        scored = {os.path.basename(f)[:-5] for f in glob.glob(os.path.join(ed, "scores", "*.json"))}
+        n = 0
+        for (site, tag), d in pulled_fits(a.iter).items():
+            if f"{site}{tag}" in scored:
+                for path in d.values():
+                    os.remove(path); n += 1
+        print(f"pruned {n} fit files of iteration {a.iter}")
     elif a.mode == "record":
         record(a.iter, a.variant, a.status, a.description, a.hypothesis, a.category, a.commit, a.protocol)
 

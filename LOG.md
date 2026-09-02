@@ -103,3 +103,19 @@ setup notes. Times are US Pacific.
   three slow sites join CZ-wet as holdout once their 60k-iteration runs finish
   (about 4 h). Iteration 4 (v2 baseline) starts as soon as the first five
   datasets are generated.
+
+## 2026-09-02 05:50 PDT: disk quota, and iterations 4-5 launched
+
+- The home directory has a 100 GB quota, and the 32 truth chains (8.5 GB) plus
+  the running 33-h NL-Loo arm filled it while the last v2 datasets were being
+  written. Freed by thinning the finished truth chains to compact files
+  (last 30%, every 10th draw; the truth selection is unchanged) and deleting
+  the v1 fit outputs, which are fully represented by their scores. Fits are
+  pruned after scoring from now on.
+- v2 truths at NL-Loo, DE-Gri, BE-Vie, DK-Sor and CZ-wet all sit at their
+  site's pooled-median log-posterior (-213 to -226) with soft-EDC penalties of
+  -9 to -17, the converged range. ES-LJu, FR-Pue and DE-Geb are re-running at
+  60k iterations with a smaller output footprint.
+- Iteration 4 (v2 baseline, 4 dev sites x 3 seeds) and iteration 5 (stretch at
+  128 x 16k, seed starts, DE at 128 x 16k) are on the GPUs; 24 fits, about
+  4.5 h.

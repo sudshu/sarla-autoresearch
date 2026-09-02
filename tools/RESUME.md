@@ -24,3 +24,11 @@ Run everything from `~/rough/cardamom_research` with absolute paths.
      `tools/notify.py "subject" "body"`.
 4. Stop: `touch autoresearch/STOP` (dispatcher loop and workers exit after the
    current job). Never run two jobs on one slot; never touch runs/ademcmc_*.
+
+## Disk quota (100 GB hard limit on /home/spandey)
+Run `tools/loop.py prune --iter N` after an iteration is scored (deletes the
+~28 MB fit.npz per job; scores live in experiments/). Never keep raw ADEMCMC
+.cbr files around: thin them (last 30%, every 10th row) into
+runs/ademcmc_truth/site_N/thinned_last30.npz and delete the .cbr. The 33-h
+NL-Loo OSSE arm (runs/ademcmc_osse_full) grows to ~9 GB and must never be
+starved.
