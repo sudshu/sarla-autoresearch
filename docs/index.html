@@ -1,0 +1,168 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SARLA autoresearch: making CARDAMOM faster</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:980px;margin:2rem auto;padding:0 1rem;color:#222;line-height:1.45}
+h1{font-size:1.7rem} h2{font-size:1.3rem;margin-top:2.2rem;border-bottom:1px solid #ddd} h3{font-size:1.1rem}
+img{max-width:100%;border:1px solid #eee;border-radius:6px;margin:.4rem 0}
+table{border-collapse:collapse;font-size:.85rem;width:100%} th,td{border:1px solid #ddd;padding:.3rem .5rem;text-align:left;vertical-align:top}
+th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#f4f6f8;padding:.6rem;overflow-x:auto}
+.kpi{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0} .kpi div{background:#f4f6f8;border-radius:8px;padding:.6rem 1rem;min-width:9rem}
+.kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
+</style></head><body>
+<h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
+<p class="small">Updated 2026-09-01 21:46 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
+
+<h2>In one paragraph</h2>
+<p>CARDAMOM estimates the parameters of a land carbon model (DALEC, 89 parameters) from satellite and flux-tower
+data using a Markov-chain sampler that takes about 33 hours per site. SARLA is a GPU alternative that takes about
+30 minutes. The question is whether the fast answer is also the <i>right</i> answer: does it produce the same
+uncertainty ranges the slow method would? We test that with synthetic experiments where the truth is known
+(an "OSSE"): a known parameter set generates fake observations at a real site, the sampler fits them, and we
+check whether the truth falls inside the sampler's uncertainty ranges as often as it should. The single score
+is the <b>calibration gap G</b>: 0 means perfectly calibrated; larger is worse. The loop proposes a change to the
+sampler, tests it at four development sites, keeps it only if G improves, and periodically checks four
+holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
+
+<div class="kpi">
+<div><b>0</b>experiments</div><div><b>0</b>improvements kept</div>
+<div><b>--</b>best G (dev sites)</div>
+<div><b>~30 min</b>per site (vs 33 h)</div>
+</div>
+
+<h2>Progress</h2>
+<img src="charts/progress.png" alt="progress chart">
+<p class="small">Each dot is one experiment (one sampler variant scored at the four development sites). Blue dots were
+kept as the new default; red were discarded. Hollow squares show the same variant scored on the four holdout sites.</p>
+<img src="charts/categories.png" alt="categories chart">
+<img src="charts/sites.png" alt="per-site chart">
+<p class="small">Left: fraction of the 89 parameters whose 90% posterior interval contains the truth (should be 0.90).
+Right: where the truth's probability density ranks among the posterior draws (should be 0.50; near 0 means the
+posterior is too narrow or misplaced). Grey band: holdout sites.</p>
+<img src="charts/speed.png" alt="speed chart">
+
+<h2>Experiments</h2>
+<table><tr><th>#</th><th>iter</th><th>variant</th><th>category</th><th>G dev</th><th>G holdout</th><th>status</th><th>what and why</th></tr>
+</table>
+
+<h2>Log</h2>
+<h2>Log</h2>
+<p>Plain-language record, newest at the bottom. One entry per iteration plus</p>
+<p>setup notes. Times are US Pacific.</p>
+<h3>2026-09-01 setup</h3>
+<ul>
+<li>Protocol written (autoresearch.md). Public repo created. Two GPU hosts</li>
+</ul>
+<p>  prepared: an H100 (3 slots) and two Blackwell RTX PRO 4500 (1 slot each).</p>
+<ul>
+<li>The first truth rule (iid EDC-feasible prior draws) was rejected before any</li>
+</ul>
+<p>  fit: at every site checked, feasible prior draws are near-dead ecosystems</p>
+<p>  with GPP below 5% of the observed value. Truths are now jittered real-data</p>
+<p>  modes with a GPP and biomass plausibility check.</p>
+
+<h2>Idea bank</h2>
+<h2>Idea bank</h2>
+<p>Status: open | running | kept | discarded | dev-only | blocked. Source: claude | codex | user.</p>
+<p>Priority 1 = try first. Variant configs live in <code>variants/</code>.</p>
+<table>
+<tr><th>id</th><th>pri</th><th>status</th><th>source</th><th>category</th><th>hypothesis</th><th>variant</th></tr>
+<tr><td>H1</td><td>1</td><td>open</td><td>claude</td><td>walkers</td><td>Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free</td><td>n_chains=512 n_steps=4000; n_chains=256 n_steps=8000</td></tr>
+<tr><td>H2</td><td>1</td><td>open</td><td>claude</td><td>moves</td><td>Chart move mixed 50/50 with differential-evolution moves (CARDAMOM&#x27;s STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see</td><td>kernel=chart_de mix=0.5 n_chains=512 n_steps=4000</td></tr>
+<tr><td>H3</td><td>1</td><td>open</td><td>claude</td><td>moves</td><td>Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers</td><td>kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000</td></tr>
+<tr><td>H4</td><td>2</td><td>open</td><td>claude</td><td>moves</td><td>Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves</td><td>kernel=chart_adaptcov mix=0.5</td></tr>
+<tr><td>H5</td><td>2</td><td>open</td><td>claude</td><td>charts</td><td>Inflate chart variance in flat (prior-capped) eigendirections x3</td><td>flat_mult=3</td></tr>
+<tr><td>H6</td><td>3</td><td>open</td><td>claude</td><td>restarts</td><td>Restarts through the whole burn-in, tighter gap</td><td>restart_until=0.5 restart_gap=50 restart_every=250</td></tr>
+<tr><td>H7</td><td>3</td><td>open</td><td>claude</td><td>budget</td><td>64 L-BFGS seeds instead of 128, evaluations moved to sampling</td><td>n_seeds=64 n_steps=...</td></tr>
+<tr><td>H8</td><td>3</td><td>open</td><td>claude</td><td>speed</td><td>Cheaper atlas: 3 rounds, 2048 audit draws (speed path)</td><td>atlas_rounds=3 n_audit=2048</td></tr>
+<tr><td>H9</td><td>2</td><td>open</td><td>claude</td><td>starts</td><td>Chains start from all feasible seeds of the main region, not chart centres; motivated by the 82/18 mode inversion at NL-Loo (fast path never finds the dominant high-allocation mode)</td><td>start_policy=seeds</td></tr>
+<tr><td>H10</td><td>3</td><td>open</td><td>claude</td><td>burn-in</td><td>Burn-in 25% instead of 50% at fixed steps</td><td>burn_frac=0.25</td></tr>
+</table>
+
+<h2>Protocol (frozen)</h2>
+<h2>SARLA autoresearch: program and pre-registered protocol</h2>
+<p><b>Goal.</b> Make CARDAMOM&#x27;s Bayesian calibration of the DALEC_1100 land model</p>
+<p>(89 parameters) fast enough to run at many sites in minutes instead of days,</p>
+<p>without degrading the posterior. The candidate is SARLA, a GPU fast path</p>
+<p>(audited Laplace atlas + population sampler) that today takes ~30 min where</p>
+<p>CARDAMOM&#x27;s ADEMCMC takes ~33 h at one site. The loop proposes sampler-design</p>
+<p>hypotheses, tests them on synthetic-truth experiments at several FLUXNET</p>
+<p>sites, keeps what helps, and publishes every step.</p>
+<p><b>Metric.</b> Calibration gap G (lower is better; 0 = perfectly calibrated</p>
+<p>posterior). Computed per site by <code>scripts/osse_score_site.py</code> from an OSSE</p>
+<p>(observing-system simulation experiment): a known truth generates</p>
+<p>pseudo-observations, the sampler fits them, and the posterior is scored</p>
+<p>against the truth.</p>
+<pre>
+<p>G_s = mean( |c90-0.90|/0.10,  |c50-0.50|/0.10,  |r-0.5|/0.15,</p>
+<p>            max(0, rms_z-1)/0.5,  mean_streams |p90_s-0.90|/0.10,  stuck_frac/0.10 )</p>
+<pre>
+<ul>
+<li>c90, c50: fraction of the 89 parameters whose 90% / 50% posterior interval</li>
+</ul>
+<p>  contains the truth (targets 0.90 / 0.50)</p>
+<ul>
+<li>r: joint density rank P(logpost(draw) &lt; logpost(truth)) (target 0.5)</li>
+<li>rms_z: RMS over parameters of (truth - posterior mean) / posterior sd</li>
+<li>p90_s: fraction of truth values inside the 90% band of the posterior&#x27;s</li>
+</ul>
+<p>  GPP / NBE / ET / LAI projection over the unobserved months (target 0.90)</p>
+<ul>
+<li>stuck_frac: fraction of chains whose median log-posterior is &gt; 100 nats</li>
+</ul>
+<p>  below the best (a chain that never left a junk region)</p>
+<p>Each term is a distance from its target in units of about its binomial</p>
+<p>noise floor (sd(cover90) = 0.032 over 89 parameters).</p>
+<p><b>Sites and split.</b> Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).</p>
+<p>Development set, drives accept/reject: NL-Loo (183, ENF), DK-Sor (71, DBF),</p>
+<p>DE-Gri (58, GRA), ES-LJu (178, OSH). Holdout set, scored only at milestones,</p>
+<p>never used to choose: BE-Vie (26, MF), CZ-wet (55, WET), DE-Geb (57, CRO),</p>
+<p>FR-Pue (82, EBF). Every site has 192 monthly steps with observations ending</p>
+<p>by step 113, so the last 78+ months are a projection test at every site.</p>
+<p><b>Truth.</b> Per site: a plausible EDC-feasible point near (not at) one of the</p>
+<p>pilot&#x27;s real-data L-BFGS modes -- a random plausible mode plus N(0, 0.3 prior</p>
+<p>sd) jitter in z, redrawn until feasible and plausible. Plausible = finite</p>
+<p>trajectory, mean GPP within [0.3x, 3x] of the site&#x27;s observed mean GPP, and</p>
+<p>biomass at the observation month within [0.3x, 3x] of the site&#x27;s observed</p>
+<p>biomass. The jitter keeps the truth off the seed set the fitter starts from.</p>
+<p>A second truth + noise realisation (&quot;B&quot;) exists for each development site and</p>
+<p>is used only at milestones. Iid EDC-feasible prior draws were tried first and</p>
+<p>rejected (2026-09-01): at all five sites checked they are near-dead</p>
+<p>ecosystems (GPP &lt; 5% of observed).</p>
+<p><b>Pseudo-observations.</b> The CBF&#x27;s own declared error model per stream</p>
+<p>(lognormal sigma = ln 3 for GPP and ET, N(0, 1) for NBE, lognormal ln 1.5 for</p>
+<p>LAI, lognormal ln 1.05 for biomass), observation times copied from the real</p>
+<p>site, everything assimilated.</p>
+<p><b>Budget.</b> Fixed model-evaluation budget per fit equal to the baseline (128</p>
+<p>L-BFGS seeds, atlas 6 rounds x 4096 audit draws, sampling 64 chains x 32,000</p>
+<p>steps = 2.05M evaluations). Variants that change chains x steps keep the</p>
+<p>sampling-evaluation total. Wall-clock is recorded per job and GPU type.</p>
+<p><b>Accept rule.</b> A candidate becomes the new default iff (a) dev G improves</p>
+<p>on the current default by more than delta, where delta = 0.10 until iteration</p>
+<p>0 replaces it with 2 sd(G) over three kernel seeds of the baseline on the</p>
+<p>development set; (b) no development site worsens by more than 0.25 in G_s;</p>
+<p>(c) H100 wall-clock &lt;= 1.5x the default&#x27;s. Speed path: accept if wall-clock</p>
+<p>&lt;= 0.5x at G &lt;= default + 0.05. An iteration with fewer than 3 of 4</p>
+<p>development sites scored is incomplete and is requeued once, never counted.</p>
+<p><b>Milestones.</b> At each new default and at least every 5 iterations, the</p>
+<p>default is scored on the 4 holdout sites and the 4 &quot;B&quot; truths. If holdout G</p>
+<p>worsens by &gt; 0.05 relative to the previous default, the change is labelled</p>
+<p>&quot;dev-only&quot; and reverted. Development and holdout results are always shown</p>
+<p>side by side.</p>
+<p><b>Advisor.</b> After each iteration a Codex agent (OpenAI Codex CLI, reasoning</p>
+<p>effort high) receives the protocol, the run history and the iteration&#x27;s</p>
+<p>scores (aggregate numbers only) and proposes next steps; its reply is saved</p>
+<p>under <code>experiments/&lt;iter&gt;/advisor.md</code>, its proposals enter the idea bank</p>
+<p>tagged <code>codex</code>, and the Claude session running the loop decides what to</p>
+<p>implement next, combining those with its own.</p>
+<p><b>Breakthrough notification.</b> The user is emailed when a new default</p>
+<p>improves dev G by &gt;= 0.20, when the speed path accepts, or when a holdout</p>
+<p>milestone confirms either.</p>
+<p><b>Frozen.</b> This protocol is frozen from iteration 1. Any change is logged as</p>
+<p>a new protocol version in <code>LOG.md</code>; earlier results are never re-judged</p>
+<p>under a later version.</p>
+<p><b>Data on this page.</b> Aggregate metrics and public FLUXNET site IDs only; no</p>
+<p>observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)</p>
+<p>via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).</p>
+</body></html>

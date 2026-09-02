@@ -1,0 +1,222 @@
+"""Iteration mechanics for the autoresearch loop.
+
+    loop.py jobs  --iter N --variant NAME [--sites 183,71,58,178] [--seeds 5]
+                  [--tag ""]           -> writes job JSONs, prints their paths
+    loop.py score --iter N             -> scores every pulled fit of iteration N
+                                          per site (osse_score_site.py), writes
+                                          experiments/NNN/scores/<site><tag>.json
+    loop.py aggregate --iter N         -> per-variant dev G, per-site table, JSON
+    loop.py record --iter N --variant NAME --status keep|discard|dev-only|crash
+                  --description "..." [--hypothesis H2] [--category moves]
+                                       -> appends autoresearch.jsonl, dashboard
+Job id: i<NNN>_<variant>_<site><tag>_s<seed>
+"""
+import argparse
+import glob
+import json
+import os
+import subprocess
+import sys
+import time
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+AR = os.path.dirname(HERE)
+ROOT = os.path.dirname(AR)
+LOCAL = os.path.join(ROOT, "runs", "autoresearch")
+PY = os.path.join(ROOT, ".venv", "bin", "python")
+DEV = [183, 71, 58, 178]
+HOLDOUT = [26, 55, 57, 82]
+SITE_NAMES = {26: "BE-Vie", 55: "CZ-wet", 57: "DE-Geb", 58: "DE-Gri", 71: "DK-Sor",
+              82: "FR-Pue", 178: "ES-LJu", 183: "NL-Loo"}
+
+
+def exp_dir(it):
+    os.makedirs(os.path.join(AR, "experiments", f"{it:03d}"), exist_ok=True)
+    return os.path.join(AR, "experiments", f"{it:03d}")
+
+
+def job_id(it, variant, site, tag, seed):
+    return f"i{it:03d}_{variant}_{site}{tag}_s{seed}"
+
+
+def make_jobs(it, variant, sites, seeds, tag, overrides):
+    jd = os.path.join(LOCAL, "queue", "new")
+    os.makedirs(jd, exist_ok=True)
+    paths = []
+    for site in sites:
+        for seed in seeds:
+            jid = job_id(it, variant, site, tag, seed)
+            job = dict(id=jid, site_dir=f"runs/osse_sites/{site}{tag}",
+                       variant_file=f"variants/{variant}.json", kernel_seed=seed,
+                       overrides=overrides, attempts=0, iteration=it, variant=variant,
+                       site=site, tag=tag)
+            p = os.path.join(jd, f"{jid}.json")
+            json.dump(job, open(p, "w"), indent=1)
+            paths.append(p)
+    return paths
+
+
+def pulled_fits(it):
+    """{(site, tag): {variant_seedlabel: fit_path}} for iteration it."""
+    out = {}
+    for rd in sorted(glob.glob(os.path.join(LOCAL, "jobs", f"i{it:03d}_*"))):
+        res = os.path.join(rd, "result.json")
+        fit = os.path.join(rd, "fit.npz")
+        if not (os.path.exists(res) and os.path.exists(fit)):
+            continue
+        jid = os.path.basename(rd)
+        _, rest = jid.split("_", 1)
+        variant, site_tag, seed = rest.rsplit("_", 2)
+        site = int("".join(ch for ch in site_tag if ch.isdigit()))
+        tag = site_tag[len(str(site)):]
+        out.setdefault((site, tag), {})[f"{variant}_{seed}"] = fit
+    return out
+
+
+def score(it, ndraw=500):
+    ed = exp_dir(it)
+    sd = os.path.join(ed, "scores")
+    os.makedirs(sd, exist_ok=True)
+    fits = pulled_fits(it)
+    for (site, tag), d in fits.items():
+        out = os.path.join(sd, f"{site}{tag}.json")
+        have = json.load(open(out))["fits"] if os.path.exists(out) else {}
+        todo = {k: v for k, v in d.items() if k not in have}
+        if not todo:
+            continue
+        cmd = [PY, os.path.join(ROOT, "scripts", "osse_score_site.py"),
+               "--site-dir", os.path.join(ROOT, "runs", "osse_sites", f"{site}{tag}"),
+               "--out", out + ".part", "--ndraw", str(ndraw),
+               "--fig-dir", os.path.join(ed, "figures")]
+        for k, v in d.items():          # rescore all fits of the site together
+            cmd += ["--fit", f"{k}={v}"]
+        env = dict(os.environ, JAX_PLATFORMS="cpu", XLA_FLAGS="--xla_cpu_multi_thread_eigen=true",
+                   OMP_NUM_THREADS="16")
+        env.pop("LD_LIBRARY_PATH", None)
+        print(f"scoring site {site}{tag}: {len(d)} fits", flush=True)
+        r = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        tail = "\n".join(l for l in r.stdout.splitlines() if l and "Warning" not in l
+                         and "smean" not in l and "sann" not in l)
+        print(tail[-3000:])
+        if r.returncode:
+            print(r.stderr[-2000:])
+            continue
+        os.replace(out + ".part", out)
+    return sd
+
+
+def aggregate(it):
+    """Per variant: mean G over dev sites (seed-averaged per site), per-site table."""
+    ed = exp_dir(it)
+    rows = {}
+    for f in sorted(glob.glob(os.path.join(ed, "scores", "*.json"))):
+        s = json.load(open(f))
+        site, tag = s["site"], s["tag"]
+        for name, r in s["fits"].items():
+            if "G" not in r:
+                continue
+            variant, seed = name.rsplit("_s", 1)
+            rows.setdefault(variant, {}).setdefault((site, tag), []).append(
+                dict(seed=int(seed), G=r["G"], terms=r["G_terms"],
+                     cover90=r["param"]["cover90"], cover50=r["param"]["cover50"],
+                     rank=r["rank"], rms_z=r["param"]["rms_z"], n_gt2=r["param"]["n_gt2"],
+                     stuck_frac=r["stuck_frac"], typical_gap=r["typical_gap"],
+                     proj=[r["traj"][k]["projection"]["cover90"] for k in ("GPP", "NBE", "ET", "LAI")],
+                     wall=(r["meta"].get("wall") or {}).get("total"),
+                     n_eval=r["meta"].get("n_eval"), host=None))
+    # attach host/gpu from result.json
+    for rd in glob.glob(os.path.join(LOCAL, "jobs", f"i{it:03d}_*")):
+        rf = os.path.join(rd, "result.json")
+        if not os.path.exists(rf):
+            continue
+        res = json.load(open(rf))
+        jid = os.path.basename(rd)
+        _, rest = jid.split("_", 1)
+        variant, site_tag, seed = rest.rsplit("_", 2)
+        site = int("".join(ch for ch in site_tag if ch.isdigit())); tag = site_tag[len(str(site)):]
+        for e in rows.get(variant, {}).get((site, tag), []):
+            if e["seed"] == int(seed[1:]):
+                e["host"] = res.get("host"); e["gpu_name"] = res.get("gpu_name")
+                e["wall_job"] = res.get("wall")
+    summary = {}
+    for variant, sites in rows.items():
+        per_site = {}
+        for (site, tag), es in sites.items():
+            Gs = [e["G"] for e in es]
+            per_site[f"{site}{tag}"] = dict(G=float(sum(Gs) / len(Gs)), G_seeds=Gs,
+                                            n=len(es), entries=es)
+        dev = [per_site[f"{s}"]["G"] for s in DEV if f"{s}" in per_site]
+        hold = [per_site[f"{s}"]["G"] for s in HOLDOUT if f"{s}" in per_site]
+        devB = [per_site[f"{s}B"]["G"] for s in DEV if f"{s}B" in per_site]
+        walls = [e["wall_job"] for es in sites.values() for e in es if e.get("wall_job")]
+        summary[variant] = dict(
+            G_dev=float(sum(dev) / len(dev)) if dev else None, n_dev=len(dev),
+            G_holdout=float(sum(hold) / len(hold)) if hold else None, n_holdout=len(hold),
+            G_devB=float(sum(devB) / len(devB)) if devB else None,
+            wall_median=float(sorted(walls)[len(walls) // 2]) if walls else None,
+            per_site=per_site)
+    json.dump(summary, open(os.path.join(ed, "aggregate.json"), "w"), indent=1)
+    for v, s in summary.items():
+        print(f"{v:28s} G_dev {fmt(s['G_dev'])} ({s['n_dev']}/4)  G_holdout {fmt(s['G_holdout'])} "
+              f"({s['n_holdout']}/4)  G_devB {fmt(s['G_devB'])}  wall med {fmt(s['wall_median'], 0)}s")
+        for k, ps in s["per_site"].items():
+            e = ps["entries"][0]
+            print(f"   {k:5s} G {ps['G']:.3f} {['%.2f' % g for g in ps['G_seeds']]}  c90 {e['cover90']:.2f} "
+                  f"c50 {e['cover50']:.2f} rank {e['rank']:.2f} rms_z {e['rms_z']:.2f} stuck {e['stuck_frac']:.2f} "
+                  f"proj {['%.2f' % p for p in e['proj']]}")
+    return summary
+
+
+def fmt(x, p=3):
+    return "  --  " if x is None else f"{x:.{p}f}"
+
+
+def record(it, variant, status, description, hypothesis, category, commit):
+    ed = exp_dir(it)
+    agg = json.load(open(os.path.join(ed, "aggregate.json")))
+    s = agg[variant]
+    runs = [json.loads(l) for l in open(os.path.join(AR, "autoresearch.jsonl")) if l.strip()]
+    n = sum(1 for r in runs if r.get("type") != "config")
+    entry = dict(run=n + 1, iteration=it, variant=variant, hypothesis=hypothesis,
+                 category=category, metric=s["G_dev"],
+                 metrics=dict(G_dev=s["G_dev"], G_holdout=s["G_holdout"], G_devB=s["G_devB"],
+                              per_site={k: v["G"] for k, v in s["per_site"].items()},
+                              wall_median=s["wall_median"]),
+                 status=status, description=description, commit=commit,
+                 timestamp=int(time.time()), protocol_version=1)
+    with open(os.path.join(AR, "autoresearch.jsonl"), "a") as f:
+        f.write(json.dumps(entry) + "\n")
+    print(json.dumps(entry))
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("mode", choices=["jobs", "score", "aggregate", "record"])
+    ap.add_argument("--iter", type=int, required=True)
+    ap.add_argument("--variant")
+    ap.add_argument("--sites", default=",".join(map(str, DEV)))
+    ap.add_argument("--seeds", default="5")
+    ap.add_argument("--tag", default="")
+    ap.add_argument("--set", nargs="*", default=[])
+    ap.add_argument("--status")
+    ap.add_argument("--description", default="")
+    ap.add_argument("--hypothesis", default="")
+    ap.add_argument("--category", default="")
+    ap.add_argument("--commit", default="")
+    ap.add_argument("--ndraw", type=int, default=500)
+    a = ap.parse_args()
+    if a.mode == "jobs":
+        sites = [int(s) for s in a.sites.split(",")]
+        seeds = [int(s) for s in a.seeds.split(",")]
+        for p in make_jobs(a.iter, a.variant, sites, seeds, a.tag, a.set):
+            print(p)
+    elif a.mode == "score":
+        score(a.iter, a.ndraw)
+    elif a.mode == "aggregate":
+        aggregate(a.iter)
+    elif a.mode == "record":
+        record(a.iter, a.variant, a.status, a.description, a.hypothesis, a.category, a.commit)
+
+
+if __name__ == "__main__":
+    main()
