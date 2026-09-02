@@ -11,7 +11,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .kpi b{display:block;font-size:1.4rem} .small{color:#666;font-size:.85rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-01 21:46 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-01 21:52 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -115,10 +115,11 @@ posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <p>Each term is a distance from its target in units of about its binomial</p>
 <p>noise floor (sd(cover90) = 0.032 over 89 parameters).</p>
 <p><b>Sites and split.</b> Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).</p>
-<p>Development set, drives accept/reject: NL-Loo (183, ENF), DK-Sor (71, DBF),</p>
-<p>DE-Gri (58, GRA), ES-LJu (178, OSH). Holdout set, scored only at milestones,</p>
-<p>never used to choose: BE-Vie (26, MF), CZ-wet (55, WET), DE-Geb (57, CRO),</p>
-<p>FR-Pue (82, EBF). Every site has 192 monthly steps with observations ending</p>
+<p>Development set, drives accept/reject: NL-Loo (183, ENF), DE-Gri (58, GRA),</p>
+<p>ES-LJu (178, OSH), BE-Vie (26, MF). Holdout set, scored only at milestones,</p>
+<p>never used to choose: CZ-wet (55, WET), DE-Geb (57, CRO), FR-Pue (82, EBF),</p>
+<p>DK-Sor (71, DBF; no real-data mode reaches 30% of its observed GPP, so its</p>
+<p>truth uses a relaxed 20% plausibility bound and is flagged). Every site has 192 monthly steps with observations ending</p>
 <p>by step 113, so the last 78+ months are a projection test at every site.</p>
 <p><b>Truth.</b> Per site: a plausible EDC-feasible point near (not at) one of the</p>
 <p>pilot&#x27;s real-data L-BFGS modes -- a random plausible mode plus N(0, 0.3 prior</p>

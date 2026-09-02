@@ -24,8 +24,8 @@ AR = os.path.dirname(HERE)
 ROOT = os.path.dirname(AR)
 LOCAL = os.path.join(ROOT, "runs", "autoresearch")
 PY = os.path.join(ROOT, ".venv", "bin", "python")
-DEV = [183, 71, 58, 178]
-HOLDOUT = [26, 55, 57, 82]
+DEV = [183, 58, 178, 26]
+HOLDOUT = [55, 57, 82, 71]
 SITE_NAMES = {26: "BE-Vie", 55: "CZ-wet", 57: "DE-Geb", 58: "DE-Gri", 71: "DK-Sor",
               82: "FR-Pue", 178: "ES-LJu", 183: "NL-Loo"}
 

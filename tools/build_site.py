@@ -20,8 +20,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 AR = os.path.dirname(HERE)
 DOCS = os.path.join(AR, "docs")
 CH = os.path.join(DOCS, "charts")
-DEV = [183, 71, 58, 178]
-HOLDOUT = [26, 55, 57, 82]
+DEV = [183, 58, 178, 26]
+HOLDOUT = [55, 57, 82, 71]
 NAMES = {26: "BE-Vie (MF)", 55: "CZ-wet (WET)", 57: "DE-Geb (CRO)", 58: "DE-Gri (GRA)",
          71: "DK-Sor (DBF)", 82: "FR-Pue (EBF)", 178: "ES-LJu (OSH)", 183: "NL-Loo (ENF)"}
 STATUS_COLOR = {"keep": "#2166ac", "discard": "#b2182b", "dev-only": "#e08214",

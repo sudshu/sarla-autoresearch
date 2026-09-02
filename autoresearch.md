@@ -31,10 +31,11 @@ Each term is a distance from its target in units of about its binomial
 noise floor (sd(cover90) = 0.032 over 89 parameters).
 
 **Sites and split.** Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).
-Development set, drives accept/reject: NL-Loo (183, ENF), DK-Sor (71, DBF),
-DE-Gri (58, GRA), ES-LJu (178, OSH). Holdout set, scored only at milestones,
-never used to choose: BE-Vie (26, MF), CZ-wet (55, WET), DE-Geb (57, CRO),
-FR-Pue (82, EBF). Every site has 192 monthly steps with observations ending
+Development set, drives accept/reject: NL-Loo (183, ENF), DE-Gri (58, GRA),
+ES-LJu (178, OSH), BE-Vie (26, MF). Holdout set, scored only at milestones,
+never used to choose: CZ-wet (55, WET), DE-Geb (57, CRO), FR-Pue (82, EBF),
+DK-Sor (71, DBF; no real-data mode reaches 30% of its observed GPP, so its
+truth uses a relaxed 20% plausibility bound and is flagged). Every site has 192 monthly steps with observations ending
 by step 113, so the last 78+ months are a projection test at every site.
 
 **Truth.** Per site: a plausible EDC-feasible point near (not at) one of the
