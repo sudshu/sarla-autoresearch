@@ -161,3 +161,8 @@ setup notes. Times are US Pacific.
 - The v2 baseline's defect fits this redirect exactly: at NL-Loo, DK-Sor and
   CZ-wet the atlas never covers the posterior's basin (baseline G 0.9-1.7,
   3.0-14, 5.2 respectively), while BE-Vie and DE-Gri are fine.
+- 09:15 PDT: queue reordered. The 16 not-yet-started warm-up jobs (iterations
+  6 and 7) were withdrawn so the surgery experiments (iteration 8) run right
+  after the remaining kernel jobs of iteration 5; the warm-up jobs are
+  resubmitted once iteration 8 is on the GPUs (job files kept under
+  runs/autoresearch/queue/deferred).
