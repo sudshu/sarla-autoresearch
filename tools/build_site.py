@@ -27,7 +27,7 @@ NAMES = {26: "BE-Vie (MF)", 55: "CZ-wet (WET)", 57: "DE-Geb (CRO)", 58: "DE-Gri 
 STATUS_COLOR = {"keep": "#2166ac", "discard": "#b2182b", "dev-only": "#e08214",
                 "crash": "#777777", "baseline": "#4d4d4d", "running": "#999999",
                 "v1-invalid": "#bbbbbb", "confirm": "#e0a800"}
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 4
 FIRST_VALID_PROTOCOL = 2
 ADEMCMC_H = 33.0
 plt.rcParams.update({"font.size": 11, "axes.spines.top": False, "axes.spines.right": False,

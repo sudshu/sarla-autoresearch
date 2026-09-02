@@ -25,7 +25,7 @@ AR = os.path.dirname(HERE)
 ROOT = os.path.dirname(AR)
 LOCAL = os.path.join(ROOT, "runs", "autoresearch")
 PY = os.path.join(ROOT, ".venv", "bin", "python")
-PROTOCOL_VERSION = 3
+PROTOCOL_VERSION = 4
 G_CAP = 5.0   # protocol v3: a site's G is capped at 5 in every aggregate (a catastrophic site is a failure, not a lever)
 SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites_v2")
 if os.environ.get("SITES_V1"): SITES_ROOT = os.path.join(ROOT, "runs", "osse_sites")
@@ -178,8 +178,22 @@ def aggregate(it, extra_iters=()):
             G_devB=float(sum(devB) / len(devB)) if devB else None,
             wall_median=float(sorted(walls)[len(walls) // 2]) if walls else None,
             per_site=per_site)
+    # protocol v4: two-sample test against the current default (baseline aggregate)
+    base = None
+    if os.environ.get("BASELINE_ITER"):
+        bagg = json.load(open(os.path.join(exp_dir(int(os.environ["BASELINE_ITER"])), "aggregate.json")))
+        base = bagg.get(os.environ.get("BASELINE_VARIANT", "v3_baseline"))
+    for v, s in summary.items():
+        if base and s.get("sd_dev") is not None and base.get("sd_dev") is not None:
+            nb, nc = len(base["G_dev_per_seed"]), len(s["G_dev_per_seed"])
+            se = float(np.sqrt(base["sd_dev"] ** 2 / nb + s["sd_dev"] ** 2 / nc))
+            s["v4_diff"] = float(base["G_dev"] - s["G_dev"]); s["v4_se"] = se
+            s["v4_t"] = s["v4_diff"] / se if se > 0 else None
+            s["v4_pass"] = bool(nc >= 3 and s["v4_diff"] > 2 * se)
     json.dump(summary, open(os.path.join(ed, "aggregate.json"), "w"), indent=1)
     for v, s in summary.items():
+        if "v4_t" in s and s["v4_t"] is not None:
+            print(f"{v:28s} v4 test vs default: diff {s['v4_diff']:.3f}, se {s['v4_se']:.3f}, t {s['v4_t']:.2f} -> {'PASS' if s['v4_pass'] else 'no'}")
         print(f"{v:28s} G_dev {fmt(s['G_dev'])} ({s['n_dev']}/4)  G_holdout {fmt(s['G_holdout'])} "
               f"({s['n_holdout']}/4)  G_devB {fmt(s['G_devB'])}  wall med {fmt(s['wall_median'], 0)}s"
               + (f"  per-seed dev G {['%.3f' % g for g in s['G_dev_per_seed']]} sd {s['sd_dev']:.3f} "
