@@ -26,7 +26,7 @@ NAMES = {26: "BE-Vie (MF)", 55: "CZ-wet (WET)", 57: "DE-Geb (CRO)", 58: "DE-Gri 
          71: "DK-Sor (DBF)", 82: "FR-Pue (EBF)", 178: "ES-LJu (OSH)", 183: "NL-Loo (ENF)"}
 STATUS_COLOR = {"keep": "#2166ac", "discard": "#b2182b", "dev-only": "#e08214",
                 "crash": "#777777", "baseline": "#4d4d4d", "running": "#999999",
-                "v1-invalid": "#bbbbbb"}
+                "v1-invalid": "#bbbbbb", "confirm": "#e0a800"}
 PROTOCOL_VERSION = 3
 FIRST_VALID_PROTOCOL = 2
 ADEMCMC_H = 33.0
@@ -80,7 +80,7 @@ def chart_progress(runs):
             if g is None:
                 continue
             col = CAT_COLOR.get(r.get("category") or "other", "#999") if valid else "0.75"
-            marker = {"keep": "*", "baseline": "s", "discard": "o", "dev-only": "D", "crash": "x"}.get(r["status"], "o")
+            marker = {"keep": "*", "baseline": "s", "discard": "o", "dev-only": "D", "crash": "x", "confirm": "^"}.get(r["status"], "o")
             ax.scatter(r["run"], g, color=col, marker=marker, s=110 if marker == "*" else 55, zorder=3,
                        edgecolor="k" if valid else "none", linewidth=0.6)
             h = r["metrics"].get("G_holdout")
@@ -135,7 +135,7 @@ def chart_heatmap(aggs, runs):
 
 def chart_categories(runs):
     cats = sorted({r.get("category") or "other" for r in runs}) or ["baseline"]
-    sts = ["keep", "discard", "dev-only", "crash", "baseline"]
+    sts = ["keep", "confirm", "discard", "dev-only", "crash", "baseline"]
     counts = {c: {s: 0 for s in sts} for c in cats}
     for r in runs:
         counts[r.get("category") or "other"][r["status"] if r["status"] in sts else "crash"] += 1

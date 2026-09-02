@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 09:21 PDT",
+ "updated": "2026-09-02 11:12 PDT",
  "runs": [
   {
    "run": 1,
@@ -205,6 +205,81 @@
    "commit": "453ea9f",
    "timestamp": 1788365941,
    "protocol_version": 3
+  },
+  {
+   "run": 9,
+   "iteration": 5,
+   "variant": "h2_de128",
+   "hypothesis": "H2",
+   "category": "moves",
+   "metric": 0.9620959634013013,
+   "metrics": {
+    "G_dev": 0.9620959634013013,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.7745703411994665,
+     "26": 0.9894339722564379,
+     "58": 0.7225492552062378,
+     "71": 1.361830284943063
+    },
+    "wall_median": 3300.027514696121
+   },
+   "status": "confirm",
+   "description": "Chart + DE moves, 128 walkers x 16k: dev G 0.96 vs baseline 1.72 (one seed). Improvement 0.76 is just under the noise floor 0.86; two more kernel seeds queued (iteration 9) before deciding. DK-Sor 1.36 vs 3.5.",
+   "commit": "453ea9f",
+   "timestamp": 1788372732,
+   "protocol_version": 3
+  },
+  {
+   "run": 10,
+   "iteration": 5,
+   "variant": "h3_stretch128",
+   "hypothesis": "H3",
+   "category": "moves",
+   "metric": 1.0450846328146113,
+   "metrics": {
+    "G_dev": 1.0450846328146113,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.1966489224126926,
+     "26": 0.9655973070345194,
+     "58": 0.7317865502782115,
+     "71": 1.2863057515330216
+    },
+    "wall_median": 3300.0274291038513
+   },
+   "status": "confirm",
+   "description": "Chart + stretch moves, 128 x 16k: dev G 1.05 vs 1.72 (one seed); confirmation seeds queued. DK-Sor 1.29.",
+   "commit": "453ea9f",
+   "timestamp": 1788372732,
+   "protocol_version": 3
+  },
+  {
+   "run": 11,
+   "iteration": 5,
+   "variant": "h9_seedstarts",
+   "hypothesis": "H9",
+   "category": "starts",
+   "metric": 1.3285389726041807,
+   "metrics": {
+    "G_dev": 1.3285389726041807,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.7416144806114076,
+     "26": 1.027296567064216,
+     "58": 0.7020812678315891,
+     "71": 1.8431635749095105
+    },
+    "wall_median": 3000.039076089859
+   },
+   "status": "discard",
+   "description": "Chains start from the polished seeds instead of chart centres: 1.33, no gain; NL-Loo and DK-Sor still miss the basin (rank 1.00).",
+   "commit": "cdaf445",
+   "timestamp": 1788372733,
+   "protocol_version": 3
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -323,6 +398,47 @@
     "n_holdout": 1,
     "G_devB": null,
     "wall_median": 3060.038473844528
+   }
+  },
+  "5": {
+   "h2_de128": {
+    "G_dev_per_seed": [
+     0.9620959634013013
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9620959634013013,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3300.027514696121
+   },
+   "h3_stretch128": {
+    "G_dev_per_seed": [
+     1.0450846328146113
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.0450846328146113,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3300.0274291038513
+   },
+   "h9_seedstarts": {
+    "G_dev_per_seed": [
+     1.3285389726041807
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.3285389726041807,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3000.039076089859
    }
   }
  }

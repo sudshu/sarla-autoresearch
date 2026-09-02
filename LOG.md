@@ -187,3 +187,20 @@ setup notes. Times are US Pacific.
   tangent-volume weights (all queued), restart tuning afterwards; kernel tuning
   paused until the basin is shown to be represented. Page redesigned: live
   "right now" panel, per-site heatmap, protocol bands, reading guide.
+
+## Iteration 5 result (2026-09-02 10:50 PDT): population kernels halve the gap at the hard site; decision deferred to more seeds
+
+- Against valid truths: chart + DE moves at 128 walkers x 16k steps gives
+  dev G 0.96, chart + stretch 1.05, seed starts 1.33; baseline 1.72. At DK-Sor
+  the two population kernels score 1.3 to 1.4 where the baseline scored 3.5
+  (capped), so ensemble moves do find the basin that the chart walk misses.
+- Neither clears the acceptance threshold (0.86 below baseline) on one seed,
+  and the protocol's confirmation rule asks for three seeds before promotion.
+  Two more kernel seeds of both variants are queued as iteration 9.
+- Seed starts (H9) discarded: NL-Loo and DK-Sor still miss the basin.
+- First surgery fits (iteration 8, still running): DK-Sor G 1.02 with a
+  perfect typical-set gap (44 vs the expected 44.5) but density rank still
+  1.00; the 89-D audit trace is dominated by "branch" operations and the
+  importance ESS stays near zero through six rounds, so the audit-driven
+  repair is far from converged at this scale (a knob problem: branch_tau and
+  the segment test are tuned for 2-D). Full verdict when all 12 fits land.
