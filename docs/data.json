@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 09:16 PDT",
+ "updated": "2026-09-03 10:14 PDT",
  "runs": [
   {
    "run": 1,
@@ -849,6 +849,31 @@
    "commit": "453ea9f",
    "timestamp": 1788452144,
    "protocol_version": 4
+  },
+  {
+   "run": 35,
+   "iteration": 25,
+   "variant": "s12_surgery_feaspath_de128",
+   "hypothesis": "S12",
+   "category": "atlas_geometry",
+   "metric": 1.1317462303192225,
+   "metrics": {
+    "G_dev": 1.1317462303192225,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.3647346153217839,
+     "26": 0.97519107244071,
+     "58": 0.8005528883442161,
+     "71": 1.3865063451701796
+    },
+    "wall_median": 3450.027379512787
+   },
+   "status": "discard",
+   "description": "Feasible-path surgery atlas + DE kernel, single seed: dev G about 1.2 (0.80 to 1.39 across sites), below surgery+DE with default or gate-fix atlases.",
+   "commit": "4d03d9e",
+   "timestamp": 1788455609,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1423,6 +1448,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3780.030505657196
+   }
+  },
+  "25": {
+   "s12_surgery_feaspath_de128": {
+    "G_dev_per_seed": [
+     1.1317462303192223
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1317462303192225,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3450.027379512787
    }
   }
  }

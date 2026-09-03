@@ -478,3 +478,15 @@ setup notes. Times are US Pacific.
   the EDC penalties) is the last tempering test in the queue.
 - House rule recorded: the local A100s are never used unless the user asks;
   all local work runs on CPU.
+
+## Iteration 25 result (2026-09-03 10:40 PDT): feasible-path atlas + DE kernel, 1.13
+
+- Single seed, 0.80 to 1.39 across sites. Below surgery + DE with the default
+  (0.96 over three seeds) or gate-fix atlas. Discarded.
+- Iteration 26 (rank changes only for jumps of 18+ dimensions) is landing and
+  its operation mix is, for the first time at 89-D, geometric: 61 to 72
+  refines, 9 to 10 splits, 5 to 10 rank changes and 3 to 5 branches per fit
+  instead of 80 rank changes; first two sites G 0.79 (BE-Vie) and 0.69
+  (DE-Gri). Extend and merge still never fire: the quadratic model error at a
+  corrected point is never below 20 nats, so every out-of-extent flag becomes
+  a refine (a bend), and no two charts ever explain each other's centres.
