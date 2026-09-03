@@ -436,3 +436,16 @@ setup notes. Times are US Pacific.
   0.99 in G with the same mode-weight problem as the plain kernels. The
   2x-budget diagnostic (iteration 24) decides whether time is the missing
   ingredient. Feasible-path surgery with the DE kernel queued (iteration 25).
+
+## Iteration 20 result (2026-09-03 08:20 PDT): removing the false branches makes the surgery atlas the best chart-walk variant so far
+
+- Surgery with gate-crossing segments treated as "unknown" instead of new
+  strata (plus 89-D tolerances, no spectral-gap rank rule, volume weights),
+  baseline chart-shaped kernel, one seed: dev G 0.93 (NL-Loo 0.96, BE-Vie
+  1.00, DE-Gri 0.72, DK-Sor 1.06). Level with surgery + DE (0.92) without any
+  population moves, and better than every earlier surgery variant (1.05 to
+  1.33). Confirmation seeds queued (iteration 28).
+- The operation mix moved from branch to rank-change (77 to 82 per fit): the
+  local rank still varies between charts by dozens of dimensions, so
+  "rank-change" is doing the work of add-a-chart. Iteration 26 requires a rank
+  jump of at least 18 dimensions before calling it a rank change.
