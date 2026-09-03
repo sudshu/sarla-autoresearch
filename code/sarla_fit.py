@@ -94,7 +94,7 @@ class Variant:
     start_policy: str = "balanced"  # balanced | proportional
     init_seed: int = 99
     # kernel
-    kernel: str = "chart_rwm"       # chart_rwm | chart_de | chart_stretch | chart_adaptcov | pt_de
+    kernel: str = "chart_rwm"       # chart_rwm | chart_de | chart_stretch | chart_adaptcov | chart_indep | pt_de
     pt_rungs: int = 4               # parallel tempering (kernel=pt_de): rungs, geometric betas 1 -> pt_beta_min
     pt_beta_min: float = 0.05
     pt_swap_every: int = 10

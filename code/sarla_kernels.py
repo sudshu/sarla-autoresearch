@@ -96,7 +96,24 @@ def run_kernel(atlas, target, cfg, n_steps, n_chains, seed=5, init_ks=None,
 
         use_pop = (cfg.mix > 0 and (cfg.kernel != "chart_adaptcov" or L_ad is not None)
                    and rng.random() < cfg.mix)
-        if not use_pop:
+        if use_pop and cfg.kernel == "chart_indep":
+            # exact independence Metropolis from the frozen atlas mixture q:
+            # global jumps wherever the atlas has coverage (mode weights follow q's coverage, corrected by MH)
+            n_pop += 1
+            Y = atlas.draw(rng, n_chains)
+            lpy = np.array(batch(Y * scale), dtype=float)
+            lqx, lqy = atlas.logq(X), atlas.logq(Y)
+            loga = np.where(np.isfinite(lpy), (lpy - lqy) - (lpi - lqx), -np.inf)
+            take = np.log(rng.random(n_chains)) < loga
+            pacc[0] += int(take.sum()); pacc[1] += n_chains
+            X[take], lpi[take] = Y[take], lpy[take]
+            use_pop = False           # skip the half-ensemble block below
+            did_indep = True
+        else:
+            did_indep = False
+        if did_indep:
+            pass
+        elif not use_pop:
             kx = nearest(X)
             xi = rng.standard_normal((n_chains, D)) * (gamma * Vs[kx])
             Y = X + np.einsum("nk,ndk->nd", xi, E[kx])
