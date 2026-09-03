@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 14:55 PDT",
+ "updated": "2026-09-03 15:06 PDT",
  "runs": [
   {
    "run": 1,
@@ -972,6 +972,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788465674,
    "protocol_version": 4
+  },
+  {
+   "run": 40,
+   "iteration": 31,
+   "variant": "s15_surgery_nobranchinf_de128",
+   "hypothesis": "S15",
+   "category": "atlas_geometry",
+   "metric": 0.9598472037504899,
+   "metrics": {
+    "G_dev": 0.9598472037504899,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.1239946229448379,
+     "26": 0.9134016816786819,
+     "58": 0.6913012525014098,
+     "71": 1.11069125787703
+    },
+    "wall_median": 3450.0317571163177
+   },
+   "status": "discard",
+   "description": "Gate-fix surgery atlas + DE kernel, single seed: dev G 0.96 (NL-Loo 1.12, BE-Vie 0.91, DE-Gri 0.69, DK-Sor 1.11), equal to surgery+DE with the default atlas. High-allocation mass 0.03 to 0.15 at every site, i.e. consistently in the low-allocation budget even where the truth is high (NL-Loo 0.64, BE-Vie 0.74).",
+   "commit": "4d03d9e",
+   "timestamp": 1788473167,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1625,6 +1650,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.045303106308
+   }
+  },
+  "31": {
+   "s15_surgery_nobranchinf_de128": {
+    "G_dev_per_seed": [
+     0.9598472037504899
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9598472037504899,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3450.0317571163177
    }
   }
  }
