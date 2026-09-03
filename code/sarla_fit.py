@@ -295,7 +295,8 @@ def main():
                                           report=max(cfg.n_steps // 8, 500), init_X=init_X)
         n_eval[0] += n_pt[0]
         print(f"  tempering: betas {np.round(diag['betas'], 3).tolist()} swap acceptance "
-              f"{np.round(diag['swap_acc'], 2).tolist()}", flush=True)
+              f"{np.round(diag['swap_acc'], 2).tolist()} round trips {diag['round_trips_total']} by "
+              f"{diag['replicas_with_round_trip']}/{diag['n_replicas']} replicas", flush=True)
     else:
         draws, acc, bestlp, diag = run_kernel(
             atlas, target, cfg, cfg.n_steps, cfg.n_chains, seed=cfg.kernel_seed,
@@ -318,6 +319,8 @@ def main():
              wall=json.dumps(wall), final_lp=diag["final_lp"],
              n_eval=np.array([ev_seeds, ev_atlas, ev_kernel]),
              acc_pop=diag["acc_pop"], n_restart=diag["n_restart"],
+             pt_round_trips=diag.get("round_trips_total", -1),
+             pt_replicas_rt=diag.get("replicas_with_round_trip", -1),
              n_charts=len(atlas.charts), n_degraded=degraded,
              chart_ranks=np.array([c.rank for c in atlas.charts]),
              atlas_history=json.dumps(atlas_history, default=str) if atlas_history else "")

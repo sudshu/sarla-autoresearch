@@ -114,6 +114,9 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
     half = n // 2
     halves = (np.arange(half), np.arange(half, n))
     keep, t0 = [], time.time()
+    ident = np.arange(K * n).reshape(K, n)          # replica identity travels with swaps
+    seen_hot = np.zeros(K * n, bool); seen_cold_after_hot = np.zeros(K * n, bool)
+    round_trips = np.zeros(K * n, int); hot_visits = 0
 
     def loc_lq(kk, A, B, g):
         s = Vs[kk] * g
@@ -163,8 +166,13 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
                 loga = (betas[k] - betas[k + 1]) * (L[k + 1] - L[k])
                 take = np.log(rng.random(n)) < loga
                 swaps[k] += (take.sum(), n)
-                for arr in (X, P, L):
+                for arr in (X, P, L, ident):
                     tmp = arr[k][take].copy(); arr[k][take] = arr[k + 1][take]; arr[k + 1][take] = tmp
+            # round trips: a replica that reaches the hottest rung and later returns to the cold rung
+            hot_ids = ident[-1]; seen_hot[hot_ids] = True
+            cold_ids = ident[0]
+            back = seen_hot[cold_ids]
+            round_trips[cold_ids[back]] += 1; seen_hot[cold_ids[back]] = False
         if t >= burn_end and t % thin == 0:
             keep.append((X[0] * scale).copy())
         if report and t % report == 0:
@@ -174,6 +182,8 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
                   + f" best {P[0].max():.2f} hot-best {P[-1].max():.2f} {time.time()-t0:.0f}s", flush=True)
     diag = dict(acc_chart=float(acc[0, 0] / max(acc[0, 1], 1)), acc_pop=float(pacc[0, 0] / max(pacc[0, 1], 1)),
                 swap_acc=[float(swaps[k, 0] / max(swaps[k, 1], 1)) for k in range(K - 1)],
+                round_trips_total=int(round_trips.sum()), replicas_with_round_trip=int((round_trips > 0).sum()),
+                n_replicas=int(K * n),
                 betas=betas.tolist(), n_pop_steps=int(pacc[0, 1] // max(n, 1)), n_restart=0,
                 gamma_final=float(gamma[0]), s_ad_final=0.0, thin=thin, final_lp=P[0].copy())
     return np.concatenate(keep), diag["acc_chart"], float(P[0].max()), diag
