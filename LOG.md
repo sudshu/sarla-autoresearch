@@ -273,3 +273,23 @@ setup notes. Times are US Pacific.
   data puts 82% there, so the direction is right but the estimate is too
   noisy to reweight with yet. Next: smaller bandwidth, more proposal draws,
   and the three fresh DE fits of iteration 13 as test cases.
+
+## Iteration 11 result (2026-09-02 20:30 PDT): scaling the tolerances does not change what the surgery does at 89-D
+
+- Surgery with model error 20 nats, bend 3 sigma, branch dip 100 nats, 16 flags
+  per round and volume weights: dev G 1.05 on one seed (NL-Loo 1.22, BE-Vie
+  0.79, DE-Gri 0.82, DK-Sor 1.39). Better than the baseline, no better than the
+  earlier surgery variants.
+- The diagnostics are the point: 36 to 45 branch and 34 to 45 rank-change
+  operations per fit, 1 to 3 splits, 3 to 6 refines, no extend, no merge,
+  importance ESS 0.0002 after six rounds, 70 to 100 uncovered draws at the
+  end. So (a) a straight segment between a chart centre and a corrected point
+  dips by more than 100 nats almost always in 89-D (the EDC penalties make
+  the surface rugged), so "not density-connected" is not a usable branch
+  criterion here; and (b) local rank as counted by the spectral-gap rule
+  varies between 24 and 54 from chart to chart on a near-continuous spectrum,
+  so "rank-change" is mostly noise. The surgery is real, but its two
+  topological tests are tuned to 2-D geometry. Iteration 16 disables the gap
+  rule (rank = eigenvalues below prior curvature), demands a 4x-robust rank
+  change and a 1000-nat dip for a branch, to see whether extend/refine/merge
+  then carry the repair.

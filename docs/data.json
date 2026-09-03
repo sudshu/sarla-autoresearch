@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 19:42 PDT",
+ "updated": "2026-09-02 19:54 PDT",
  "runs": [
   {
    "run": 1,
@@ -455,6 +455,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788403316,
    "protocol_version": 4
+  },
+  {
+   "run": 19,
+   "iteration": 11,
+   "variant": "s6_surgery_tol89d",
+   "hypothesis": "S6",
+   "category": "atlas_geometry",
+   "metric": 1.0535854377114298,
+   "metrics": {
+    "G_dev": 1.0535854377114298,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.2220636960554205,
+     "26": 0.7896226824002905,
+     "58": 0.8149857433739194,
+     "71": 1.3876696290160888
+    },
+    "wall_median": 3840.0296969413757
+   },
+   "status": "discard",
+   "description": "Surgery with 89-D tolerances (model_tol 20, bend_tol 3, branch_tau 100, 16 flags, volume weights): 1.05 on one seed. Diagnostics unchanged: 36-45 branches and 34-45 rank-changes per fit, ESS 0.0002, no extend. The rank rule and the straight-segment connectivity test do not describe this posterior's geometry.",
+   "commit": "4d03d9e",
+   "timestamp": 1788404062,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -736,6 +761,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.040359735489
+   }
+  },
+  "11": {
+   "s6_surgery_tol89d": {
+    "G_dev_per_seed": [
+     1.0535854377114298
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.0535854377114298,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3840.0296969413757
    }
   }
  }
