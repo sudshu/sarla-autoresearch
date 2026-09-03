@@ -91,7 +91,7 @@ class Variant:
     n_mid: int = 7
     region_gap: float = 100.0
     within: float = None            # None = any chart in the region (v3)
-    start_policy: str = "balanced"  # balanced | proportional
+    start_policy: str = "balanced"  # balanced | proportional | seeds | mode_stratified
     init_seed: int = 99
     # kernel
     kernel: str = "chart_rwm"       # chart_rwm | chart_de | chart_stretch | chart_adaptcov | chart_indep | pt_de
@@ -279,6 +279,23 @@ def main():
         ks = near[okmask][pick] if okmask.any() else near[pick]
         print(f"  seed starts: {len(pool)} seeds in kept regions, "
               f"{len(np.unique(pick))} distinct used", flush=True)
+    elif cfg.start_policy == "mode_stratified":
+        # half of the walkers start on charts in the high-wood-allocation budget
+        # (f_wood > 0.5 at the chart centre), half on the others, so both modes are
+        # populated from the start (sibling OSSE session / advisor, 2026-09-03)
+        from sarla_forward import make_forward
+        fwd = make_forward(a.cbf)
+        C = np.stack([c.center for c in atlas.charts]) * SCALE
+        fw = fwd["predict"](C)["f_wood"]
+        kept = np.isin(lab, keep_regs)
+        hi = np.flatnonzero(kept & (fw > 0.5)); lo = np.flatnonzero(kept & ~(fw > 0.5))
+        print(f"  mode-stratified starts: {len(hi)} high-allocation charts, {len(lo)} low", flush=True)
+        if len(hi) == 0 or len(lo) == 0:
+            ks = balanced_init(lab, cfg.n_chains, rng_i, keep=keep_regs, lp0=None, within=45.0)
+        else:
+            n_hi = cfg.n_chains // 2
+            ks = np.concatenate([rng_i.choice(hi, n_hi), rng_i.choice(lo, cfg.n_chains - n_hi)])
+            ks = ks[rng_i.permutation(cfg.n_chains)]
     else:
         raise ValueError(cfg.start_policy)
     init_X = init_X if cfg.start_policy == "seeds" else None
