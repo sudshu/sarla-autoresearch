@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 12:31 PDT",
+ "updated": "2026-09-03 13:01 PDT",
  "runs": [
   {
    "run": 1,
@@ -947,6 +947,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788463885,
    "protocol_version": 4
+  },
+  {
+   "run": 39,
+   "iteration": 29,
+   "variant": "s14_surgery_audit16k",
+   "hypothesis": "S14",
+   "category": "atlas_geometry",
+   "metric": 1.1066198840703083,
+   "metrics": {
+    "G_dev": 1.1066198840703083,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.3322616538449878,
+     "26": 0.8424488982454695,
+     "58": 0.7734672312917469,
+     "71": 1.4783017528990294
+    },
+    "wall_median": 3330.045303106308
+   },
+   "status": "discard",
+   "description": "Surgery with 16384 audit draws per round and an ESS stop (sampling shortened to 30k steps): single seed, dev G about 1.1; the audit ESS never approaches the stop threshold, so a four-times larger audit does not change the atlas's coverage.",
+   "commit": "4d03d9e",
+   "timestamp": 1788465674,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1585,6 +1610,21 @@
     "v4_se": 0.40682657608152606,
     "v4_t": 0.6163461180716451,
     "v4_pass": false
+   }
+  },
+  "29": {
+   "s14_surgery_audit16k": {
+    "G_dev_per_seed": [
+     1.1066198840703083
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1066198840703083,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.045303106308
    }
   }
  }

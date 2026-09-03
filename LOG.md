@@ -582,3 +582,12 @@ setup notes. Times are US Pacific.
   where the 64 chains start. Not promoted. The population kernels never
   showed this failure mode (their worst NL-Loo seed was 1.36), so the
   remaining surgery tests are combined with the DE kernel (iterations 31, 32).
+
+## Iteration 29 result (2026-09-03 13:50 PDT): a four-times larger audit does not improve the atlas
+
+- 16,384 audit draws per round with an ESS stop, sampling shortened to keep
+  the budget: dev G 1.11 (0.77 to 1.48 across sites), single seed. Uncovered
+  draws per audit grow in proportion (230 to 519 of 16,384) and the ESS stays
+  at 0.0001, so the stop never triggers: the audit is not the bottleneck,
+  the atlas simply covers a small fraction of the posterior after six repair
+  rounds no matter how well the gap is measured. Discarded.
