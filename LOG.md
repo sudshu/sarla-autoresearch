@@ -293,3 +293,14 @@ setup notes. Times are US Pacific.
   rule (rank = eigenvalues below prior curvature), demands a 4x-robust rank
   change and a 1000-nat dip for a branch, to see whether extend/refine/merge
   then carry the repair.
+
+## Iteration 12 result (2026-09-02 21:00 PDT): volume-weighted surgery confirmed at 1.16 over three seeds; adding the DE kernel to it does not help further
+
+- Surgery with tangent-volume weights, three seeds: 1.16 with a seed spread of
+  about 0.05 (baseline 1.72 +/- 0.43). Under v3 not promoted. NL-Loo remains
+  the site where the atlas never reaches the truth's density (rank 1.00 for
+  all three seeds), so the gain comes from DK-Sor and BE-Vie.
+- Volume-weighted surgery + DE kernel, one seed: 1.03; the uniform-weight
+  surgery + DE (0.92, iteration 10) remains the best screen and its
+  confirmation seeds are queued (iteration 14).
+- Running now: fresh DE seeds (iteration 13) for the first v4 decision.
