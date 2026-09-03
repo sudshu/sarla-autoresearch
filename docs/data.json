@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 10:25 PDT",
+ "updated": "2026-09-03 10:34 PDT",
  "runs": [
   {
    "run": 1,
@@ -899,6 +899,29 @@
    "commit": "4d03d9e",
    "timestamp": 1788456343,
    "protocol_version": 4
+  },
+  {
+   "run": 37,
+   "iteration": 27,
+   "variant": "t2_pt16_full",
+   "hypothesis": "T2",
+   "category": "tempering",
+   "metric": 1.021544644460599,
+   "metrics": {
+    "G_dev": 1.021544644460599,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.7481521094369811,
+     "71": 1.2949371794842166
+    },
+    "wall_median": 2040.0271306037903
+   },
+   "status": "confirm",
+   "description": "Full-posterior tempering (EDC penalties flattened too, hard gate kept), 16 rungs, swaps 27-40%: NL-Loo G 0.75 with density rank 0.95 and high-allocation mass 0.39 (truth 0.64), the first tempering run whose cold rung reaches the truth's density (best -275 vs truth -284); DK-Sor 1.30 (mass 0.09, truth 0.29). Two sites, one seed; remaining dev sites and two more seeds queued (iteration 33).",
+   "commit": "453ea9f",
+   "timestamp": 1788456832,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1503,6 +1526,19 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.040156364441
+   }
+  },
+  "27": {
+   "t2_pt16_full": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.021544644460599,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2040.0271306037903
    }
   }
  }

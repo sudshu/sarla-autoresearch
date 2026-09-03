@@ -505,3 +505,17 @@ setup notes. Times are US Pacific.
   posterior in six rounds regardless of which operation repairs each flag.
   The large-audit variant (iteration 29) and the atlas independence jumps
   (32) are the next tests of that.
+
+## Iteration 27 result (2026-09-03 12:20 PDT): tempering the EDC penalties too is the first tempering run that reaches the truth's density
+
+- Full-posterior tempering (the EDC penalty terms flattened along with the
+  data term; the hard feasibility gate kept at every rung), 16 rungs, swap
+  acceptance 27 to 40%: at NL-Loo G 0.75, density rank 0.95, the cold rung's
+  best draw above the truth's log-posterior for the first time in any
+  tempering run, and 39% of the mass in the high-allocation mode (truth in
+  that mode; the likelihood-only ladders gave 12 to 22%). DK-Sor 1.30 with
+  9% high-mode mass (truth 0.29). One seed, two sites: the remaining two
+  development sites and two more seeds at NL-Loo and DK-Sor are queued
+  (iteration 33). This supports the sibling session's reading that the
+  barrier between the allocation modes is the EDC penalty surface, not the
+  data term.
