@@ -551,3 +551,12 @@ setup notes. Times are US Pacific.
   The real-data MAP point (log-posterior -161.9, found by the sibling
   session) is added to the NL-Loo seed files (a feasible point; feasibility
   depends on parameters only).
+- 14:00 PDT, from the sibling session's MAP test on the NL-Loo OSSE with the
+  ADEMCMC-draw truth (f_wood 0.80): the global posterior maximum (-263.2) is 61
+  nats above the truth's density and in the LOW-allocation budget (f_wood
+  0.21); optimiser endpoints form two families of local maxima, one per
+  budget, the low family holding the peak by about 10 nats as on the real
+  data. With a known truth in the high-allocation budget a MAP product gets
+  the wood budget wrong while the posterior mass gets it right. This is why
+  the loop scores calibration of the mass, and why the real-data MAP at
+  -161.9 in the plausible budget is not evidence for that budget at Loobos.
