@@ -591,3 +591,12 @@ setup notes. Times are US Pacific.
   at 0.0001, so the stop never triggers: the audit is not the bottleneck,
   the atlas simply covers a small fraction of the posterior after six repair
   rounds no matter how well the gap is measured. Discarded.
+
+## Iteration 31 result (2026-09-03 15:10 PDT): gate-fix atlas + DE equals the default atlas + DE
+
+- Single seed: dev G 0.96, the same as surgery + DE with the default atlas
+  (0.96 over three seeds). This run put only 3 to 15% of the mass in the
+  high-allocation budget at every site, including NL-Loo and BE-Vie where the
+  truths are in that budget: consistent, and consistently wrong there. The
+  sibling session's interactive explainer of today's two-hills findings is
+  now linked from the page (Deep dives).
