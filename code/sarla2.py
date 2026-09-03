@@ -70,6 +70,9 @@ class SurgeryConfig:
     bend_tol: float = 1.0           # normal displacement (in normal sigmas) beyond which the ridge "bends"
     fallback_patch: bool = True     # if a round has flags but no structural op, add a chart (v1 behaviour)
     branch_on_infeasible: bool = True  # False: a segment through the hard gate is "unknown", not a new stratum
+    connectivity_rule: str = "segment"  # segment | feasible_path (repair infeasible midpoints locally)
+    path_tries: int = 8
+    path_jitter: float = 0.05
     # which operations are enabled (for ablations)
     do_extend: bool = True
     do_refine: bool = True
@@ -249,18 +252,34 @@ class Atlas2:
         return any(c.maha2(w[None])[0] < self.cfg.merge_tol ** 2
                    and c.model_err(w, logpi_w) < self.cfg.model_tol for c in self.charts)
 
-    def density_connected(self, wa, wb, lpa, lpb):
-        """Straight-segment connectivity. At 89-D the feasible set is thin, so
-        the segment between two feasible points usually crosses the hard
-        gate; with branch_on_infeasible=False such a segment is treated as
-        'unknown' (connected) rather than as evidence of a new stratum."""
-        ts = np.linspace(0, 1, self.cfg.n_mid + 2)[1:-1]
+    def density_connected(self, wa, wb, lpa, lpb, chart=None):
+        """Connectivity test between a chart centre and a corrected point.
+
+        segment: straight segment; any infeasible midpoint means 'not connected'
+          (branch_on_infeasible=True) or 'unknown' (=False).
+        feasible_path: each infeasible midpoint is replaced by the best of a few
+          small random perturbations in the chart's proposal metric; if a
+          feasible replacement exists the path continues, otherwise that point
+          is 'unknown'. At 89-D the feasible set is thin, so straight segments
+          between two feasible points almost always leave it; this test asks
+          whether a nearby feasible path exists instead.
+        """
+        cfg = self.cfg
+        ts = np.linspace(0, 1, cfg.n_mid + 2)[1:-1]
         mids = wa[None] + ts[:, None] * (wb - wa)[None]
         lpm = self.lp(mids)
         fin = np.isfinite(lpm)
+        if not fin.all() and cfg.connectivity_rule == "feasible_path" and chart is not None:
+            for i in np.flatnonzero(~fin):
+                xi = self.rng.standard_normal((cfg.path_tries, mids.shape[1])) * (cfg.path_jitter * np.sqrt(chart.var))
+                cand = mids[i] + xi @ chart.eigvecs.T
+                lpc = self.lp(cand)
+                if np.isfinite(lpc).any():
+                    lpm[i] = np.nanmax(np.where(np.isfinite(lpc), lpc, np.nan))
+            fin = np.isfinite(lpm)
         if not fin.all():
-            return not self.cfg.branch_on_infeasible
-        return bool(lpm.min() > min(lpa, lpb) - self.cfg.branch_tau)
+            return not cfg.branch_on_infeasible
+        return bool(lpm.min() > min(lpa, lpb) - cfg.branch_tau)
 
     def nearest(self, w):
         return int(np.argmin([c.maha2(w[None])[0] for c in self.charts]))
@@ -352,7 +371,7 @@ def diagnose_repair(atlas, aud, round_no):
         ratio = np.abs(s_z) / np.maximum(ext, 1e-12) if ck.rank else np.zeros(0)
         j = int(np.argmax(ratio)) if ck.rank else None
         outside = bool(ck.rank and ratio[j] > 1.0)
-        connected = atlas.density_connected(ck.center, w_star, ck.logpi, lp_star)
+        connected = atlas.density_connected(ck.center, w_star, ck.logpi, lp_star, chart=ck)
 
         if cfg.do_branch and not connected:
             new = atlas.make_chart(w_star, "branch", round_no)

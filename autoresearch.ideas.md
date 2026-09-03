@@ -40,3 +40,4 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | H13 | 2 | running | codex (iter 13) | moves | DE at 256 walkers x 8k steps, judged on across-seed mode-weight sd at NL-Loo and DK-Sor first | n_chains=256 n_steps=8000 |
 | S11 | 2 | open | codex (iter 16) | atlas_geometry | Replace straight-segment connectivity by a feasible-path test (short constrained walk or piecewise segment through feasible points) so branch means topology, not gate crossing | new code: sg_connectivity_rule=feasible_path |
 | S10 | 2 | running | codex (iter 16) | atlas_geometry | Surgery atlas + adaptive pooled-covariance kernel (no DE cross-mode jumps) | atlas_engine=surgery kernel=chart_adaptcov |
+| S11 | 2 | staged (iteration 23) | codex (iter 16/17) | atlas_geometry | Feasible-path connectivity implemented: infeasible midpoints replaced by nearby feasible perturbations in the chart metric | sg_connectivity_rule=feasible_path |

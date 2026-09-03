@@ -74,6 +74,9 @@ class Variant:
     sg_bend_tol: float = 1.0
     sg_fallback_patch: bool = True
     sg_branch_on_infeasible: bool = True
+    sg_connectivity_rule: str = "segment"
+    sg_path_tries: int = 8
+    sg_path_jitter: float = 0.05
     sg_do_extend: bool = True
     sg_do_refine: bool = True
     sg_do_split: bool = True
