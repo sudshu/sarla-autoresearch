@@ -402,3 +402,11 @@ setup notes. Times are US Pacific.
   (19), the no-branch-on-gate surgery (20) and surgery + adaptive covariance
   (22) are withdrawn for now and will be resubmitted afterwards
   (runs/autoresearch/queue/deferred2).
+
+## Iteration 18 result (2026-09-03 05:15 PDT): more walkers do not stabilise the mode weights
+
+- Chart + DE at 256 walkers x 8,000 steps (same evaluations), three seeds on
+  the two mode-sensitive sites: G worse (NL-Loo 1.44 to 1.64, DK-Sor 1.59 to
+  1.81; each walker gets too few steps) and the high-allocation mass at
+  NL-Loo still 0.38 / 0.46 / 0.67 across seeds. Discarded. The 16-rung
+  tempering fits are running now.
