@@ -12,7 +12,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-03 10:34 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-03 10:44 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -32,8 +32,8 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 <div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
 
-<div class="now"><b>Latest:</b> Iteration 27 result (2026-09-03 12:20 PDT): tempering the EDC penalties too is the first tempering run that reaches the truth&#x27;s density<br>
-<b>Right now:</b> iteration 28: 5 fits running, 3 waiting, 0 done<br>iteration 29: 0 fits running, 4 waiting, 0 done<br>iteration 30: 0 fits running, 6 waiting, 0 done<br>iteration 31: 0 fits running, 4 waiting, 0 done<br>iteration 32: 0 fits running, 4 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 10:32 PDT</div>
+<div class="now"><b>Latest:</b> Findings received from the sibling OSSE session (2026-09-03 13:00 PDT), real NL-Loo data<br>
+<b>Right now:</b> iteration 28: 5 fits running, 3 waiting, 0 done<br>iteration 29: 0 fits running, 4 waiting, 0 done<br>iteration 30: 0 fits running, 6 waiting, 0 done<br>iteration 31: 0 fits running, 4 waiting, 0 done<br>iteration 32: 0 fits running, 4 waiting, 0 done<br>iteration 33: 0 fits running, 6 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 10:42 PDT</div>
 
 <h2>How to read this page</h2>
 <ul>
@@ -694,6 +694,33 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>  (iteration 33). This supports the sibling session&#x27;s reading that the</p>
 <p>  barrier between the allocation modes is the EDC penalty surface, not the</p>
 <p>  data term.</p>
+<h3>Findings received from the sibling OSSE session (2026-09-03 13:00 PDT), real NL-Loo data</h3>
+<ul>
+<li>Barrier between the two wood-allocation budgets: along actual ADEMCMC</li>
+</ul>
+<p>  transitions the log-posterior dips only 10 to 38 nats below the lower</p>
+<p>  endpoint, and the dip is made of soft EDC penalties (state_trajectories</p>
+<p>  first, then the cfcr / nsc / fffr ratio constraints), with the data term flat</p>
+<p>  or rising. An ADEMCMC walker crosses f_wood = 0.5 dozens of times per few</p>
+<p>  thousand iterations: for it the two &quot;modes&quot; are not separate basins but one</p>
+<p>  low, EDC-textured ridge. (A 700-nat wall seen along a straight line in z was</p>
+<p>  an interpolation artefact.) This matches iteration 27: flattening the EDC</p>
+<p>  penalties is what lets the cold chain cross; the chart walk and the DE moves</p>
+<p>  at our budget cross it rarely, so the weights depend on initialisation.</p>
+<ul>
+<li>New maximum of the real-data posterior: log-posterior -161.9 (hard gate,</li>
+</ul>
+<p>  verified under jitter), found by L-BFGS from a high-allocation Laplace</p>
+<p>  chart, and it lies in the LOW-allocation budget (f_wood 0.19, wood residence</p>
+<p>  43 yr). ADEMCMC&#x27;s best draw is -192.5 (f_wood 0.77, 10 yr); 82% of the</p>
+<p>  posterior mass is in the high-throughput budget while the density maximum</p>
+<p>  is in the plausible one. A MAP product and a posterior-median product would</p>
+<p>  report opposite wood residence times at this site. Damped Newton with the</p>
+<p>  exact Hessian was not the tool (stalled at -186; some Hessians still NaN).</p>
+<ul>
+<li>Queued: full-posterior tempering on the real NL-Loo CBF (iteration 35), to</li>
+</ul>
+<p>  compare its high-mode mass with ADEMCMC&#x27;s 0.815.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
