@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 16:10 PDT",
+ "updated": "2026-09-03 16:45 PDT",
  "runs": [
   {
    "run": 1,
@@ -1045,6 +1045,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788477043,
    "protocol_version": 4
+  },
+  {
+   "run": 43,
+   "iteration": 33,
+   "variant": "t2_pt16_full",
+   "hypothesis": "T2",
+   "category": "tempering",
+   "metric": 0.9517564367350797,
+   "metrics": {
+    "G_dev": 0.9517564367350797,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.691435180601684,
+     "71": 1.3447147468424117,
+     "26": 1.0620014930836623,
+     "58": 0.7088743264125608
+    },
+    "wall_median": 2100.0273954868317
+   },
+   "status": "confirm",
+   "description": "Full-posterior tempering, 16 rungs: NL-Loo three seeds G 0.75/0.65/0.68 (sd 0.05) with high-allocation mass 0.39/0.36/0.17 (sd 0.12, truth 0.64); DK-Sor 1.29/1.46/1.28 with mass 0.07-0.12 (sd 0.02, truth 0.29); BE-Vie 1.06 and DE-Gri 0.71 one seed each. Dev G 0.95 so far. Most seed-stable variant yet; mode gate marginal at NL-Loo; two more seeds at BE-Vie and DE-Gri queued (iteration 40) for the v4 decision.",
+   "commit": "453ea9f",
+   "timestamp": 1788479148,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1741,6 +1766,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3810.0280768871307
+   }
+  },
+  "33": {
+   "t2_pt16_full": {
+    "G_dev_per_seed": [
+     0.9534912771043551
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9517564367350797,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2100.0273954868317
    }
   }
  }

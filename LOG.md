@@ -621,3 +621,18 @@ setup notes. Times are US Pacific.
   (4.42). Discarded. Together with iterations 26 and 29 this closes the
   question for the current engine: the audit-and-repair loop improves where
   the chart walk starts, not what the atlas covers.
+
+## Iteration 33 result (2026-09-03 17:20 PDT): full-posterior tempering is the most seed-stable variant yet
+
+- 16-rung tempering of the whole finite posterior (hard gate kept), three
+  seeds at NL-Loo and DK-Sor, one at BE-Vie and DE-Gri: NL-Loo G 0.75 / 0.65
+  / 0.68 (seed sd 0.05, against 0.55 to 1.66 for the chart walk and 0.78 to
+  1.36 for DE), high-allocation mass 0.39 / 0.36 / 0.17 (truth 0.64); DK-Sor
+  1.29 / 1.46 / 1.28, mass 0.07 to 0.12 (truth 0.29); BE-Vie 1.06, DE-Gri
+  0.71. Dev G 0.95 so far.
+- Verdict pending: the mode-weight gate is marginal at NL-Loo (sd 0.12 vs
+  0.10 allowed) and passes at DK-Sor; the score test needs three seeds at
+  all four sites, so BE-Vie and DE-Gri seeds 6 and 7 are queued (iteration
+  40). Note for the record: stability is not correctness; at NL-Loo the
+  tempered mass in the high-allocation budget (0.17 to 0.39) is well below the
+  truth's budget, so even a passing gate would leave the weights biased.
