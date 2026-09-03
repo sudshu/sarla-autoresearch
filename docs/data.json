@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 10:14 PDT",
+ "updated": "2026-09-03 10:25 PDT",
  "runs": [
   {
    "run": 1,
@@ -874,6 +874,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788455609,
    "protocol_version": 4
+  },
+  {
+   "run": 36,
+   "iteration": 26,
+   "variant": "s13_surgery_geomops",
+   "hypothesis": "S13",
+   "category": "atlas_geometry",
+   "metric": 1.180462151678211,
+   "metrics": {
+    "G_dev": 1.180462151678211,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.7605833078379582,
+     "26": 0.7943849536686965,
+     "58": 0.690410137001145,
+     "71": 1.4764702082050445
+    },
+    "wall_median": 3330.040156364441
+   },
+   "status": "discard",
+   "description": "Surgery with rank changes only for 18+ dimension jumps, feasible-path connectivity, 89-D tolerances: first 89-D run with a geometric operation mix (60-73 refines, 6-10 splits, 1-10 rank changes, 2-5 branches per fit) but dev G 1.18 on one seed (NL-Loo 1.76, DK-Sor 1.48; BE-Vie 0.79, DE-Gri 0.69). The right operations, no better coverage: the audit still ends with about 100 uncovered draws and ESS 0.0002.",
+   "commit": "4d03d9e",
+   "timestamp": 1788456343,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1463,6 +1488,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3450.027379512787
+   }
+  },
+  "26": {
+   "s13_surgery_geomops": {
+    "G_dev_per_seed": [
+     1.180462151678211
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.180462151678211,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.040156364441
    }
   }
  }

@@ -490,3 +490,18 @@ setup notes. Times are US Pacific.
   (DE-Gri). Extend and merge still never fire: the quadratic model error at a
   corrected point is never below 20 nats, so every out-of-extent flag becomes
   a refine (a bend), and no two charts ever explain each other's centres.
+
+## Iteration 26 result (2026-09-03 11:30 PDT): the operation mix is finally geometric, and it does not help yet
+
+- With rank changes restricted to jumps of 18+ dimensions (and gate crossings
+  treated as unknown), the repair at 89-D becomes 60 to 73 refines, 6 to 10
+  splits, 1 to 10 rank changes and 2 to 5 branches per fit: the surgery is
+  doing what it was designed to do. Dev G on one seed: 1.18 (BE-Vie 0.79,
+  DE-Gri 0.69, NL-Loo 1.76, DK-Sor 1.48). NL-Loo put 94% of its mass in the
+  high-allocation mode this time (truth 0.64), DK-Sor 0%: the mode weights
+  are still set by luck.
+- The audit still ends every run with about 100 uncovered draws and an
+  importance ESS of 0.0002, so the atlas never gets close to covering the
+  posterior in six rounds regardless of which operation repairs each flag.
+  The large-audit variant (iteration 29) and the atlas independence jumps
+  (32) are the next tests of that.
