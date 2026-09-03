@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 00:39 PDT",
+ "updated": "2026-09-03 02:26 PDT",
  "runs": [
   {
    "run": 1,
@@ -580,6 +580,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788421140,
    "protocol_version": 4
+  },
+  {
+   "run": 24,
+   "iteration": 15,
+   "variant": "h3_stretch128",
+   "hypothesis": "H3",
+   "category": "moves",
+   "metric": 1.0005451056023884,
+   "metrics": {
+    "G_dev": 1.0005451056023884,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.0378324839347537,
+     "26": 0.9652312221696148,
+     "58": 0.7570159717656438,
+     "71": 1.2421007445395411
+    },
+    "wall_median": 2790.0395364761353
+   },
+   "status": "discard",
+   "description": "Chart + stretch (128 x 16k), three fresh seeds under v4: dev G 1.00 +/- 0.03, t = 2.9 PASSES; mode-weight gate FAILS (high-mode mass 0.60/0.75/0.30 at NL-Loo, 0.04/0.99/0.08 at DK-Sor). Same verdict as DE. Not promoted.",
+   "commit": "453ea9f",
+   "timestamp": 1788427562,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -991,6 +1016,27 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.040359735489
+   }
+  },
+  "15": {
+   "h3_stretch128": {
+    "G_dev_per_seed": [
+     1.0252677840875626,
+     0.9628752435007577,
+     1.0134922892188447
+    ],
+    "sd_dev": 0.03315010487038768,
+    "delta": 0.1,
+    "G_dev": 1.0005451056023884,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2790.0395364761353,
+    "v4_diff": 0.7168820503137192,
+    "v4_se": 0.24871942644064918,
+    "v4_t": 2.8822921497239204,
+    "v4_pass": true
    }
   }
  }

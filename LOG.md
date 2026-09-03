@@ -353,3 +353,16 @@ setup notes. Times are US Pacific.
   coverage and score; the relative mode weight remains a coin toss decided
   by where walkers start. Tempering (iteration 17) is the queued remedy;
   256-walker DE (18) tests the cheap alternative.
+
+## Iteration 15 result (2026-09-03 02:50 PDT): stretch kernel, same verdict as DE
+
+- Three fresh seeds: dev G 1.00 +/- 0.03 (t = 2.9 against the baseline). Mode
+  weights: 60% / 75% / 30% at NL-Loo and 4% / 99% / 8% at DK-Sor. The
+  population kernels are all better than the baseline by about 0.7 in G and
+  all fail the mode-weight gate the same way: every chain lives in one mode
+  for the whole run, so the mixture weight is whatever the initialisation
+  gave. Not promoted.
+- Three of the four families tested so far (kernels, atlas surgery, starts)
+  improve calibration without fixing the mode weights. Iterations 16 to 18
+  (absolute-rank surgery, tempering, 256 walkers) are on the GPUs; tempering
+  is the only one designed to move mass between modes.
