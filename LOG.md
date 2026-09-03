@@ -572,3 +572,13 @@ setup notes. Times are US Pacific.
   OSSE -294.3 vs L-BFGS -161.9 / -263.2): the quadratic model step is
   rejected and the method degenerates to short gradient steps. Newton-family
   optimisers are off the table for the point estimate; L-BFGS seeds stay.
+
+## Iteration 28 result (2026-09-03 13:10 PDT): the gate-fix surgery's 0.93 was seed luck
+
+- Three seeds pooled with iteration 20: dev G 1.47 +/- 0.56. NL-Loo alone
+  gives 0.95, 2.64 and 5.20 across seeds (the last a wrong-basin failure),
+  while BE-Vie, DE-Gri and DK-Sor are stable (1.03, 0.84, 1.13). With the
+  chart-shaped walk, whichever atlas is built, NL-Loo's outcome depends on
+  where the 64 chains start. Not promoted. The population kernels never
+  showed this failure mode (their worst NL-Loo seed was 1.36), so the
+  remaining surgery tests are combined with the DE kernel (iterations 31, 32).

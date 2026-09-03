@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 11:40 PDT",
+ "updated": "2026-09-03 12:31 PDT",
  "runs": [
   {
    "run": 1,
@@ -922,6 +922,31 @@
    "commit": "453ea9f",
    "timestamp": 1788456832,
    "protocol_version": 4
+  },
+  {
+   "run": 38,
+   "iteration": 28,
+   "variant": "s9_surgery_nobranchinf",
+   "hypothesis": "S9",
+   "category": "atlas_geometry",
+   "metric": 1.4666811750198803,
+   "metrics": {
+    "G_dev": 1.4666811750198803,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 2.8642097236468955,
+     "26": 1.03308183123504,
+     "58": 0.8371678603768613,
+     "71": 1.132265284820724
+    },
+    "wall_median": 3750.0313246250153
+   },
+   "status": "discard",
+   "description": "Gate-fix surgery atlas (chart walk), three seeds pooled with iteration 20: dev G 1.47 +/- 0.56, driven by NL-Loo 0.95 / 2.64 / 5.20 (one seed lands in the wrong basin). The 0.93 screen was seed luck; the chart walk on this atlas is as erratic as the baseline at NL-Loo. Mode gate fails at DK-Sor (0.42/0.14/0.20). Not promoted.",
+   "commit": "4d03d9e",
+   "timestamp": 1788463885,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1539,6 +1564,27 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2040.0271306037903
+   }
+  },
+  "28": {
+   "s9_surgery_nobranchinf": {
+    "G_dev_per_seed": [
+     0.9336091147513124,
+     1.4187110953161477,
+     2.0477233149921807
+    ],
+    "sd_dev": 0.5586040272005514,
+    "delta": 1.1172080544011027,
+    "G_dev": 1.4666811750198803,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3750.0313246250153,
+    "v4_diff": 0.25074598089622735,
+    "v4_se": 0.40682657608152606,
+    "v4_t": 0.6163461180716451,
+    "v4_pass": false
    }
   }
  }
