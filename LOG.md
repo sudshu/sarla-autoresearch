@@ -397,3 +397,8 @@ setup notes. Times are US Pacific.
   5 steps, same evaluation budget) is queued as iteration 21 on the two
   mode-sensitive sites; if its swap rates reach 20-40% it becomes the first
   variant that can actually move mass between the wood-allocation modes.
+- 05:10 PDT: queue reordered again so the 16-rung tempering test (iteration
+  21) runs right after the 256-walker DE test (18); the six-rung tempering
+  (19), the no-branch-on-gate surgery (20) and surgery + adaptive covariance
+  (22) are withdrawn for now and will be resubmitted afterwards
+  (runs/autoresearch/queue/deferred2).
