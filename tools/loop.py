@@ -89,6 +89,19 @@ def score(it, ndraw=500):
         todo = {k: v for k, v in d.items() if k not in have}
         if not todo:
             continue
+        if tag == "real":
+            # real-data mode-weight check (no truth): high-allocation fraction vs ADEMCMC 0.815
+            cmd = [PY, os.path.join(ROOT, "scripts", "realdata_mode_check.py"), "--out", out + ".part"]
+            for k, v in d.items():
+                cmd += ["--fit", f"{k}={v}"]
+            env = dict(os.environ, JAX_PLATFORMS="cpu"); env.pop("LD_LIBRARY_PATH", None)
+            r = subprocess.run(cmd, env=env, capture_output=True, text=True)
+            print("\n".join(l for l in r.stdout.splitlines() if "high-mode" in l))
+            if r.returncode == 0:
+                os.replace(out + ".part", out)
+            else:
+                print(r.stderr[-1500:])
+            continue
         cmd = [PY, os.path.join(ROOT, "scripts", "osse_score_site.py"),
                "--site-dir", os.path.join(SITES_ROOT, f"{site}{tag}"),
                "--out", out + ".part", "--ndraw", str(ndraw),
@@ -120,6 +133,8 @@ def aggregate(it, extra_iters=()):
         score_files += sorted(glob.glob(os.path.join(exp_dir(i2), "scores", "*.json")))
     for f in score_files:
         s = json.load(open(f))
+        if "site" not in s:          # real-data mode check, not an OSSE score
+            continue
         site, tag = s["site"], s["tag"]
         for name, r in s["fits"].items():
             if "G" not in r:
