@@ -71,6 +71,7 @@ class Variant:
     sg_split_offset: float = 0.5
     sg_refine_shrink: float = 1.0
     sg_rank_hysteresis: float = 2.0
+    sg_rank_min_diff: float = 0.0
     sg_bend_tol: float = 1.0
     sg_fallback_patch: bool = True
     sg_branch_on_infeasible: bool = True

@@ -67,6 +67,7 @@ class SurgeryConfig:
     split_offset: float = 0.5       # split children at +/- offset * s_z
     refine_shrink: float = 1.0      # cap factor on k's extent at a bend
     rank_hysteresis: float = 2.0    # a rank change must survive rank_tau / and * this factor
+    rank_min_diff: float = 0.0      # minimum |rank(new) - rank(k)| as a fraction of D to count as a rank change
     bend_tol: float = 1.0           # normal displacement (in normal sigmas) beyond which the ridge "bends"
     fallback_patch: bool = True     # if a round has flags but no structural op, add a chart (v1 behaviour)
     branch_on_infeasible: bool = True  # False: a segment through the hard gate is "unknown", not a new stratum
@@ -383,6 +384,7 @@ def diagnose_repair(atlas, aud, round_no):
         if not np.isfinite(new.logpi):
             ops["infeasible"] += 1; continue
         robust_rank_change = (new.rank != ck.rank and cfg.do_rank
+                              and abs(new.rank - ck.rank) >= cfg.rank_min_diff * len(w_star)
                               and ck.rank not in (rank_split(new.eigvals, cfg, cfg.rank_tau / cfg.rank_hysteresis),
                                                   rank_split(new.eigvals, cfg, cfg.rank_tau * cfg.rank_hysteresis)))
         # bend test: how far did the normal correction move the point, in the chart's normal sigmas
