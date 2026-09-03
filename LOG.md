@@ -384,3 +384,16 @@ setup notes. Times are US Pacific.
   gate crossings as new strata. This is now a switch (default unchanged for
   reproducibility); iteration 20 tests the variant where gate crossings are
   "unknown" and the repair falls to refine/extend.
+
+## Iteration 17 result (2026-09-03 05:00 PDT): a 4-rung ladder does not temper this posterior
+
+- Likelihood-only parallel tempering, 4 rungs, 32 walkers each: dev G 0.98
+  (0.99 with the surgery atlas), single seeds. Adjacent-rung swap acceptance
+  0 to 2% at every site: the temperature steps (factor 2.7) are far too large
+  for a data likelihood whose spread is tens of nats, so the rungs never
+  exchange walkers and the result is DE with a quarter of the walkers.
+  NL-Loo high-allocation mass 0.22 with the truth in that mode.
+- A 16-rung ladder (temperature ratio 0.79, 16 walkers per rung, swaps every
+  5 steps, same evaluation budget) is queued as iteration 21 on the two
+  mode-sensitive sites; if its swap rates reach 20-40% it becomes the first
+  variant that can actually move mass between the wood-allocation modes.

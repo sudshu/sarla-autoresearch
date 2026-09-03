@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 03:30 PDT",
+ "updated": "2026-09-03 04:40 PDT",
  "runs": [
   {
    "run": 1,
@@ -630,6 +630,56 @@
    "commit": "4d03d9e",
    "timestamp": 1788431299,
    "protocol_version": 4
+  },
+  {
+   "run": 26,
+   "iteration": 17,
+   "variant": "t1_pt_de",
+   "hypothesis": "T1",
+   "category": "tempering",
+   "metric": 0.9781526481144186,
+   "metrics": {
+    "G_dev": 0.9781526481144186,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.0759341508990385,
+     "26": 0.6607293278221377,
+     "58": 0.8715785802140763,
+     "71": 1.304368533522422
+    },
+    "wall_median": 3330.025600671768
+   },
+   "status": "discard",
+   "description": "Likelihood-only parallel tempering, 4 rungs (beta 1/0.37/0.14/0.05), 32 walkers each, chart/DE within rungs: dev G 0.98 on one seed, but adjacent-rung swap acceptance 0-2%, so the rungs do not communicate and the run is effectively DE with 32 walkers. NL-Loo high-mode mass 0.22 (truth in that mode). 16-rung ladder queued (iteration 21).",
+   "commit": "453ea9f",
+   "timestamp": 1788435612,
+   "protocol_version": 4
+  },
+  {
+   "run": 27,
+   "iteration": 17,
+   "variant": "t1_pt_de_surgery",
+   "hypothesis": "T1",
+   "category": "tempering",
+   "metric": 0.993339908374574,
+   "metrics": {
+    "G_dev": 0.993339908374574,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.9236758646505501,
+     "26": 1.003402509735377,
+     "58": 0.9393746075969472,
+     "71": 1.1069066515154218
+    },
+    "wall_median": 2790.0365142822266
+   },
+   "status": "discard",
+   "description": "Same tempering with the surgery atlas: 0.99, swap acceptance 0-2%.",
+   "commit": "453ea9f",
+   "timestamp": 1788435612,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1077,6 +1127,34 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3870.0303733348846
+   }
+  },
+  "17": {
+   "t1_pt_de": {
+    "G_dev_per_seed": [
+     0.9781526481144186
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9781526481144186,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.025600671768
+   },
+   "t1_pt_de_surgery": {
+    "G_dev_per_seed": [
+     0.993339908374574
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.993339908374574,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2790.0365142822266
    }
   }
  }
