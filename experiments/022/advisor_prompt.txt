@@ -1,3 +1,205 @@
+You are the external advisor of an autonomous research loop that improves
+SARLA, a GPU posterior sampler for an 89-parameter land carbon model
+(CARDAMOM / DALEC_1100). Read the protocol, the history and this iteration's
+results below, then answer in <= 600 words with these sections:
+
+1. ASSESSMENT: what the numbers say about this iteration (which terms of the
+   calibration gap moved, per-site consistency, any sign of overfitting to the
+   development sites or to a single truth).
+2. RISKS: anything in the protocol or the results that could mislead us.
+3. NEXT STEPS: 3-5 concrete, testable proposals ranked by expected payoff,
+   each as one sentence of rationale plus the variant knobs to change
+   (use the knob names from the variant JSON). Mark proposals that need new
+   code rather than a config change.
+4. STOP/CONTINUE: whether a hypothesis family should be abandoned.
+
+Be specific and quantitative; do not restate the protocol.
+
+=== PROTOCOL ===
+# SARLA autoresearch: program and pre-registered protocol
+
+**Goal.** Make CARDAMOM's Bayesian calibration of the DALEC_1100 land model
+(89 parameters) fast enough to run at many sites in minutes instead of days,
+without degrading the posterior. The candidate is SARLA, a GPU fast path
+(audited Laplace atlas + population sampler) that today takes ~30 min where
+CARDAMOM's ADEMCMC takes ~33 h at one site. The loop proposes sampler-design
+hypotheses, tests them on synthetic-truth experiments at several FLUXNET
+sites, keeps what helps, and publishes every step.
+
+**Metric.** Calibration gap G (lower is better; 0 = perfectly calibrated
+posterior). Computed per site by `scripts/osse_score_site.py` from an OSSE
+(observing-system simulation experiment): a known truth generates
+pseudo-observations, the sampler fits them, and the posterior is scored
+against the truth.
+
+```
+G_s = mean( |c90-0.90|/0.10,  |c50-0.50|/0.10,  |r-0.5|/0.15,
+            max(0, rms_z-1)/0.5,  mean_streams |p90_s-0.90|/0.10,  stuck_frac/0.10 )
+```
+- c90, c50: fraction of the 89 parameters whose 90% / 50% posterior interval
+  contains the truth (targets 0.90 / 0.50)
+- r: joint density rank P(logpost(draw) < logpost(truth)) (target 0.5)
+- rms_z: RMS over parameters of (truth - posterior mean) / posterior sd
+- p90_s: fraction of truth values inside the 90% band of the posterior's
+  GPP / NBE / ET / LAI projection over the unobserved months (target 0.90)
+- stuck_frac: fraction of chains whose median log-posterior is > 100 nats
+  below the best (a chain that never left a junk region)
+
+Each term is a distance from its target in units of about its binomial
+noise floor (sd(cover90) = 0.032 over 89 parameters).
+
+**Sites and split.** Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).
+Development set, drives accept/reject: NL-Loo (183, ENF), DE-Gri (58, GRA),
+ES-LJu (178, OSH), BE-Vie (26, MF). Holdout set, scored only at milestones,
+never used to choose: CZ-wet (55, WET), DE-Geb (57, CRO), FR-Pue (82, EBF),
+DK-Sor (71, DBF; no real-data mode reaches 30% of its observed GPP, so its
+truth uses a relaxed 20% plausibility bound and is flagged). Every site has 192 monthly steps with observations ending
+by step 113, so the last 78+ months are a projection test at every site.
+
+**Truth.** Per site: a plausible EDC-feasible point near (not at) one of the
+pilot's real-data L-BFGS modes -- a random plausible mode plus N(0, 0.3 prior
+sd) jitter in z, redrawn until feasible and plausible. Plausible = finite
+trajectory, mean GPP within [0.3x, 3x] of the site's observed mean GPP, and
+biomass at the observation month within [0.3x, 3x] of the site's observed
+biomass. The jitter keeps the truth off the seed set the fitter starts from.
+A second truth + noise realisation ("B") exists for each development site and
+is used only at milestones. Iid EDC-feasible prior draws were tried first and
+rejected (2026-09-01): at all five sites checked they are near-dead
+ecosystems (GPP < 5% of observed).
+
+**Pseudo-observations.** The CBF's own declared error model per stream
+(lognormal sigma = ln 3 for GPP and ET, N(0, 1) for NBE, lognormal ln 1.5 for
+LAI, lognormal ln 1.05 for biomass), observation times copied from the real
+site, everything assimilated.
+
+**Budget.** Fixed model-evaluation budget per fit equal to the baseline (128
+L-BFGS seeds, atlas 6 rounds x 4096 audit draws, sampling 64 chains x 32,000
+steps = 2.05M evaluations). Variants that change chains x steps keep the
+sampling-evaluation total. Wall-clock is recorded per job and GPU type.
+
+**Accept rule.** A candidate becomes the new default iff (a) dev G improves
+on the current default by more than delta, where delta = 0.10 until iteration
+0 replaces it with 2 sd(G) over three kernel seeds of the baseline on the
+development set; (b) no development site worsens by more than 0.25 in G_s;
+(c) H100 wall-clock <= 1.5x the default's. Speed path: accept if wall-clock
+<= 0.5x at G <= default + 0.05. An iteration with fewer than 3 of 4
+development sites scored is incomplete and is requeued once, never counted.
+
+**Milestones.** At each new default and at least every 5 iterations, the
+default is scored on the 4 holdout sites and the 4 "B" truths. If holdout G
+worsens by > 0.05 relative to the previous default, the change is labelled
+"dev-only" and reverted. Development and holdout results are always shown
+side by side.
+
+**Advisor.** After each iteration a Codex agent (OpenAI Codex CLI, reasoning
+effort high) receives the protocol, the run history and the iteration's
+scores (aggregate numbers only) and proposes next steps; its reply is saved
+under `experiments/<iter>/advisor.md`, its proposals enter the idea bank
+tagged `codex`, and the Claude session running the loop decides what to
+implement next, combining those with its own.
+
+**Breakthrough notification.** The user is emailed when a new default
+improves dev G by >= 0.20, when the speed path accepts, or when a holdout
+milestone confirms either.
+
+**Frozen.** This protocol is frozen from iteration 1. Any change is logged as
+a new protocol version in `LOG.md`; earlier results are never re-judged
+under a later version.
+
+**Data on this page.** Aggregate metrics and public FLUXNET site IDs only; no
+observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)
+via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).
+
+## Protocol version 2 (2026-09-02 04:00 PDT)
+
+**What changed and why.** Decomposing the log-posterior at the protocol-v1
+truths showed that the data terms at the truth equal those at the sampler's
+best draw, while the soft EDC (ecological-constraint) penalties differ by 580
+to 1,220 nats. The 0.3-sd jitter had pushed every truth into territory the
+model's own constraints reject, so the pseudo-data posterior was legitimately
+elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)
+were judged against invalid truths and are kept on the page as protocol v1
+for the record only; they carry no weight in any decision.
+
+**Truth rule, v2.** The truth is a typical accepted draw of CARDAMOM's own
+reference sampler on the real data: a short ADEMCMC run per site (4 chains x
+30,000 iterations, 400 walkers each), second half of every chain pooled,
+plausibility filter as before (finite trajectory, mean GPP and biomass within
+[0.3x, 3x] of the observed), and the draw whose log-posterior is nearest the
+pooled median. This is the recipe the NL-Loo OSSE used. It is EDC-consistent
+by construction (an accepted draw), independent of the sampler under test,
+and typical rather than mode-adjacent. The first v2 attempt (jittered mode
+with an EDC check) was abandoned before use: the real-data L-BFGS modes from
+the pilot themselves carry soft-EDC penalties near 500 nats, so nothing
+built on them can be consistent. Everything else (sites, split, noise model,
+budget, metric, accept rule, milestones) is unchanged. Iteration numbering
+continues (iteration 4 is the v2 baseline); the baseline and noise floor are
+re-measured.
+
+**Sites under v2.** The truth source changed which sites are usable: DK-Sor
+now has a converged reference chain and plausible draws, while ES-LJu,
+FR-Pue and DE-Geb did not converge in 30,000 iterations (soft-EDC penalties
+still -28 to -125) and are re-run at 60,000 iterations. Development set under
+v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),
+DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.
+
+## Protocol version 3 (2026-09-02 09:40 PDT)
+
+**What changed and why.** The first valid (v2) baseline showed that one site
+can dominate everything: DK-Sor scored G = 14.0, 2.6 and 3.0 over three
+kernel seeds, so the seed-to-seed sd of the development mean was 1.7 and the
+acceptance threshold delta = 2 sd = 3.4, which no realistic improvement could
+clear. From v3 every site's G is capped at 5 in every aggregate (per-fit
+scores stay uncapped in the score files): a catastrophic site counts as a
+failure, not as a lever on the mean, and the noise floor is 2 sd of the
+capped development mean over kernel seeds. Nothing else changes; no decision
+had been taken under v2, so no result is re-judged. v2 truths and datasets
+are unchanged and remain the reference.
+
+**Truth-source detail (2026-09-02 14:20 PDT, protocol v3, affects no scored
+result).** The truth's soft-EDC consistency check is relative to its
+reference chain: the chosen draw must lie within 10 nats of the pooled median
+soft-EDC penalty of the last 30% of the chains (and the chain must not be
+both far below -20 and widely spread, the signature of non-convergence). At
+the five converged sites this selects the same draws as the earlier absolute
+-20 rule (medians -9 to -17). At ES-LJu and FR-Pue the whole reference
+posterior sits at about -118 nats with an interquartile range of 6 nats even
+after 60,000 iterations: the penalty is a property of those sites' posteriors,
+so a typical draw there is the right truth.
+
+## Protocol version 4 (2026-09-02 15:20 PDT; effective for decisions taken from iteration 13 on)
+
+**What changed and why.** Under v3 the threshold delta was 2 sd of the
+BASELINE's development mean over kernel seeds (0.86, driven by the baseline's
+erratic behaviour at DK-Sor). The first three-seed candidate (chart + DE
+moves, iteration 9) scored 1.05 +/- 0.085 against the baseline's 1.72 +/- 0.43:
+a 0.67 improvement, 2.6 standard errors, yet below delta because delta ignores
+the candidate's own, much smaller, spread. From v4 the acceptance test is
+two-sample: a candidate with n_c >= 3 kernel seeds replaces the default with
+n_b seeds iff
+
+    G_default - G_cand  >  2 * sqrt( sd_default^2 / n_b  +  sd_cand^2 / n_c )
+
+with the unchanged guards (no development site worse by more than 0.25 in
+capped G_s; H100 wall-clock <= 1.5x; speed path unchanged) and the milestone
+holdout check. Results judged under v3 are NOT re-judged: the DE kernel's
+iteration-9 verdict stands as "discard under v3", and its v4 test uses three
+fresh kernel seeds (iteration 13). Single-seed screens remain screens: they
+never promote.
+
+**Addendum to v4 (2026-09-02 17:30 PDT): mode-weight gate and real-data check.**
+Promotion additionally requires, over the candidate's >= 3 kernel seeds, that
+the across-seed standard deviation of the high-allocation mode fraction
+(fraction of draws with wood-allocation f_wood > 0.5) is <= 0.10 at both
+NL-Loo and DK-Sor: G averages over sites and can improve while the mode
+weights, which decide the wood residence time, still swing between seeds.
+Each candidate is also fitted once to the REAL NL-Loo data and its
+high-allocation fraction compared with the converged 64-chain ADEMCMC
+reference (0.815, 90% CI 0.794-0.834); this is reported at every milestone
+and is not a truth-selection question.
+
+
+=== RUN HISTORY (autoresearch.jsonl) ===
 {"type":"config","name":"sarla-calibration-gap","metricName":"G_dev","metricUnit":"gap","bestDirection":"lower","protocol_version":1}
 {"run": 1, "iteration": 0, "variant": "v3_baseline", "hypothesis": "H0", "category": "baseline", "metric": 1.1895396549127126, "metrics": {"G_dev": 1.1895396549127126, "G_holdout": 2.0049276045599003, "G_devB": null, "per_site": {"178": 0.5967676076074664, "183": 0.7941721533226374, "26": 2.5911891331862282, "55": 1.2061334480119632, "57": 1.0513381256329413, "58": 0.7760297255345182, "71": 4.1818114436469935, "82": 1.580427400947704}, "wall_median": 3270.0405745506287}, "status": "baseline", "description": "Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.", "commit": "9ef54de", "timestamp": 1788340660, "protocol_version": 1}
 {"run": 2, "iteration": 1, "variant": "h1_walkers512", "hypothesis": "H1", "category": "walkers", "metric": 1.425297000732665, "metrics": {"G_dev": 1.425297000732665, "G_holdout": null, "G_devB": null, "per_site": {"178": 1.1677749683692025, "183": 0.8765341871482605, "26": 2.8377823052795854, "58": 0.8190965421336117}, "wall_median": 2580.0488317012787}, "status": "discard", "description": "8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
@@ -31,3 +233,213 @@
 {"run": 30, "iteration": 19, "variant": "t1_pt6_de", "hypothesis": "T1", "category": "tempering", "metric": 0.9766837747094338, "metrics": {"G_dev": 0.9766837747094338, "G_holdout": null, "G_devB": null, "per_site": {"183": 0.913981915809122, "26": 0.6760248654184661, "58": 0.8130157592653631, "71": 1.503712558344784}, "wall_median": 2760.021462202072}, "status": "discard", "description": "Six-rung likelihood tempering (beta 1 -> 0.03), 24 walkers per rung: dev G 0.98 on one seed; swap acceptance 3-18%. High-allocation mass 0.30 at NL-Loo and 0.23 at BE-Vie where the truths sit in that mode (0.64, 0.74): still under-weighted.", "commit": "453ea9f", "timestamp": 1788441735, "protocol_version": 4}
 {"run": 31, "iteration": 20, "variant": "s9_surgery_nobranchinf", "hypothesis": "S9", "category": "atlas_geometry", "metric": 0.9336091147513123, "metrics": {"G_dev": 0.9336091147513123, "G_holdout": null, "G_devB": null, "per_site": {"183": 0.9545639685935426, "26": 1.0016051292873895, "58": 0.7216149536066703, "71": 1.0566524075176467}, "wall_median": 3750.0313246250153}, "status": "discard", "description": "Surgery with gate-crossing segments treated as unknown (no false branches), single seed: dev G 0.93 (NL-Loo 0.96, BE-Vie 1.00, DE-Gri 0.72, DK-Sor 1.06), the best surgery-only screen and level with surgery+DE (0.92). Branches fall to 2-5 per fit but rank-change takes over (77-82), so the repair is still mostly add-a-chart; confirmation seeds needed.", "commit": "4d03d9e", "timestamp": 1788445387, "protocol_version": 4}
 {"run": 32, "iteration": 22, "variant": "s10_surgery_adaptcov", "hypothesis": "S10", "category": "atlas_geometry", "metric": 1.1632718534141004, "metrics": {"G_dev": 1.1632718534141004, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.711411843985988, "26": 1.432888322270174, "58": 0.5258428531233487, "71": 0.982944394276891}, "wall_median": 3330.0251820087433}, "status": "discard", "description": "Surgery atlas + adaptive pooled-covariance kernel (no DE jumps), single seed: erratic across sites (0.53 to 1.71); the learned covariance does not replace cross-mode moves.", "commit": "4d03d9e", "timestamp": 1788448820, "protocol_version": 4}
+
+
+=== THIS ITERATION: aggregate.json ===
+{
+ "s10_surgery_adaptcov": {
+  "G_dev_per_seed": [
+   1.1632718534141004
+  ],
+  "sd_dev": null,
+  "delta": null,
+  "G_dev": 1.1632718534141004,
+  "n_dev": 4,
+  "G_holdout": null,
+  "n_holdout": 0,
+  "G_devB": null,
+  "wall_median": 3330.0251820087433,
+  "per_site": {
+   "183": {
+    "G": 1.711411843985988,
+    "G_seeds": [
+     1.711411843985988
+    ],
+    "G_raw": 1.711411843985988,
+    "n": 1,
+    "terms": {
+     "cover90": 2.3707865168539333,
+     "cover50": 2.191011235955056,
+     "rank": 3.306107954545455,
+     "rms_z": 1.638660594656724,
+     "proj": 0.7619047619047616,
+     "stuck": 0.0
+    },
+    "cover90": 0.6629213483146067,
+    "cover50": 0.2808988764044944,
+    "rank": 0.9959161931818182,
+    "rms_z": 1.819330297328362,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.9880952380952381,
+     0.9404761904761905,
+     0.9761904761904762,
+     1.0
+    ]
+   },
+   "26": {
+    "G": 1.432888322270174,
+    "G_seeds": [
+     1.432888322270174
+    ],
+    "G_raw": 1.432888322270174,
+    "n": 1,
+    "terms": {
+     "cover90": 1.6966292134831462,
+     "cover50": 1.404494382022472,
+     "rank": 2.4947365750957564,
+     "rms_z": 1.204958135112693,
+     "proj": 1.7965116279069768,
+     "stuck": 0.0
+    },
+    "cover90": 0.7303370786516854,
+    "cover50": 0.3595505617977528,
+    "rank": 0.12578951373563657,
+    "rms_z": 1.6024790675563465,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.686046511627907,
+     0.5232558139534884,
+     0.872093023255814,
+     1.0
+    ]
+   },
+   "58": {
+    "G": 0.5258428531233487,
+    "G_seeds": [
+     0.5258428531233487
+    ],
+    "G_raw": 0.5258428531233487,
+    "n": 1,
+    "terms": {
+     "cover90": 0.46067415730337125,
+     "cover50": 0.50561797752809,
+     "rank": 0.16590563165905645,
+     "rms_z": 0.45143078082100274,
+     "proj": 1.5714285714285712,
+     "stuck": 0.0
+    },
+    "cover90": 0.8539325842696629,
+    "cover50": 0.449438202247191,
+    "rank": 0.47511415525114153,
+    "rms_z": 1.2257153904105014,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.9761904761904762,
+     0.5476190476190477,
+     1.0
+    ]
+   },
+   "71": {
+    "G": 0.982944394276891,
+    "G_seeds": [
+     0.982944394276891
+    ],
+    "G_raw": 0.982944394276891,
+    "n": 1,
+    "terms": {
+     "cover90": 0.12359550561797827,
+     "cover50": 1.853932584269663,
+     "rank": 1.9214830601647468,
+     "rms_z": 0.4212742632280051,
+     "proj": 1.5773809523809526,
+     "stuck": 0.0
+    },
+    "cover90": 0.8876404494382022,
+    "cover50": 0.3146067415730337,
+    "rank": 0.788222459024712,
+    "rms_z": 1.2106371316140025,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.5357142857142857,
+     0.8333333333333334,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ }
+}
+
+=== IDEA BANK ===
+# Idea bank
+
+**Primary research direction (from 2026-09-02): the self-correcting atlas.**
+The S-family below (atlas geometry and surgery, engine `sarla2.py`, see
+ATLAS_SURGERY.md) has priority over kernel tuning. The v2 baseline fails by
+never finding the posterior's basin (NL-Loo, DK-Sor, CZ-wet), which is an
+atlas-coverage problem, not a kernel problem.
+
+Status: open | running | kept | discarded | dev-only | blocked. Source: claude | codex | user.
+Priority 1 = try first. Variant configs live in `variants/`.
+
+| id | pri | status | source | category | hypothesis | variant |
+|---|---|---|---|---|---|---|
+| H1 | 1 | discarded | claude | walkers | Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free | n_chains=512 n_steps=4000; n_chains=256 n_steps=8000 |
+| H2 | 1 | discarded as standalone (passes score test, fails mode-weight gate) | claude | moves | Chart move mixed 50/50 with differential-evolution moves (CARDAMOM's STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see | kernel=chart_de mix=0.5 n_chains=512 n_steps=4000 |
+| H3 | 1 | fresh seeds running (iteration 15) | claude | moves | Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers | kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000 |
+| H4 | 2 | running | claude | moves | Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves | kernel=chart_adaptcov mix=0.5 |
+| H5 | 1 | running | claude | charts | Inflate chart variance in flat (prior-capped) eigendirections x3 | flat_mult=3 |
+| H6 | 3 | open | claude+codex | restarts | Restarts through the whole burn-in, tighter gap | restart_until=0.5 restart_gap=50 restart_every=250 |
+| H7 | 3 | open | claude | budget | 64 L-BFGS seeds instead of 128, evaluations moved to sampling | n_seeds=64 n_steps=... |
+| H8 | 3 | open | claude | speed | Cheaper atlas: 3 rounds, 2048 audit draws (speed path) | atlas_rounds=3 n_audit=2048 |
+| H9 | 1 | discarded | claude+codex | starts | Chains start from all feasible seeds of the main region, not chart centres; motivated by the 82/18 mode inversion at NL-Loo (fast path never finds the dominant high-allocation mode) | start_policy=seeds |
+| H10 | 3 | open | claude | burn-in | Burn-in 25% instead of 50% at fixed steps | burn_frac=0.25 |
+| H11 | 2 | open | codex | moves | Tune the DE step (de_gamma around 2.38/sqrt(2D)) if H2 shows promise | de_gamma=0.12 / 0.25 |
+| R1 | - | rule | codex | protocol | Confirm any apparent winner with three kernel seeds and on the dev-B truths before promotion; require improvement outside BE-Vie, which holds 54% of the baseline gap | - |
+| S1 | 1 | running | external+claude | atlas_geometry | Does topology-aware surgery (extend/refine/split/branch/rank-change/merge) reduce importance discrepancies faster per evaluation than v1's add-a-chart, and does the final posterior improve? | atlas_engine=surgery |
+| S2 | 1 | running | claude | atlas_geometry | Does normal projection place repair points better than repairing at the raw flagged draw? | atlas_engine=surgery sg_normal_projection=false (ablation) |
+| S3 | 1 | running | claude | atlas_geometry | Do tangent-volume mixture weights (long ridges get more proposal mass) beat uniform weights? | sg_weight_rule=volume |
+| S4 | 1 | confirming (0.92 one seed) | claude+codex | atlas_geometry | Surgery + DE kernel (do the gains combine?); more repair per round: 16 flags, 10 audit rounds | sg_flag_topk=16 atlas_rounds=10 |
+| S5 | 2 | open | claude | atlas_geometry | Does true splitting help or hurt? (C2 box problem: repeated splits cost coverage) | sg_do_split=false |
+| S6 | 2 | open | claude | atlas_geometry | Rank-detection criterion: gap_min 3 vs 10 vs 30; rank_tau 0.5 / 2 | sg_gap_min=3; sg_rank_tau=0.5 |
+| S7 | 1 | running (btau 100) | claude | atlas_geometry | Branch criterion: branch_tau 5 vs 10 vs 20 (how easily a discrepancy becomes a new stratum) | sg_branch_tau=5 / 20 |
+| S8 | 2 | open | claude | atlas_geometry | Audit sample size 16384 with ESS-based stop: can fewer downstream MCMC evaluations achieve the same G after a better atlas? | n_audit=16384 sg_stop_ess=0.3 n_steps=16000 |
+| S9 | 3 | open | claude | atlas_geometry | Warm-up (H12) + surgery: does a better seed population change which operations fire? | warmup_steps=1000 atlas_engine=surgery |
+| S10 | 3 | open | claude | atlas_geometry | Merge criterion: merge_tol 0.5 vs 2 (cost vs coverage) | sg_merge_tol=2.0 |
+| P1 | - | rule | codex (iter 4) | strategy | Kernel-tuning family (H1-H4, H11) paused until a valid experiment shows the posterior basin is represented in the atlas; local mixing cannot repair a missing basin | - |
+| T1 | 1 | running | osse-session/user | tempering | Likelihood-only tempering, EDC hard gate kept at every rung, 4-6 geometric temperatures, DE moves within rungs, adjacent swaps; walkers initialised stratified by mode (share on the high-allocation charts) so gamma=1 DE jumps span both modes | new code |
+| B1 | 3 | parked: KDE bridge unreliable at 89-D (estimates 0.1-1.0 for the same fit) | osse-session/user | mode-weights | Two-cell bridge estimate of log Z_high - log Z_low (cells f_wood > / <= 0.5, moment-matched Gaussian per cell, sarla_evidence._bridge_logr) to reweight pooled DE draws; test on the iteration-13 DE fits and on real NL-Loo vs 0.815 | new code |
+| M1 | - | rule | osse-session/user | protocol | Promotion requires across-seed sd of the high-mode fraction <= 0.10 at NL-Loo and DK-Sor; real-data NL-Loo mode fraction reported at every milestone | - |
+| H13 | 2 | running | codex (iter 13) | moves | DE at 256 walkers x 8k steps, judged on across-seed mode-weight sd at NL-Loo and DK-Sor first | n_chains=256 n_steps=8000 |
+| S11 | 2 | open | codex (iter 16) | atlas_geometry | Replace straight-segment connectivity by a feasible-path test (short constrained walk or piecewise segment through feasible points) so branch means topology, not gate crossing | new code: sg_connectivity_rule=feasible_path |
+| S10 | 2 | running | codex (iter 16) | atlas_geometry | Surgery atlas + adaptive pooled-covariance kernel (no DE cross-mode jumps) | atlas_engine=surgery kernel=chart_adaptcov |
+| S11 | 2 | staged (iteration 23) | codex (iter 16/17) | atlas_geometry | Feasible-path connectivity implemented: infeasible midpoints replaced by nearby feasible perturbations in the chart metric | sg_connectivity_rule=feasible_path |
+
+
+=== BASELINE VARIANT (knob names) ===
+{
+ "name": "v3_baseline",
+ "category": "baseline",
+ "notes": "",
+ "n_seeds": 128,
+ "lbfgs_maxiter": 300,
+ "seed_seed": 0,
+ "atlas_rounds": 6,
+ "n_audit": 4096,
+ "atlas_seed": 3,
+ "tau": 10.0,
+ "n_mid": 7,
+ "region_gap": 100.0,
+ "within": null,
+ "start_policy": "balanced",
+ "init_seed": 99,
+ "kernel": "chart_rwm",
+ "mix": 0.0,
+ "n_chains": 64,
+ "n_steps": 32000,
+ "burn_frac": 0.5,
+ "gamma0": 0.05,
+ "target_acc": 0.23,
+ "flat_mult": 1.0,
+ "de_gamma": null,
+ "stretch_a": 2.0,
+ "adapt_start": 0.25,
+ "adapt_every": 200,
+ "restart_gap": 100.0,
+ "restart_every": 500,
+ "restart_until": 0.5,
+ "max_draws": 40000,
+ "kernel_seed": 5
+}

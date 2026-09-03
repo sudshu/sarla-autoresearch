@@ -449,3 +449,11 @@ setup notes. Times are US Pacific.
   local rank still varies between charts by dozens of dimensions, so
   "rank-change" is doing the work of add-a-chart. Iteration 26 requires a rank
   jump of at least 18 dimensions before calling it a rank change.
+
+## Iteration 22 result (2026-09-03 08:50 PDT): surgery + adaptive covariance is erratic
+
+- Surgery atlas with the adaptive pooled-covariance kernel (no DE jumps),
+  single seed: dev G 1.16 but 0.53 to 1.71 across sites. A globally learned
+  within-mode covariance does not substitute for cross-mode moves. Discarded.
+- Feasible-path surgery (iteration 23) is landing: 0.68 to 1.60 on the first
+  three sites, so not obviously better than the gate-fix variant (0.93).

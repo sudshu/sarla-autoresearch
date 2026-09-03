@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 07:24 PDT",
+ "updated": "2026-09-03 08:22 PDT",
  "runs": [
   {
    "run": 1,
@@ -776,6 +776,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788445387,
    "protocol_version": 4
+  },
+  {
+   "run": 32,
+   "iteration": 22,
+   "variant": "s10_surgery_adaptcov",
+   "hypothesis": "S10",
+   "category": "atlas_geometry",
+   "metric": 1.1632718534141004,
+   "metrics": {
+    "G_dev": 1.1632718534141004,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.711411843985988,
+     "26": 1.432888322270174,
+     "58": 0.5258428531233487,
+     "71": 0.982944394276891
+    },
+    "wall_median": 3330.0251820087433
+   },
+   "status": "discard",
+   "description": "Surgery atlas + adaptive pooled-covariance kernel (no DE jumps), single seed: erratic across sites (0.53 to 1.71); the learned covariance does not replace cross-mode moves.",
+   "commit": "4d03d9e",
+   "timestamp": 1788448820,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1307,6 +1332,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2250.0175693035126
+   }
+  },
+  "22": {
+   "s10_surgery_adaptcov": {
+    "G_dev_per_seed": [
+     1.1632718534141004
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1632718534141004,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.0251820087433
    }
   }
  }
