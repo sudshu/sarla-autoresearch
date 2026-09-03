@@ -304,3 +304,9 @@ setup notes. Times are US Pacific.
   surgery + DE (0.92, iteration 10) remains the best screen and its
   confirmation seeds are queued (iteration 14).
 - Running now: fresh DE seeds (iteration 13) for the first v4 decision.
+- 21:40 PDT: likelihood-only parallel tempering implemented
+  (scripts/sarla_tempered.py): 4 rungs with inverse temperatures 1 to 0.05,
+  32 walkers each, chart/DE moves within rungs, adjacent swaps every 10 steps,
+  EDC gate and EDC penalties at full strength on every rung, only the cold
+  rung recorded (exact). Toy-scale check: swap acceptance 0.38 / 0.51 / 0.14.
+  Queued as iteration 17 with and without the surgery atlas (8 fits).

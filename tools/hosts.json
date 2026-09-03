@@ -64,7 +64,8 @@
     "sarla_fit.py",
     "sarla_kernels.py",
     "sarla_forward.py",
-    "sarla2.py"
+    "sarla2.py",
+    "sarla_tempered.py"
   ],
   "dalec_src": "CARDAMOM/PYTHON/dalec_jax/src/dalec_jax"
 }

@@ -33,6 +33,7 @@ import sarla2 as S2
 from osse_fit import (make_target, density_clusters, balanced_init,
                       live_regions, D, SCALE)
 from sarla_kernels import run_kernel, warmup_ensemble
+from sarla_tempered import make_tempered_batch, run_pt
 
 
 @dataclasses.dataclass
@@ -88,7 +89,10 @@ class Variant:
     start_policy: str = "balanced"  # balanced | proportional
     init_seed: int = 99
     # kernel
-    kernel: str = "chart_rwm"       # chart_rwm | chart_de | chart_stretch | chart_adaptcov
+    kernel: str = "chart_rwm"       # chart_rwm | chart_de | chart_stretch | chart_adaptcov | pt_de
+    pt_rungs: int = 4               # parallel tempering (kernel=pt_de): rungs, geometric betas 1 -> pt_beta_min
+    pt_beta_min: float = 0.05
+    pt_swap_every: int = 10
     mix: float = 0.0
     n_chains: int = 64
     n_steps: int = 32000
@@ -275,10 +279,22 @@ def main():
           f"{lp0[ks].min():.1f}..{lp0[ks].max():.1f}", flush=True)
 
     t0 = time.time()
-    draws, acc, bestlp, diag = run_kernel(
-        atlas, target, cfg, cfg.n_steps, cfg.n_chains, seed=cfg.kernel_seed,
-        init_ks=ks, report=max(cfg.n_steps // 8, 500), flat_cap=flat_cap,
-        init_X=init_X)
+    if cfg.kernel == "pt_de":
+        tb = make_tempered_batch(a.cbf)
+        n_pt = [0]
+        def tb_counted(Z):
+            n_pt[0] += len(np.atleast_2d(Z)); return tb(Z)
+        draws, acc, bestlp, diag = run_pt(atlas, tb_counted, cfg, cfg.n_steps, cfg.n_chains,
+                                          seed=cfg.kernel_seed, init_ks=ks,
+                                          report=max(cfg.n_steps // 8, 500), init_X=init_X)
+        n_eval[0] += n_pt[0]
+        print(f"  tempering: betas {np.round(diag['betas'], 3).tolist()} swap acceptance "
+              f"{np.round(diag['swap_acc'], 2).tolist()}", flush=True)
+    else:
+        draws, acc, bestlp, diag = run_kernel(
+            atlas, target, cfg, cfg.n_steps, cfg.n_chains, seed=cfg.kernel_seed,
+            init_ks=ks, report=max(cfg.n_steps // 8, 500), flat_cap=flat_cap,
+            init_X=init_X)
     wall["kernel"] = time.time() - t0
     ev_kernel = n_eval[0] - ev_seeds - ev_atlas
     wall["total"] = time.time() - t_all
