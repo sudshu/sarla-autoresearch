@@ -457,3 +457,11 @@ setup notes. Times are US Pacific.
   within-mode covariance does not substitute for cross-mode moves. Discarded.
 - Feasible-path surgery (iteration 23) is landing: 0.68 to 1.60 on the first
   three sites, so not obviously better than the gate-fix variant (0.93).
+
+## Iteration 23 result (2026-09-03 09:20 PDT): feasible-path connectivity does not help
+
+- Surgery with the feasible-path connectivity rule, single seed: dev G 1.36
+  (NL-Loo 1.60, BE-Vie 1.18, DE-Gri 0.68, DK-Sor 1.96). Worse than treating
+  gate crossings as unknown (0.93, iteration 20), and the operation mix is the
+  same (about 75 rank-changes per fit). Discarded. The rank-jump threshold
+  (iteration 26) is the remaining lever on the operation mix.

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 08:22 PDT",
+ "updated": "2026-09-03 08:40 PDT",
  "runs": [
   {
    "run": 1,
@@ -801,6 +801,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788448820,
    "protocol_version": 4
+  },
+  {
+   "run": 33,
+   "iteration": 23,
+   "variant": "s11_surgery_feaspath",
+   "hypothesis": "S11",
+   "category": "atlas_geometry",
+   "metric": 1.3556491806943536,
+   "metrics": {
+    "G_dev": 1.3556491806943536,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.6015165360534276,
+     "26": 1.1828099623328108,
+     "58": 0.6809026429493165,
+     "71": 1.9573675814418598
+    },
+    "wall_median": 3240.0459139347076
+   },
+   "status": "discard",
+   "description": "Surgery with feasible-path connectivity (infeasible midpoints repaired by nearby feasible perturbations), single seed: dev G 1.36 (DK-Sor 1.96), worse than the simpler gate-fix variant (0.93); operation mix unchanged (about 75 rank-changes per fit).",
+   "commit": "4d03d9e",
+   "timestamp": 1788449992,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1347,6 +1372,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.0251820087433
+   }
+  },
+  "23": {
+   "s11_surgery_feaspath": {
+    "G_dev_per_seed": [
+     1.3556491806943536
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.3556491806943536,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3240.0459139347076
    }
   }
  }
