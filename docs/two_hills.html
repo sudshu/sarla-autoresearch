@@ -33,130 +33,214 @@ details{margin:.3rem 0 1rem} summary{cursor:pointer;color:var(--ink-2);font-size
 .story{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0} .story div{background:var(--surface-2);border-radius:8px;padding:.8rem 1rem}
 .story b{display:block;margin-bottom:.3rem} @media (max-width:640px){.story{grid-template-columns:1fr}}
 .toggle{float:right;font-size:.8rem} .toggle button{font:inherit;font-size:.8rem;background:var(--surface-2);border:1px solid var(--grid);border-radius:6px;padding:.2rem .5rem;cursor:pointer;color:var(--ink)}
-.bar-lbl{font-size:11px;fill:var(--ink-2)} .direct{font-size:12px;font-weight:600;fill:var(--ink)}
+.bar-lbl{font-size:11px;fill:var(--ink-2)} label{font-size:.88rem;color:var(--ink-2);display:inline-flex;gap:.5rem;align-items:center;margin-right:1rem} input[type=range]{width:180px;accent-color:var(--s2)} .direct{font-size:12px;font-weight:600;fill:var(--ink)}
 </style></head><body>
 <div class="toggle"><button id="theme">dark / light</button></div>
-<h1>Two hills: why the "best fit" and the "probable answer" disagree at one forest</h1>
-<p class="small">Explainer built 2026-09-03 from the SARLA / CARDAMOM work at NL-Loobos. Companion to the
-<a href="index.html">autoresearch progress page</a>. Aggregate numbers only; all runs are reproducible from the
-<a href="https://github.com/sudshu/sarla-autoresearch">repository</a>. Hover any chart for values; every chart has a table view.</p>
+<h1>Two hills, one forest: when the best-fitting answer is not the most likely one</h1>
+<p class="small">A walk through one week of results from the SARLA / CARDAMOM project at the NL-Loobos flux tower, written for someone
+starting graduate work in Earth-system science or statistics. Companion to the <a href="index.html">autoresearch progress page</a>;
+code and numbers in the <a href="https://github.com/sudshu/sarla-autoresearch">repository</a>. Hover any chart for values; every chart
+has a table view.</p>
+
+<h2>The question, and why anyone should care</h2>
+<p>How long does carbon stay locked up in a tree's wood before it goes back to the atmosphere? Ten years and forty years are both
+"decades", but for a climate projection they are very different forests: one returns its carbon quickly, the other is a slow,
+long-lived store. This page is about a single Scots pine stand in the Netherlands, planted in 1911 and never logged, where a
+widely used carbon-cycle model cannot make up its mind between those two answers, and about what happens when you ask "which is
+right?" in the two ways scientists usually ask it.</p>
+<p>Along the way it turns into a small lesson in Bayesian inference that textbooks state but rarely show with real data: <b>the most
+probable single answer and the most probable <i>kind</i> of answer can be different things</b>, and a fast method that finds one may
+tell you nothing about the other.</p>
 
 <div class="kpi">
-<div><b>2</b><span>competing stories for how this forest handles wood</span></div>
-<div><b>82%</b><span>of the probability sits on the fast-turnover story</span></div>
-<div><b>−161.9</b><span>the single best fit, and it is on the <i>other</i> story</span></div>
-<div><b>30 min vs 33 h</b><span>to find the best fit (L-BFGS) vs to run the full sampler</span></div>
+<div><b>2</b><span>very different parameter sets fit the same 16 years of data</span></div>
+<div><b>82%</b><span>of the probability sits on the fast-turnover story (~10-year wood)</span></div>
+<div><b>−161.9</b><span>the single best-fitting point, and it is on the <i>slow</i>-turnover story</span></div>
+<div><b>30 min vs 33 h</b><span>to find the best fit (L-BFGS) vs to map the whole probability (MCMC)</span></div>
 </div>
 
-<h2>The two stories</h2>
-<p>The model (DALEC, 89 parameters) is fitted to 16 years of flux-tower data at a Scots pine stand planted in 1911
-and never managed. Two very different parameter sets explain the data about equally well:</p>
+<h2>The setup in three paragraphs</h2>
+<p><b>The model.</b> DALEC is a box model of a forest's carbon: leaves, wood, roots, litter and soil, with carbon flowing between them
+at rates set by 89 parameters (photosynthesis capacity, how growth is split between leaves and wood, how fast wood dies, how fast
+litter decomposes, and so on). CARDAMOM is the framework that fits those parameters to data at a site, here 16 years of monthly
+photosynthesis, net carbon exchange, evapotranspiration and leaf area from the tower, plus one biomass measurement. It also imposes
+"ecological and dynamical constraints" (EDCs): rules such as <i>roots must not turn over slower than wood</i> or <i>carbon pools must not
+drift far from equilibrium over the record</i>. Some EDCs are hard walls (a parameter set that violates them is simply forbidden),
+others are soft penalties.</p>
+<p><b>The landscape.</b> Think of the 89 parameters as coordinates and the <i>log-posterior</i> as altitude: how well a parameter set
+fits the data, plus how well it respects the constraints, on a log scale. A difference of 10 units in altitude means one point is
+e<sup>10</sup> ≈ 22,000 times more probable than the other, so the landscape is extremely steep. The <b>MAP</b> ("maximum a
+posteriori") is the highest summit. The <b>posterior mass</b> of a region is how much probability it holds, roughly its area times
+its height; a wide, lower hill can hold far more mass than a narrow, taller one.</p>
+<p><b>Two ways to explore it.</b> A <b>sampler</b> (MCMC) is a hiker who wanders the landscape spending time in each place in proportion
+to its probability; after long enough, where the hiker has been <i>is</i> the posterior. CARDAMOM's sampler, ADEMCMC, takes about 33
+hours per site. An <b>optimiser</b> is a climber who only ever goes uphill; it finds a summit fast but learns nothing about how much
+land lies around it. SARLA is a fast (~30-minute) GPU method that tries to get the sampler's answer at the optimiser's price, by
+finding the summits first and then wandering around each.</p>
+
+<h2>Try it: a tall narrow hill and a wide low one</h2>
+<p>Before the real data, a toy. Two hills in one dimension. Drag the sliders and watch the two summaries: the <i>peak</i> (which hill
+has the highest point) and the <i>mass</i> (which hill holds more probability). They agree only when the hills have similar widths.</p>
+<div class="controls">
+<label>width of hill B <input type="range" id="tw" min="0.02" max="0.30" step="0.005" value="0.20"></label>
+<label>height of hill B relative to A <input type="range" id="th" min="0.05" max="1.5" step="0.01" value="0.35"></label>
+</div>
+<div class="fig" id="fig0"></div>
+<div class="legend" id="leg0"></div>
+<p><b>Take-away:</b> "most probable point" and "most probable region" are different questions. On this toy you can make hill B hold
+90% of the mass while hill A keeps the summit. Now watch the same thing happen with 89 dimensions of real forest.</p>
+
+<h2>The two stories the data allow</h2>
 <div class="story">
-<div><b>Story A: fast turnover</b>About 80% of the trees' growth goes into wood, and wood is lost again after ~10 years.
-A high-throughput forest. Ecologically odd for a 100-year-old unmanaged pine stand, but it fits the observations.</div>
-<div><b>Story B: slow turnover</b>About 20% of growth goes into wood, which lasts ~40 years. Close to what forest inventories
-and litterfall measurements at the site suggest. Also fits the observations.</div>
+<div><b>Story A: fast turnover</b>About 80% of the trees' new growth goes into wood, and that wood is lost again after ~10 years on
+average. A high-throughput forest. Ecologically odd for a 100-year-old unmanaged pine stand, but it reproduces the observations.</div>
+<div><b>Story B: slow turnover</b>About 20% of growth goes into wood, and it lasts ~40 years. Close to what forest inventories and
+litterfall measurements at this site suggest. It also reproduces the observations.</div>
 </div>
-<p>Both stories match the single biomass measurement the model is given, and both reproduce the carbon fluxes to within
-the measurement noise. The data alone barely distinguish them. What follows is what happens when you ask "which one is right?"
-in the two ways people usually ask it.</p>
+<p>Both stories match the single biomass measurement the model is given, and both fit the carbon fluxes to within measurement noise.
+The data alone barely distinguish them. So: which is more probable?</p>
 
-<h2>Figure 1. Where the probability is versus where the peak is</h2>
-<p>The full 33-hour sampler (ADEMCMC, 64 chains) gives us the posterior: how probable each parameter set is. Below, the
-posterior is summarised along one axis, the fraction of growth allocated to wood. Switch between two ways of looking at
-the same draws.</p>
+<h2>Figure 1. Where is the probability, and where is the peak?</h2>
+<p>We ran the 33-hour sampler with 64 independent chains and checked that they agree (a standard convergence test, R̂ &lt; 1.1 on all 89
+parameters). The plot summarises its draws along one axis, <i>the fraction of new growth that goes into wood</i>, which is what
+separates the two stories. Toggle between the two summaries.</p>
 <div class="controls"><span class="seg" role="group" aria-label="view"><button data-v="mass" aria-pressed="true">Mass: share of draws</button><button data-v="peak" aria-pressed="false">Peak: best log-posterior</button></span>
 <span class="small" id="f1cap"></span></div>
 <div class="fig" id="fig1"></div>
 <div class="legend" id="leg1"></div>
 <details><summary>Table view</summary><div id="tab1"></div></details>
-<p><b>Mass view:</b> 82% of the sampler's draws are on the fast-turnover story (right). The slow-turnover story is a genuine but
-minority possibility. <b>Peak view:</b> the single most probable point (the MAP, log-posterior −161.9) is on the
-<i>slow</i>-turnover story. The tall hill is the narrow one; the wide hill is the lower one. "Best fit" and "most probable story"
-point in opposite directions.</p>
-<div class="note">This is not a sampler bug. It is what a bimodal posterior looks like when one mode is sharp and the other is broad.
-The fast approximate sampler (orange in the mass view) gets this backwards: it puts most of its draws on the slow-turnover hill,
-because its walkers rarely cross between the two. Fixing that weighting is what the <a href="index.html">autoresearch loop</a> is working on.</div>
+<p><b>Mass view:</b> 82% of the sampler's draws are on the fast-turnover story. Story B is real but a minority. <b>Peak view:</b> the
+highest point anywhere (log-posterior −161.9, found by an optimiser) is on the <i>slow</i>-turnover story, 30 units above the best
+point the sampler itself ever visited. The tall hill is the narrow one; the wide hill is the lower one.</p>
+<div class="note"><b>Take-away:</b> this is not a bug in either method. It is what a bimodal posterior looks like when one mode is sharp and
+the other broad. Notice the orange bars: the fast method gets the weights backwards, putting most of its draws on the slow-turnover hill,
+because its walkers rarely cross from one hill to the other. Fixing that is the current job of the <a href="index.html">autoresearch loop</a>.</div>
 
-<h2>Figure 2. On synthetic data the peak is in the wrong hill</h2>
-<p>To test which summary to trust, we built a fake dataset from a known "true" parameter set (an OSSE). The truth was chosen
-from the fast-turnover story. We then found the best fit of the model to the fake data.</p>
+<h2>Figure 2. If we knew the truth, which summary would get it right?</h2>
+<p>With real data nobody knows the true parameters. So we manufactured a case where we do: pick a parameter set as "truth", run the model
+to make fake observations with realistic noise, and fit the model to those. This is called an OSSE (observing system simulation
+experiment). The truth was drawn from the sampler's dominant story, A. We then asked an optimiser to find the best fit to the fake data.</p>
 <div class="controls"><span class="seg" role="group" aria-label="dataset"><button data-d="osse" aria-pressed="true">Synthetic (truth known)</button><button data-d="real" aria-pressed="false">Real data</button></span></div>
 <div class="fig" id="fig2"></div>
 <div class="legend" id="leg2"></div>
 <details><summary>Table view</summary><div id="tab2"></div></details>
-<p>On the synthetic data the best fit lands on the slow-turnover hill, 61 log-units "better" than the truth, while the truth sits on the
-fast-turnover hill. A product that reports the best fit would report the wrong wood story with high confidence. The probability mass
-(about 80% on the fast-turnover hill in the sampler) would get it right. The real-data panel shows the same geometry: the highest peak is
-on the slow hill, the mass on the fast one.</p>
+<p>The best fit lands on story B, 61 log-units "better" than the truth, which lives on story A. Remember the scale: 61 log-units is
+e<sup>61</sup>, an astronomically higher density. And it is still the wrong story. A product that reports the best fit would report the
+wrong wood lifetime with great confidence. The sampler's mass (~80% on story A) would get it right.</p>
+<div class="note"><b>Take-away:</b> the highest point of a posterior is not a safe summary when the posterior has more than one hill. This is the
+one result on the page that a reviewer cannot argue with, because the truth is known.</div>
 
-<h2>Figure 3. Racing the climbers: how fast can we reach the top?</h2>
-<p>Finding the best fit is an optimisation problem, and "Newton-type" methods that use the landscape's curvature are usually the
-fastest climbers. We raced three from the same 31 starting points, accepting only steps that stay inside the model's ecological
-constraints. Best value found so far, against wall-clock time on one GPU.</p>
+<h2>Figure 3. How fast can a climber reach the top, and does it matter?</h2>
+<p>Finding a summit is an optimisation problem. Textbooks say Newton's method, which uses the local curvature of the landscape (the 89×89
+matrix of second derivatives, the Hessian), climbs fastest. We raced three climbers from the same 31 starting points: damped Newton
+with the exact Hessian, Gauss-Newton (a cheaper approximation to the Hessian that is standard in weather data assimilation), and
+L-BFGS (which builds up a rough picture of curvature from the steps it has already taken). All were forced to stay inside the hard
+constraints.</p>
 <div class="controls"><span class="seg" role="group" aria-label="dataset"><button data-r="real" aria-pressed="true">Real data</button><button data-r="osse" aria-pressed="false">Synthetic</button></span></div>
 <div class="fig" id="fig3"></div>
 <div class="legend" id="leg3"></div>
 <details><summary>Table view</summary><div id="tab3"></div></details>
-<p>Both curvature-based climbers (Newton with the exact 89×89 Hessian, and Gauss-Newton with the residual Jacobian) stall within
-about 20 iterations, 25 log-units short of the top, and never recover. Plain L-BFGS reaches the top in ~30 minutes. The reason is the
-shape of the hills: long, nearly flat ridges bounded by hard walls. A quadratic model of such a ridge points its step off the ridge or
-into a wall, the step is rejected, and the method degenerates into tiny gradient steps. L-BFGS builds its curvature from the directions
-it actually walked, which is exactly the information a one-point quadratic model lacks. For comparison, the sampler's best draw after
-31.6 hours sits 30 log-units <i>below</i> L-BFGS's 30-minute result: samplers are not built to find peaks.</p>
+<p>Both curvature-based climbers stall after ~20 steps, 25 log-units below the summit, and never recover. The humble L-BFGS reaches the
+top in about 30 minutes. Why? The hills here are not domes; they are long, nearly flat ridges with hard walls along their sides. A
+quadratic model of a ridge sends its step off the ridge or into a wall, the step is rejected, and the method shrinks to tiny gradient
+steps. L-BFGS learns the ridge direction from where it has walked. And notice the grey dot: after 31.6 hours the sampler's best draw is
+30 units <i>below</i> L-BFGS's 30-minute result. Samplers are not built to find summits, and optimisers are not built to weigh hills.</p>
+<div class="note"><b>Take-away:</b> the right tool depends on the question. If you want the best fit, use L-BFGS from several good starts. If you want
+to know which story is more probable, no optimiser will tell you.</div>
 
-<h2>Figure 4. What separates the two hills</h2>
-<p>How high is the pass between the hills, and is it made of data or of ecological constraints? Two ways to walk from one hill to the
-other: a straight line in parameter space, and the routes the sampler actually took when it crossed. The log-posterior is split into
-the data term (how well observations are matched) and the constraint term (soft ecological penalties).</p>
+<h2>Figure 4. What actually separates the two hills?</h2>
+<p>If the hills were separated by a deep valley of poor data fit, the two stories would be genuinely distinct hypotheses. If they are
+separated by the model's own constraints, that is a different matter. We walked from one hill to the other and split the altitude into
+its two parts: the <i>data term</i> (how well observations are matched) and the <i>constraint term</i> (the soft ecological penalties). Two
+routes: a straight line in parameter space, and the routes the sampler actually took when it crossed.</p>
 <div class="controls"><span class="seg" role="group" aria-label="path"><button data-p="line" aria-pressed="true">Straight line between the hills</button><button data-p="path" aria-pressed="false">Actual sampler crossing</button></span>
 <select id="chainsel" aria-label="chain" hidden></select></div>
 <div class="fig" id="fig4"></div>
 <div class="legend" id="leg4"></div>
 <div class="fig" id="fig4b"></div>
 <details><summary>Table view</summary><div id="tab4"></div></details>
-<p>Along the straight line the pass is ~700 log-units deep, 95% of it constraint penalty (the equilibrium constraint on carbon pools),
-because the line passes through parameter sets that make no ecological sense. Along the sampler's real crossings the pass is only
-10 to 40 log-units, and the sampler crosses the wood-allocation midpoint 30 to 50 times per few thousand iterations. For the slow
-sampler the hills are not separate mountains; they are two bumps on one connected ridge with a constraint-textured surface. The fast
-sampler's walkers, confined to one local chart each, never make that crossing, which is why their hill weights come out wrong.</p>
+<p>The straight line drops ~700 log-units, almost all of it constraint penalty, because a straight line between two sensible forests passes
+through nonsensical ones (carbon pools exploding or collapsing). The sampler's own crossings, by contrast, dip only 10 to 40 log-units,
+and the sampler crosses the midpoint 30 to 50 times in a few thousand steps. For the slow hiker, the two stories are not separate mountains
+but two bumps on one connected ridge with a constraint-textured surface. The fast method's walkers, each confined to a local patch, never
+make that crossing. That is exactly why their hill weights come out wrong.</p>
+<div class="note"><b>Take-away:</b> "multimodal" is a statement about the geometry <i>and</i> about how you move through it. The same posterior is one
+ridge to a sampler with long-range moves and two islands to a sampler without them.</div>
 
 <h2>Could two Hessians replace the sampler for the hill weights?</h2>
-<p>If each hill were a smooth dome, its volume could be read off the curvature at its peak (a Laplace approximation), and the ratio of
-volumes would give the hill weights in minutes instead of hours. We tried it with the two peaks from Figure 2.</p>
+<p>A tempting shortcut. If each hill were a smooth dome, its volume could be read off the curvature at its summit (a Laplace
+approximation), and the ratio of volumes would give the weights in minutes. We tried it with the two summits from Figure 2.</p>
 <div id="tab5"></div>
-<p>It fails, and the diagnostics say why: at both "peaks" the curvature has 9 to 13 negative directions (they are points pressed against
-constraint walls, not interior maxima), 13 to 21 directions are flatter than the prior, and <b>only 1% of the volume of either
-Gaussian lies inside the region the constraints allow</b>. On the real data one convention happens to land near the sampler's 0.82 and
-another lands at 0.49; on the synthetic data every convention gives 0.000 for the hill that holds the truth. Any weight estimator built on
-one Gaussian per hill (Laplace, bridge sampling with Gaussian proposals, Gaussian importance sampling) fails the same way here.</p>
+<p>It fails, and the diagnostics say why: at both "summits" the curvature has 9 to 13 <i>negative</i> directions (they are points pressed
+against constraint walls, not interior maxima), 13 to 21 directions flatter than the prior, and <b>only 1% of each fitted Gaussian lies
+inside the region the constraints allow</b>. The Gaussian describes a region that mostly does not exist. On real data one convention
+happens to land near the sampler's 0.82 and another at 0.49; on the synthetic data every convention gives 0.000 for the hill that holds
+the truth. Any weight estimator built on one Gaussian per hill (Laplace, bridge sampling with Gaussian proposals, Gaussian importance
+sampling) fails here for the same reason.</p>
 
 <h2>The wood budget behind each story</h2>
-<p>Pushing 500 draws from each sampler through the model and averaging over the record. The last column is what the site's own
-unassimilated measurements suggest (inventory increment, needle litterfall, European unmanaged Scots pine mortality).</p>
+<p>What the two stories mean physically. We pushed 500 parameter sets from each method through the model and averaged over the 16
+years. The last column is what the site's own measurements suggest (forest inventory, needle litterfall, European pine mortality
+rates), none of which were given to the model.</p>
 <div id="tab6"></div>
-<p class="small">Both fit the one biomass observation. The full sampler's dominant story does so with a wood pool that turns over every
-10 years and puts 4× less into needles than the measured litterfall. Whether that says something about the site or about the
-model's constraints is open; the synthetic test above shows the sampler's weighting is nonetheless the right thing to report.</p>
+<p class="small">Both fit the one biomass observation. The sampler's dominant story does so with a wood pool that turns over every 10 years
+and puts four times less into needles than the measured litterfall. Whether that is telling us something about the site or about the
+model's constraints is an open question, and a good one.</p>
 
 <h2>Where the fix is being searched</h2>
-<p>The autoresearch loop scores each fast-sampler variant by a calibration gap G (0 perfect, ~0.3 seed noise, 5 wrong basin) and, since
-this analysis, also by whether the hill weights are stable across random seeds. Nothing has been promoted yet.</p>
+<p>An automated research loop is testing variants of the fast method. Each is scored by a calibration gap G (0 perfect, ~0.3 is noise
+between repeated runs, 5 means the wrong hill entirely) and, since this analysis, by whether its hill weights are stable across random
+seeds. Nothing has passed both tests yet.</p>
 <div id="tab7"></div>
-<p>The pattern across variants is consistent with Figure 4: population moves (differential evolution, stretch) and a better atlas improve
-the score but leave the hill weights at the mercy of where walkers start; tempering the data term alone does not let walkers cross; tempering
-the constraint terms as well does. Selective tempering of only the three constraint terms that carry the pass is queued.</p>
+<p>The pattern is consistent with Figure 4. Better local moves and a better map of the summits improve the score but leave the hill
+weights at the mercy of where walkers start. "Tempering" (letting hot copies of the walker roam a flattened landscape and swapping with
+the cold one) does not help when only the data term is flattened, and does help when the constraint terms are flattened too. That is
+the pass in Figure 4 showing up in the sampler's behaviour. A version that flattens only the three constraint terms that carry the pass
+is queued.</p>
 
-<h2>Caveats and provenance</h2>
+<h2>Caveats, honestly</h2>
 <ul>
-<li>One site, one plant functional type (evergreen needleleaf), one climate. Nothing here is shown to generalise.</li>
-<li>The synthetic truth was drawn from the fast-turnover story by construction. Had it been drawn from the other story, the best fit would have
-been right. The point is that peak and mass disagree, not that either story is true.</li>
-<li>Both peaks sit against a fire-combustion constraint that the data at this site (no fire) cannot see; it does not affect any quantity shown.</li>
-<li>The constraint gate has a rounding knife-edge: the same 16 starting points were all feasible on GPU and 11 of 16 on CPU. Values here are from one backend.</li>
-<li>Numbers: <code>runs/newton_map/*.npz</code>, <code>runs/mode_barrier*.npz</code>, <code>runs/atlas_mode_check_v2.npz</code> and the scripts of the same names in the research repository;
-sampler reference: 64 ADEMCMC chains, R̂ &lt; 1.1 on all 89 parameters. Design and OSSE record: <code>OSSE_SARLA.md</code> in the CARDAMOM fork.</li>
+<li>One site, one vegetation type (evergreen needleleaf), one climate. Nothing here is shown to generalise.</li>
+<li>The synthetic truth was drawn from story A by construction. Had it been drawn from story B, the best fit would have been right. The
+lesson is that peak and mass can disagree, not that either story is the truth.</li>
+<li>Both summits sit against a fire-related constraint that the data at this site (no fires) cannot see. It affects no quantity shown.</li>
+<li>The hard constraint has a floating-point knife-edge: the same 16 starting points were all feasible on the GPU and 11 of 16 on the CPU.
+Values here come from one backend.</li>
+<li>Provenance: <code>runs/newton_map/*.npz</code>, <code>runs/mode_barrier*.npz</code>, <code>runs/atlas_mode_check_v2.npz</code> and
+the scripts of the same names in the research repository. Sampler reference: 64 ADEMCMC chains, R̂ &lt; 1.1 on all 89 parameters.
+Experiment record: <code>OSSE_SARLA.md</code> in the CARDAMOM fork.</li>
 </ul>
+
+<h2>Open problems a student could take on</h2>
+<ul>
+<li><b>Estimate hill weights without Gaussians.</b> Something between "sample for 33 hours" and "fit a Gaussian per hill": nested sampling,
+path sampling along the real ridge, or a mixture built from the sampler's own crossings.</li>
+<li><b>Is the equilibrium constraint right for a growing forest?</b> This stand gained ~40% biomass over 25 years. The constraint penalises drift
+from equilibrium. Quantify what it costs the slow-turnover story, and test alternatives at sites with repeated inventories.</li>
+<li><b>Break the tie with data.</b> Needle litterfall and biomass increments are measured here but were not assimilated. Which observation, at
+what precision, collapses the posterior to one story? That is an observing-system design question.</li>
+<li><b>Do the two stories predict differently?</b> Under a warming or drought scenario, do stories A and B diverge in net carbon exchange? If
+they do, the choice of summary is a climate-relevant decision, not a statistical nicety.</li>
+<li><b>Report the right thing.</b> Products built on the best fit would report a 40-year wood lifetime at this site; products built on the
+posterior median would report 10 years. Which do current global carbon products do, and does it matter at scale?</li>
+</ul>
+
+<details><summary><b>Glossary</b></summary>
+<table><tbody>
+<tr><td><b>posterior</b></td><td>The probability of each parameter set given the data, the prior and the constraints. The object every method here is trying to describe.</td></tr>
+<tr><td><b>log-posterior</b></td><td>Its logarithm; the "altitude" in the landscape picture. A gap of 10 means e<sup>10</sup> ≈ 22,000× more probable.</td></tr>
+<tr><td><b>MAP</b></td><td>Maximum a posteriori: the single highest point. The "best fit".</td></tr>
+<tr><td><b>posterior mass</b></td><td>How much probability a region holds. Height times extent. A wide low hill can outweigh a tall narrow one.</td></tr>
+<tr><td><b>mode / hill</b></td><td>A local maximum and the region around it. A posterior with two of them is bimodal.</td></tr>
+<tr><td><b>MCMC / sampler</b></td><td>An algorithm that wanders the landscape so that time spent in each place matches its probability. ADEMCMC is CARDAMOM's; it takes ~33 h here.</td></tr>
+<tr><td><b>optimiser</b></td><td>An algorithm that only climbs. L-BFGS, Newton and Gauss-Newton are optimisers.</td></tr>
+<tr><td><b>Hessian</b></td><td>The matrix of second derivatives: local curvature. Used by Newton's method and by the Laplace approximation.</td></tr>
+<tr><td><b>Laplace approximation</b></td><td>Replacing a hill by a Gaussian with the same summit and curvature, to estimate its volume cheaply.</td></tr>
+<tr><td><b>EDC</b></td><td>Ecological and dynamical constraint: a rule the parameters must obey. Hard EDCs forbid; soft EDCs penalise.</td></tr>
+<tr><td><b>OSSE</b></td><td>A synthetic experiment with a known truth, used to test whether a method recovers what it should.</td></tr>
+<tr><td><b>tempering</b></td><td>Running extra copies of a sampler on flattened versions of the landscape so they can cross barriers, and swapping states with the real one.</td></tr>
+<tr><td><b>calibration gap G</b></td><td>The loop's score: how far a method's uncertainty ranges are from containing the truth as often as they claim.</td></tr>
+</tbody></table></details>
 <p class="small muted">Charts use a validated colour-blind-safe palette (worst adjacent CVD ΔE 9.2); identity is never carried by colour alone.</p>
 
 <div class="tip" id="tip" role="tooltip"></div>
@@ -185,6 +269,33 @@ function legend(id, items) { document.getElementById(id).innerHTML = items.map(i
 function table(id, head, rows) { document.getElementById(id).innerHTML = `<table><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i&&typeof c==='number'?'num':''}">${c==null?'—':c}</td>`).join('')}</tr>`).join('')}</tbody></table>`; }
 function ticks(a, b, n) { const s = (b - a) / n; return Array.from({length:n+1}, (_, i) => +(a + i*s).toPrecision(6)); }
 function seg(sel, attr, cb) { const btns = document.querySelectorAll(`${sel} button`); btns.forEach(b => b.onclick = () => { btns.forEach(x => x.setAttribute('aria-pressed', x===b)); cb(b.dataset[attr]); }); }
+
+
+// ---------------- Figure 0: toy two hills with sliders
+function fig0() {
+  const wB = +document.getElementById('tw').value, hB = +document.getElementById('th').value;
+  const W = 900, H = 300, m = {l:56, r:16, t:24, b:44}; const s = svg(document.getElementById('fig0'), W, H);
+  const muA = 0.25, sA = 0.035, muB = 0.72, sB = wB;                       // hill A: tall & narrow; hill B: adjustable
+  const f = xx => Math.exp(-0.5*((xx-muA)/sA)**2) + hB*Math.exp(-0.5*((xx-muB)/sB)**2);
+  const N = 400, xs = Array.from({length:N}, (_,i)=> i/(N-1)); const ys = xs.map(f); const ymax = Math.max(...ys)*1.12;
+  const massA = xs.reduce((a,xx,i)=> a + (xx<0.5? ys[i]:0), 0), massB = xs.reduce((a,xx,i)=> a + (xx>=0.5? ys[i]:0), 0), tot = massA+massB;
+  const x = lin(0,1,m.l,W-m.r), y = lin(0,ymax,H-m.b,m.t);
+  axes(s, x, y, ticks(0,1,5), [], 'a parameter (for example: fraction of growth going to wood)', 'probability density', m, W, H, v=>v.toFixed(1), v=>'');
+  const area = (lo, hi, color) => { let d = `M${x(lo)},${y(0)}`; xs.forEach((xx,i)=>{ if (xx>=lo && xx<=hi) d += `L${x(xx)},${y(ys[i])}`; }); d += `L${x(hi)},${y(0)}Z`; el('path',{d, fill:color, opacity:0.25},s); };
+  area(0,0.5,css('--s1')); area(0.5,1,css('--s2'));
+  el('path',{d: xs.map((xx,i)=>`${i?'L':'M'}${x(xx)},${y(ys[i])}`).join(''), fill:'none', stroke:css('--ink'), 'stroke-width':2},s);
+  const iMax = ys.indexOf(Math.max(...ys)); el('circle',{cx:x(xs[iMax]), cy:y(ys[iMax]), r:8, fill:css(xs[iMax]<0.5?'--s1':'--s2'), stroke:css('--surface'), 'stroke-width':2},s);
+  const t1 = el('text',{x:x(xs[iMax]), y:y(ys[iMax])-14, 'text-anchor':'middle', class:'direct'},s); t1.textContent = `peak (MAP) is on hill ${xs[iMax]<0.5?'A':'B'}`;
+  const t2 = el('text',{x:x(muA)+70, y:H-m.b-26, 'text-anchor':'middle', class:'direct'},s); t2.textContent = `hill A holds ${(100*massA/tot).toFixed(0)}% of the mass`;
+  const t3 = el('text',{x:x(muB), y:H-m.b-26, 'text-anchor':'middle', class:'direct'},s); t3.textContent = `hill B holds ${(100*massB/tot).toFixed(0)}%`;
+  const agree = (xs[iMax] < 0.5) === (massA > massB);
+  const t4 = el('text',{x:W-m.r, y:m.t+4, 'text-anchor':'end', class:'direct'},s); t4.textContent = agree ? 'peak and mass agree' : 'peak and mass DISAGREE';
+  const hit = el('rect',{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:'transparent'},s);
+  hit.onmousemove = e => { const r = s.getBoundingClientRect(); const px=(e.clientX-r.left)*W/r.width; const xx = (px-m.l)/(W-m.l-m.r); showTip(e, `<b>x = ${xx.toFixed(2)}</b><br>density ${f(xx).toFixed(3)}<br>hill A: peak height 1.00, width 0.035<br>hill B: peak height ${hB.toFixed(2)}, width ${wB.toFixed(3)}`); };
+  hit.onmouseleave = hideTip;
+  legend('leg0', [{color:css('--s1'), kind:'box', label:'hill A (tall, narrow, fixed)'}, {color:css('--s2'), kind:'box', label:'hill B (adjust with the sliders)'}]);
+}
+document.getElementById('tw').oninput = fig0; document.getElementById('th').oninput = fig0; fig0();
 
 // ---------------- Figure 1: mass vs peak along f_wood
 function fig1(view) {
@@ -336,6 +447,6 @@ table('tab7', ['variant', 'calibration gap G (4 sites)', 'hill-weight gate (shar
 
 // theme toggle + re-render on theme change
 document.getElementById('theme').onclick = () => { const r = document.documentElement; const cur = r.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); r.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark'); rerender(); };
-function rerender() { fig1(document.querySelector('[data-v][aria-pressed="true"]').dataset.v); fig2(document.querySelector('[data-d][aria-pressed="true"]').dataset.d); fig3(document.querySelector('[data-r][aria-pressed="true"]').dataset.r); fig4(); }
+function rerender() { fig0(); fig1(document.querySelector('[data-v][aria-pressed="true"]').dataset.v); fig2(document.querySelector('[data-d][aria-pressed="true"]').dataset.d); fig3(document.querySelector('[data-r][aria-pressed="true"]').dataset.r); fig4(); }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rerender);
 </script></body></html>
