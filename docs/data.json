@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 20:58 PDT",
+ "updated": "2026-09-02 22:40 PDT",
  "runs": [
   {
    "run": 1,
@@ -530,6 +530,31 @@
    "commit": "4d03d9e",
    "timestamp": 1788407926,
    "protocol_version": 4
+  },
+  {
+   "run": 22,
+   "iteration": 13,
+   "variant": "h2_de128",
+   "hypothesis": "H2",
+   "category": "moves",
+   "metric": 1.067997396666724,
+   "metrics": {
+    "G_dev": 1.067997396666724,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.158232081537888,
+     "26": 0.9734300717181817,
+     "58": 0.7530611893178976,
+     "71": 1.387266244092929
+    },
+    "wall_median": 2820.0333440303802
+   },
+   "status": "discard",
+   "description": "Chart + DE (128 x 16k), three fresh seeds under protocol v4: dev G 1.07 +/- 0.08 vs baseline 1.72 +/- 0.43, two-sample t = 2.6 PASSES; mode-weight gate FAILS: high-allocation mass across seeds 0.61/0.84/0.71 at NL-Loo (sd 0.11) and 0.97/0.06/0.27 at DK-Sor (sd 0.48). Better average, unreliable mode weights. Not promoted.",
+   "commit": "453ea9f",
+   "timestamp": 1788414052,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -886,6 +911,27 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2880.036175251007
+   }
+  },
+  "13": {
+   "h2_de128": {
+    "G_dev_per_seed": [
+     0.9818443695326238,
+     1.1291728838385482,
+     1.0929749366290002
+    ],
+    "sd_dev": 0.07677454596950131,
+    "delta": 0.15354909193900262,
+    "G_dev": 1.067997396666724,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2820.0333440303802,
+    "v4_diff": 0.6494297592493836,
+    "v4_se": 0.25191232649660866,
+    "v4_t": 2.5779991327979994,
+    "v4_pass": true
    }
   }
  }

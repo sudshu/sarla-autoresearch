@@ -1,0 +1,445 @@
+You are the external advisor of an autonomous research loop that improves
+SARLA, a GPU posterior sampler for an 89-parameter land carbon model
+(CARDAMOM / DALEC_1100). Read the protocol, the history and this iteration's
+results below, then answer in <= 600 words with these sections:
+
+1. ASSESSMENT: what the numbers say about this iteration (which terms of the
+   calibration gap moved, per-site consistency, any sign of overfitting to the
+   development sites or to a single truth).
+2. RISKS: anything in the protocol or the results that could mislead us.
+3. NEXT STEPS: 3-5 concrete, testable proposals ranked by expected payoff,
+   each as one sentence of rationale plus the variant knobs to change
+   (use the knob names from the variant JSON). Mark proposals that need new
+   code rather than a config change.
+4. STOP/CONTINUE: whether a hypothesis family should be abandoned.
+
+Be specific and quantitative; do not restate the protocol.
+
+=== PROTOCOL ===
+# SARLA autoresearch: program and pre-registered protocol
+
+**Goal.** Make CARDAMOM's Bayesian calibration of the DALEC_1100 land model
+(89 parameters) fast enough to run at many sites in minutes instead of days,
+without degrading the posterior. The candidate is SARLA, a GPU fast path
+(audited Laplace atlas + population sampler) that today takes ~30 min where
+CARDAMOM's ADEMCMC takes ~33 h at one site. The loop proposes sampler-design
+hypotheses, tests them on synthetic-truth experiments at several FLUXNET
+sites, keeps what helps, and publishes every step.
+
+**Metric.** Calibration gap G (lower is better; 0 = perfectly calibrated
+posterior). Computed per site by `scripts/osse_score_site.py` from an OSSE
+(observing-system simulation experiment): a known truth generates
+pseudo-observations, the sampler fits them, and the posterior is scored
+against the truth.
+
+```
+G_s = mean( |c90-0.90|/0.10,  |c50-0.50|/0.10,  |r-0.5|/0.15,
+            max(0, rms_z-1)/0.5,  mean_streams |p90_s-0.90|/0.10,  stuck_frac/0.10 )
+```
+- c90, c50: fraction of the 89 parameters whose 90% / 50% posterior interval
+  contains the truth (targets 0.90 / 0.50)
+- r: joint density rank P(logpost(draw) < logpost(truth)) (target 0.5)
+- rms_z: RMS over parameters of (truth - posterior mean) / posterior sd
+- p90_s: fraction of truth values inside the 90% band of the posterior's
+  GPP / NBE / ET / LAI projection over the unobserved months (target 0.90)
+- stuck_frac: fraction of chains whose median log-posterior is > 100 nats
+  below the best (a chain that never left a junk region)
+
+Each term is a distance from its target in units of about its binomial
+noise floor (sd(cover90) = 0.032 over 89 parameters).
+
+**Sites and split.** Eight CARDAMOM-FluxVal sites (FLUXNET2015, CC-BY-4.0).
+Development set, drives accept/reject: NL-Loo (183, ENF), DE-Gri (58, GRA),
+ES-LJu (178, OSH), BE-Vie (26, MF). Holdout set, scored only at milestones,
+never used to choose: CZ-wet (55, WET), DE-Geb (57, CRO), FR-Pue (82, EBF),
+DK-Sor (71, DBF; no real-data mode reaches 30% of its observed GPP, so its
+truth uses a relaxed 20% plausibility bound and is flagged). Every site has 192 monthly steps with observations ending
+by step 113, so the last 78+ months are a projection test at every site.
+
+**Truth.** Per site: a plausible EDC-feasible point near (not at) one of the
+pilot's real-data L-BFGS modes -- a random plausible mode plus N(0, 0.3 prior
+sd) jitter in z, redrawn until feasible and plausible. Plausible = finite
+trajectory, mean GPP within [0.3x, 3x] of the site's observed mean GPP, and
+biomass at the observation month within [0.3x, 3x] of the site's observed
+biomass. The jitter keeps the truth off the seed set the fitter starts from.
+A second truth + noise realisation ("B") exists for each development site and
+is used only at milestones. Iid EDC-feasible prior draws were tried first and
+rejected (2026-09-01): at all five sites checked they are near-dead
+ecosystems (GPP < 5% of observed).
+
+**Pseudo-observations.** The CBF's own declared error model per stream
+(lognormal sigma = ln 3 for GPP and ET, N(0, 1) for NBE, lognormal ln 1.5 for
+LAI, lognormal ln 1.05 for biomass), observation times copied from the real
+site, everything assimilated.
+
+**Budget.** Fixed model-evaluation budget per fit equal to the baseline (128
+L-BFGS seeds, atlas 6 rounds x 4096 audit draws, sampling 64 chains x 32,000
+steps = 2.05M evaluations). Variants that change chains x steps keep the
+sampling-evaluation total. Wall-clock is recorded per job and GPU type.
+
+**Accept rule.** A candidate becomes the new default iff (a) dev G improves
+on the current default by more than delta, where delta = 0.10 until iteration
+0 replaces it with 2 sd(G) over three kernel seeds of the baseline on the
+development set; (b) no development site worsens by more than 0.25 in G_s;
+(c) H100 wall-clock <= 1.5x the default's. Speed path: accept if wall-clock
+<= 0.5x at G <= default + 0.05. An iteration with fewer than 3 of 4
+development sites scored is incomplete and is requeued once, never counted.
+
+**Milestones.** At each new default and at least every 5 iterations, the
+default is scored on the 4 holdout sites and the 4 "B" truths. If holdout G
+worsens by > 0.05 relative to the previous default, the change is labelled
+"dev-only" and reverted. Development and holdout results are always shown
+side by side.
+
+**Advisor.** After each iteration a Codex agent (OpenAI Codex CLI, reasoning
+effort high) receives the protocol, the run history and the iteration's
+scores (aggregate numbers only) and proposes next steps; its reply is saved
+under `experiments/<iter>/advisor.md`, its proposals enter the idea bank
+tagged `codex`, and the Claude session running the loop decides what to
+implement next, combining those with its own.
+
+**Breakthrough notification.** The user is emailed when a new default
+improves dev G by >= 0.20, when the speed path accepts, or when a holdout
+milestone confirms either.
+
+**Frozen.** This protocol is frozen from iteration 1. Any change is logged as
+a new protocol version in `LOG.md`; earlier results are never re-judged
+under a later version.
+
+**Data on this page.** Aggregate metrics and public FLUXNET site IDs only; no
+observation series. Data: FLUXNET2015 (Pastorello et al. 2020, CC-BY-4.0)
+via CARDAMOM-FluxVal v1.0 (Yang et al. 2022, GMD).
+
+## Protocol version 2 (2026-09-02 04:00 PDT)
+
+**What changed and why.** Decomposing the log-posterior at the protocol-v1
+truths showed that the data terms at the truth equal those at the sampler's
+best draw, while the soft EDC (ecological-constraint) penalties differ by 580
+to 1,220 nats. The 0.3-sd jitter had pushed every truth into territory the
+model's own constraints reject, so the pseudo-data posterior was legitimately
+elsewhere and no sampler could recover the truth. Runs 1-4 (iterations 0-1)
+were judged against invalid truths and are kept on the page as protocol v1
+for the record only; they carry no weight in any decision.
+
+**Truth rule, v2.** The truth is a typical accepted draw of CARDAMOM's own
+reference sampler on the real data: a short ADEMCMC run per site (4 chains x
+30,000 iterations, 400 walkers each), second half of every chain pooled,
+plausibility filter as before (finite trajectory, mean GPP and biomass within
+[0.3x, 3x] of the observed), and the draw whose log-posterior is nearest the
+pooled median. This is the recipe the NL-Loo OSSE used. It is EDC-consistent
+by construction (an accepted draw), independent of the sampler under test,
+and typical rather than mode-adjacent. The first v2 attempt (jittered mode
+with an EDC check) was abandoned before use: the real-data L-BFGS modes from
+the pilot themselves carry soft-EDC penalties near 500 nats, so nothing
+built on them can be consistent. Everything else (sites, split, noise model,
+budget, metric, accept rule, milestones) is unchanged. Iteration numbering
+continues (iteration 4 is the v2 baseline); the baseline and noise floor are
+re-measured.
+
+**Sites under v2.** The truth source changed which sites are usable: DK-Sor
+now has a converged reference chain and plausible draws, while ES-LJu,
+FR-Pue and DE-Geb did not converge in 30,000 iterations (soft-EDC penalties
+still -28 to -125) and are re-run at 60,000 iterations. Development set under
+v2: NL-Loo (183), DE-Gri (58), BE-Vie (26), DK-Sor (71). Holdout: CZ-wet (55),
+DE-Geb (57), FR-Pue (82), ES-LJu (178). The v1 flag on DK-Sor is void.
+
+## Protocol version 3 (2026-09-02 09:40 PDT)
+
+**What changed and why.** The first valid (v2) baseline showed that one site
+can dominate everything: DK-Sor scored G = 14.0, 2.6 and 3.0 over three
+kernel seeds, so the seed-to-seed sd of the development mean was 1.7 and the
+acceptance threshold delta = 2 sd = 3.4, which no realistic improvement could
+clear. From v3 every site's G is capped at 5 in every aggregate (per-fit
+scores stay uncapped in the score files): a catastrophic site counts as a
+failure, not as a lever on the mean, and the noise floor is 2 sd of the
+capped development mean over kernel seeds. Nothing else changes; no decision
+had been taken under v2, so no result is re-judged. v2 truths and datasets
+are unchanged and remain the reference.
+
+**Truth-source detail (2026-09-02 14:20 PDT, protocol v3, affects no scored
+result).** The truth's soft-EDC consistency check is relative to its
+reference chain: the chosen draw must lie within 10 nats of the pooled median
+soft-EDC penalty of the last 30% of the chains (and the chain must not be
+both far below -20 and widely spread, the signature of non-convergence). At
+the five converged sites this selects the same draws as the earlier absolute
+-20 rule (medians -9 to -17). At ES-LJu and FR-Pue the whole reference
+posterior sits at about -118 nats with an interquartile range of 6 nats even
+after 60,000 iterations: the penalty is a property of those sites' posteriors,
+so a typical draw there is the right truth.
+
+## Protocol version 4 (2026-09-02 15:20 PDT; effective for decisions taken from iteration 13 on)
+
+**What changed and why.** Under v3 the threshold delta was 2 sd of the
+BASELINE's development mean over kernel seeds (0.86, driven by the baseline's
+erratic behaviour at DK-Sor). The first three-seed candidate (chart + DE
+moves, iteration 9) scored 1.05 +/- 0.085 against the baseline's 1.72 +/- 0.43:
+a 0.67 improvement, 2.6 standard errors, yet below delta because delta ignores
+the candidate's own, much smaller, spread. From v4 the acceptance test is
+two-sample: a candidate with n_c >= 3 kernel seeds replaces the default with
+n_b seeds iff
+
+    G_default - G_cand  >  2 * sqrt( sd_default^2 / n_b  +  sd_cand^2 / n_c )
+
+with the unchanged guards (no development site worse by more than 0.25 in
+capped G_s; H100 wall-clock <= 1.5x; speed path unchanged) and the milestone
+holdout check. Results judged under v3 are NOT re-judged: the DE kernel's
+iteration-9 verdict stands as "discard under v3", and its v4 test uses three
+fresh kernel seeds (iteration 13). Single-seed screens remain screens: they
+never promote.
+
+**Addendum to v4 (2026-09-02 17:30 PDT): mode-weight gate and real-data check.**
+Promotion additionally requires, over the candidate's >= 3 kernel seeds, that
+the across-seed standard deviation of the high-allocation mode fraction
+(fraction of draws with wood-allocation f_wood > 0.5) is <= 0.10 at both
+NL-Loo and DK-Sor: G averages over sites and can improve while the mode
+weights, which decide the wood residence time, still swing between seeds.
+Each candidate is also fitted once to the REAL NL-Loo data and its
+high-allocation fraction compared with the converged 64-chain ADEMCMC
+reference (0.815, 90% CI 0.794-0.834); this is reported at every milestone
+and is not a truth-selection question.
+
+
+=== RUN HISTORY (autoresearch.jsonl) ===
+{"type":"config","name":"sarla-calibration-gap","metricName":"G_dev","metricUnit":"gap","bestDirection":"lower","protocol_version":1}
+{"run": 1, "iteration": 0, "variant": "v3_baseline", "hypothesis": "H0", "category": "baseline", "metric": 1.1895396549127126, "metrics": {"G_dev": 1.1895396549127126, "G_holdout": 2.0049276045599003, "G_devB": null, "per_site": {"178": 0.5967676076074664, "183": 0.7941721533226374, "26": 2.5911891331862282, "55": 1.2061334480119632, "57": 1.0513381256329413, "58": 0.7760297255345182, "71": 4.1818114436469935, "82": 1.580427400947704}, "wall_median": 3270.0405745506287}, "status": "baseline", "description": "Baseline: the v3 fast path (chart-shaped walk, 64 chains x 32k steps, region screen + restarts) at 4 dev sites x 3 seeds and 4 holdout sites. Sets the noise floor.", "commit": "9ef54de", "timestamp": 1788340660, "protocol_version": 1}
+{"run": 2, "iteration": 1, "variant": "h1_walkers512", "hypothesis": "H1", "category": "walkers", "metric": 1.425297000732665, "metrics": {"G_dev": 1.425297000732665, "G_holdout": null, "G_devB": null, "per_site": {"178": 1.1677749683692025, "183": 0.8765341871482605, "26": 2.8377823052795854, "58": 0.8190965421336117}, "wall_median": 2580.0488317012787}, "status": "discard", "description": "8x walkers (512 x 4k steps), chart moves only: worse (1.43). Walkers never contract in 2k burn-in steps: over-dispersed at ES-LJu (50% intervals hold 78%), density rank 0.9.", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+{"run": 3, "iteration": 1, "variant": "h2_de512", "hypothesis": "H2", "category": "moves", "metric": 1.2987789575230064, "metrics": {"G_dev": 1.2987789575230064, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.5473121592796363, "183": 0.7568153222436265, "26": 2.568068484070118, "58": 1.322919864498645}, "wall_median": 2160.0349626541138}, "status": "discard", "description": "Chart + differential-evolution moves at 512 walkers: 1.30, no gain. BE-Vie unchanged (2.57); DE collapsed too tightly at DE-Gri (rank 0.12).", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+{"run": 4, "iteration": 1, "variant": "h3_stretch512", "hypothesis": "H3", "category": "moves", "metric": 1.1985113415291837, "metrics": {"G_dev": 1.1985113415291837, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.9121996409442633, "183": 0.6940695606353976, "26": 2.335056052519407, "58": 0.8527201120176672}, "wall_median": 2040.0381622314453}, "status": "discard", "description": "Chart + Goodman-Weare stretch at 512 walkers: 1.20, equal to baseline at 62% of the wall-clock (34 vs 53 min). Best of the three; the 128-walker x 16k-step version runs in iteration 2.", "commit": "ce8a25c", "timestamp": 1788342627, "protocol_version": 1}
+{"run": 5, "iteration": 2, "variant": "h2_de128", "hypothesis": "H2", "category": "moves", "metric": 1.3580483079331003, "metrics": {"G_dev": 1.3580483079331003, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.36794322728355205, "183": 0.8697853751330777, "26": 3.5703078563246335, "58": 0.6241567729911378}, "wall_median": 3330.026107788086}, "status": "discard", "description": "Chart + DE at 128 walkers x 16k steps: 1.36 (v1 truths). Good at ES-LJu (0.37) and DE-Gri, but collapsed at BE-Vie (3.57, rank 0.01).", "commit": "ce8a25c", "timestamp": 1788349994, "protocol_version": 1}
+{"run": 6, "iteration": 2, "variant": "h3_stretch128", "hypothesis": "H3", "category": "moves", "metric": 1.1875092424130078, "metrics": {"G_dev": 1.1875092424130078, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.6779215620573456, "183": 0.7384248642285431, "26": 2.491959544191947, "58": 0.8417309991741951}, "wall_median": 3300.0278222560883}, "status": "discard", "description": "Chart + stretch at 128 walkers x 16k steps: 1.19 (v1 truths), equal to baseline at equal wall-clock.", "commit": "ce8a25c", "timestamp": 1788349994, "protocol_version": 1}
+{"run": 7, "iteration": 2, "variant": "h5_flat3", "hypothesis": "H5", "category": "charts", "metric": 1.4469692156846445, "metrics": {"G_dev": 1.4469692156846445, "G_holdout": null, "G_devB": null, "per_site": {"178": 0.5120066446253332, "183": 1.4921802385883705, "26": 3.098497443018239, "58": 0.6851925365066359}, "wall_median": 3060.041935443878}, "status": "discard", "description": "Chart proposal inflated x sqrt(3) in flat directions: 1.45 (v1 truths); worse at NL-Loo and BE-Vie.", "commit": "ce8a25c", "timestamp": 1788349994, "protocol_version": 1}
+{"run": 8, "iteration": 4, "variant": "v3_baseline", "hypothesis": "H0", "category": "baseline", "metric": 1.7174271559161076, "metrics": {"G_dev": 1.7174271559161076, "G_holdout": 5.0, "G_devB": null, "per_site": {"183": 1.4162991297568477, "26": 1.1126698757489557, "55": 5.0, "58": 0.8173387673432765, "71": 3.5234008508153507}, "wall_median": 3060.038473844528}, "status": "baseline", "description": "Protocol v2/v3 baseline: the v3 fast path at 4 dev sites x 3 seeds (+ CZ-wet holdout). Fails by never reaching the posterior basin at NL-Loo (density rank 1.00 all seeds), DK-Sor (G 14/2.6/3.0) and CZ-wet (5.2); fine at BE-Vie and DE-Gri.", "commit": "453ea9f", "timestamp": 1788365941, "protocol_version": 3}
+{"run": 9, "iteration": 5, "variant": "h2_de128", "hypothesis": "H2", "category": "moves", "metric": 0.9620959634013013, "metrics": {"G_dev": 0.9620959634013013, "G_holdout": null, "G_devB": null, "per_site": {"183": 0.7745703411994665, "26": 0.9894339722564379, "58": 0.7225492552062378, "71": 1.361830284943063}, "wall_median": 3300.027514696121}, "status": "confirm", "description": "Chart + DE moves, 128 walkers x 16k: dev G 0.96 vs baseline 1.72 (one seed). Improvement 0.76 is just under the noise floor 0.86; two more kernel seeds queued (iteration 9) before deciding. DK-Sor 1.36 vs 3.5.", "commit": "453ea9f", "timestamp": 1788372732, "protocol_version": 3}
+{"run": 10, "iteration": 5, "variant": "h3_stretch128", "hypothesis": "H3", "category": "moves", "metric": 1.0450846328146113, "metrics": {"G_dev": 1.0450846328146113, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.1966489224126926, "26": 0.9655973070345194, "58": 0.7317865502782115, "71": 1.2863057515330216}, "wall_median": 3300.0274291038513}, "status": "confirm", "description": "Chart + stretch moves, 128 x 16k: dev G 1.05 vs 1.72 (one seed); confirmation seeds queued. DK-Sor 1.29.", "commit": "453ea9f", "timestamp": 1788372732, "protocol_version": 3}
+{"run": 11, "iteration": 5, "variant": "h9_seedstarts", "hypothesis": "H9", "category": "starts", "metric": 1.3285389726041807, "metrics": {"G_dev": 1.3285389726041807, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.7416144806114076, "26": 1.027296567064216, "58": 0.7020812678315891, "71": 1.8431635749095105}, "wall_median": 3000.039076089859}, "status": "discard", "description": "Chains start from the polished seeds instead of chart centres: 1.33, no gain; NL-Loo and DK-Sor still miss the basin (rank 1.00).", "commit": "cdaf445", "timestamp": 1788372733, "protocol_version": 3}
+{"run": 12, "iteration": 8, "variant": "s1_surgery", "hypothesis": "S1", "category": "atlas_geometry", "metric": 1.3322147760680534, "metrics": {"G_dev": 1.3322147760680534, "G_holdout": null, "G_devB": null, "per_site": {"183": 2.7851350280635834, "26": 0.7686097765581072, "58": 0.7541529831755155, "71": 1.0209613164750078}, "wall_median": 3660.0300312042236}, "status": "discard", "description": "Topology-aware surgery, defaults: dev G 1.33 vs 1.72 (one seed; below the 0.86 threshold). Better at DK-Sor (1.02 vs 3.5) and BE-Vie, worse at NL-Loo (2.79). 89-D trace: 27 branches, 11 rank-changes, 4 refines, 0 extend/merge; ESS 0.0002 after 6 rounds.", "commit": "4d03d9e", "timestamp": 1788379744, "protocol_version": 3}
+{"run": 13, "iteration": 8, "variant": "s2_surgery_noproj", "hypothesis": "S2", "category": "atlas_geometry", "metric": 1.286703326534541, "metrics": {"G_dev": 1.286703326534541, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.7404662200471643, "26": 1.0387762213659644, "58": 0.8842350185222193, "71": 1.4833358462028154}, "wall_median": 2880.0374796390533}, "status": "discard", "description": "Surgery without normal projection: 1.29 (one seed). Worse than with projection at DK-Sor (1.48 vs 1.02), better at NL-Loo (1.74 vs 2.79): no clean signal yet.", "commit": "4d03d9e", "timestamp": 1788379744, "protocol_version": 3}
+{"run": 14, "iteration": 8, "variant": "s3_surgery_volume", "hypothesis": "S3", "category": "atlas_geometry", "metric": 1.1626281797688118, "metrics": {"G_dev": 1.1626281797688118, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.4369228984438334, "26": 1.467020777390988, "58": 0.7518414624938176, "71": 0.9947275807466082}, "wall_median": 3030.0398502349854}, "status": "discard", "description": "Surgery with tangent-volume mixture weights: 1.16 (one seed), best of the three; the sampler's best draws reach the truth's density at 3 of 4 sites.", "commit": "4d03d9e", "timestamp": 1788379745, "protocol_version": 3}
+{"run": 15, "iteration": 9, "variant": "h2_de128", "hypothesis": "H2", "category": "moves", "metric": 1.048122119272529, "metrics": {"G_dev": 1.048122119272529, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.1195355090397372, "26": 1.0074749050388556, "58": 0.694053535486678, "71": 1.3714245275248451}, "wall_median": 3240.026337623596}, "status": "discard", "description": "Chart + DE moves (128 x 16k), three seeds: dev G 1.05 +/- 0.09 vs baseline 1.72 +/- 0.43. Under the v3 rule (0.86 below baseline) not accepted; the two-sample test gives t = 2.6. Re-tested with three fresh seeds under protocol v4 in iteration 13.", "commit": "453ea9f", "timestamp": 1788393018, "protocol_version": 3}
+{"run": 16, "iteration": 9, "variant": "h3_stretch128", "hypothesis": "H3", "category": "moves", "metric": 1.0525471192515174, "metrics": {"G_dev": 1.0525471192515174, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.1633129171168282, "26": 0.9758252947325023, "58": 0.7856251220000724, "71": 1.285425143156667}, "wall_median": 2820.0365352630615}, "status": "discard", "description": "Chart + stretch moves (128 x 16k), three seeds: dev G about 1.06 with very small seed spread; same situation as DE under v3.", "commit": "453ea9f", "timestamp": 1788393018, "protocol_version": 3}
+{"run": 17, "iteration": 10, "variant": "s4_surgery_de128", "hypothesis": "S4", "category": "atlas_geometry", "metric": 0.9186858333816019, "metrics": {"G_dev": 0.9186858333816019, "G_holdout": null, "G_devB": null, "per_site": {"183": 0.9678083943345781, "26": 0.8000668436165391, "58": 0.8466090378822501, "71": 1.0602590576930406}, "wall_median": 3270.025158405304}, "status": "confirm", "description": "Surgery atlas + chart/DE kernel (128 x 16k): dev G 0.92 on one seed, best single-seed screen so far (NL-Loo 0.97, BE-Vie 0.80, DE-Gri 0.85, DK-Sor 1.06). Confirmation seeds queued (iteration 14).", "commit": "4d03d9e", "timestamp": 1788403316, "protocol_version": 4}
+{"run": 18, "iteration": 10, "variant": "s5_surgery_btau100", "hypothesis": "S7", "category": "atlas_geometry", "metric": 1.0074766331461154, "metrics": {"G_dev": 1.0074766331461154, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.2631944249396831, "26": 0.9475669803135277, "58": 0.8953952608019401, "71": 0.9237498665293108}, "wall_median": 3330.040359735489}, "status": "discard", "description": "Surgery with branch only above a 100-nat dip and 16 flags/round: 1.01 on one seed; DK-Sor 0.92 with a near-perfect typical-set gap, NL-Loo 1.26 (rank 1.00).", "commit": "4d03d9e", "timestamp": 1788403316, "protocol_version": 4}
+{"run": 19, "iteration": 11, "variant": "s6_surgery_tol89d", "hypothesis": "S6", "category": "atlas_geometry", "metric": 1.0535854377114298, "metrics": {"G_dev": 1.0535854377114298, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.2220636960554205, "26": 0.7896226824002905, "58": 0.8149857433739194, "71": 1.3876696290160888}, "wall_median": 3840.0296969413757}, "status": "discard", "description": "Surgery with 89-D tolerances (model_tol 20, bend_tol 3, branch_tau 100, 16 flags, volume weights): 1.05 on one seed. Diagnostics unchanged: 36-45 branches and 34-45 rank-changes per fit, ESS 0.0002, no extend. The rank rule and the straight-segment connectivity test do not describe this posterior's geometry.", "commit": "4d03d9e", "timestamp": 1788404062, "protocol_version": 4}
+{"run": 20, "iteration": 12, "variant": "s3_surgery_volume", "hypothesis": "S3", "category": "atlas_geometry", "metric": 1.130823798026179, "metrics": {"G_dev": 1.130823798026179, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.4856566072807578, "26": 1.269871216152494, "58": 0.7880011411555324, "71": 0.9797662275159319}, "wall_median": 3030.0398502349854}, "status": "discard", "description": "Surgery with tangent-volume weights, three seeds (pooled with iteration 8): dev G about 1.16 +/- 0.05 vs baseline 1.72; below the v3 threshold; seed-stable. NL-Loo stays at density rank 1.00 (1.44 / 1.56 / 1.46).", "commit": "4d03d9e", "timestamp": 1788407926, "protocol_version": 3}
+{"run": 21, "iteration": 12, "variant": "s7_surgery_volume_de128", "hypothesis": "S7", "category": "atlas_geometry", "metric": 1.0263858831364876, "metrics": {"G_dev": 1.0263858831364876, "G_holdout": null, "G_devB": null, "per_site": {"183": 0.8517900237675655, "26": 1.0577252020669083, "58": 0.8602397390367299, "71": 1.3357885676747465}, "wall_median": 2880.036175251007}, "status": "discard", "description": "Volume-weighted surgery + DE kernel, one seed: 1.03 (NL-Loo 0.85, BE-Vie 1.06, DE-Gri 0.86, DK-Sor 1.34); not better than surgery + DE with uniform weights (0.92).", "commit": "4d03d9e", "timestamp": 1788407926, "protocol_version": 4}
+{"run": 22, "iteration": 13, "variant": "h2_de128", "hypothesis": "H2", "category": "moves", "metric": 1.067997396666724, "metrics": {"G_dev": 1.067997396666724, "G_holdout": null, "G_devB": null, "per_site": {"183": 1.158232081537888, "26": 0.9734300717181817, "58": 0.7530611893178976, "71": 1.387266244092929}, "wall_median": 2820.0333440303802}, "status": "discard", "description": "Chart + DE (128 x 16k), three fresh seeds under protocol v4: dev G 1.07 +/- 0.08 vs baseline 1.72 +/- 0.43, two-sample t = 2.6 PASSES; mode-weight gate FAILS: high-allocation mass across seeds 0.61/0.84/0.71 at NL-Loo (sd 0.11) and 0.97/0.06/0.27 at DK-Sor (sd 0.48). Better average, unreliable mode weights. Not promoted.", "commit": "453ea9f", "timestamp": 1788414052, "protocol_version": 4}
+
+
+=== THIS ITERATION: aggregate.json ===
+{
+ "h2_de128": {
+  "G_dev_per_seed": [
+   0.9818443695326238,
+   1.1291728838385482,
+   1.0929749366290002
+  ],
+  "sd_dev": 0.07677454596950131,
+  "delta": 0.15354909193900262,
+  "G_dev": 1.067997396666724,
+  "n_dev": 4,
+  "G_holdout": null,
+  "n_holdout": 0,
+  "G_devB": null,
+  "wall_median": 2820.0333440303802,
+  "v4_diff": 0.6494297592493836,
+  "v4_se": 0.25191232649660866,
+  "v4_t": 2.5779991327979994,
+  "v4_pass": true,
+  "per_site": {
+   "183": {
+    "G": 1.158232081537888,
+    "G_seeds": [
+     1.0302738838413548,
+     1.2975426324327586,
+     1.1468797283395504
+    ],
+    "G_raw": 1.158232081537888,
+    "n": 3,
+    "terms": {
+     "cover90": 1.6966292134831462,
+     "cover50": 1.0674157303370784,
+     "rank": 1.7015997222292798,
+     "rms_z": 0.8648081608081473,
+     "proj": 0.851190476190476,
+     "stuck": 0.0
+    },
+    "cover90": 0.7303370786516854,
+    "cover50": 0.39325842696629215,
+    "rank": 0.24476004166560808,
+    "rms_z": 1.4324040804040736,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     0.9642857142857143,
+     0.9761904761904762,
+     1.0
+    ]
+   },
+   "26": {
+    "G": 0.9734300717181817,
+    "G_seeds": [
+     1.1062816024049384,
+     0.7747986119167701,
+     1.0392100008328367
+    ],
+    "G_raw": 0.9734300717181817,
+    "n": 3,
+    "terms": {
+     "cover90": 1.3595505617977532,
+     "cover50": 1.5168539325842694,
+     "rank": 1.700487012987013,
+     "rms_z": 0.99103066520013,
+     "proj": 1.0697674418604652,
+     "stuck": 0.0
+    },
+    "cover90": 0.7640449438202247,
+    "cover50": 0.34831460674157305,
+    "rank": 0.24492694805194806,
+    "rms_z": 1.495515332600065,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.872093023255814,
+     0.6976744186046512,
+     0.8023255813953488,
+     1.0
+    ]
+   },
+   "58": {
+    "G": 0.7530611893178976,
+    "G_seeds": [
+     0.6792655841790297,
+     0.8110249518651802,
+     0.7688930319094828
+    ],
+    "G_raw": 0.7530611893178976,
+    "n": 3,
+    "terms": {
+     "cover90": 0.12359550561797827,
+     "cover50": 0.056179775280899014,
+     "rank": 2.325687607835177,
+     "rms_z": 0.2367972830067906,
+     "proj": 1.3333333333333335,
+     "stuck": 0.0
+    },
+    "cover90": 0.8876404494382022,
+    "cover50": 0.4943820224719101,
+    "rank": 0.8488531411752765,
+    "rms_z": 1.1183986415033953,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     1.0,
+     1.0,
+     0.6666666666666666,
+     1.0
+    ]
+   },
+   "71": {
+    "G": 1.387266244092929,
+    "G_seeds": [
+     1.556078676090678,
+     1.0440112819157858,
+     1.561708774272323
+    ],
+    "G_raw": 1.387266244092929,
+    "n": 3,
+    "terms": {
+     "cover90": 1.9213483146067423,
+     "cover50": 1.5168539325842694,
+     "rank": 3.1767451298701297,
+     "rms_z": 0.9358103937686408,
+     "proj": 1.7857142857142858,
+     "stuck": 0.0
+    },
+    "cover90": 0.7078651685393258,
+    "cover50": 0.34831460674157305,
+    "rank": 0.9765117694805194,
+    "rms_z": 1.4679051968843204,
+    "stuck_frac": 0.0,
+    "proj_cover90": [
+     0.5238095238095238,
+     0.7619047619047619,
+     1.0,
+     1.0
+    ]
+   }
+  }
+ }
+}
+
+=== IDEA BANK ===
+# Idea bank
+
+**Primary research direction (from 2026-09-02): the self-correcting atlas.**
+The S-family below (atlas geometry and surgery, engine `sarla2.py`, see
+ATLAS_SURGERY.md) has priority over kernel tuning. The v2 baseline fails by
+never finding the posterior's basin (NL-Loo, DK-Sor, CZ-wet), which is an
+atlas-coverage problem, not a kernel problem.
+
+Status: open | running | kept | discarded | dev-only | blocked. Source: claude | codex | user.
+Priority 1 = try first. Variant configs live in `variants/`.
+
+| id | pri | status | source | category | hypothesis | variant |
+|---|---|---|---|---|---|---|
+| H1 | 1 | discarded | claude | walkers | Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free | n_chains=512 n_steps=4000; n_chains=256 n_steps=8000 |
+| H2 | 1 | running (512: discarded; 128 running) | claude | moves | Chart move mixed 50/50 with differential-evolution moves (CARDAMOM's STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see | kernel=chart_de mix=0.5 n_chains=512 n_steps=4000 |
+| H3 | 1 | running (512: discarded = baseline, faster; 128/256 running) | claude | moves | Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers | kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000 |
+| H4 | 2 | running | claude | moves | Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves | kernel=chart_adaptcov mix=0.5 |
+| H5 | 1 | running | claude | charts | Inflate chart variance in flat (prior-capped) eigendirections x3 | flat_mult=3 |
+| H6 | 3 | open | claude+codex | restarts | Restarts through the whole burn-in, tighter gap | restart_until=0.5 restart_gap=50 restart_every=250 |
+| H7 | 3 | open | claude | budget | 64 L-BFGS seeds instead of 128, evaluations moved to sampling | n_seeds=64 n_steps=... |
+| H8 | 3 | open | claude | speed | Cheaper atlas: 3 rounds, 2048 audit draws (speed path) | atlas_rounds=3 n_audit=2048 |
+| H9 | 1 | discarded | claude+codex | starts | Chains start from all feasible seeds of the main region, not chart centres; motivated by the 82/18 mode inversion at NL-Loo (fast path never finds the dominant high-allocation mode) | start_policy=seeds |
+| H10 | 3 | open | claude | burn-in | Burn-in 25% instead of 50% at fixed steps | burn_frac=0.25 |
+| H11 | 2 | open | codex | moves | Tune the DE step (de_gamma around 2.38/sqrt(2D)) if H2 shows promise | de_gamma=0.12 / 0.25 |
+| R1 | - | rule | codex | protocol | Confirm any apparent winner with three kernel seeds and on the dev-B truths before promotion; require improvement outside BE-Vie, which holds 54% of the baseline gap | - |
+| S1 | 1 | running | external+claude | atlas_geometry | Does topology-aware surgery (extend/refine/split/branch/rank-change/merge) reduce importance discrepancies faster per evaluation than v1's add-a-chart, and does the final posterior improve? | atlas_engine=surgery |
+| S2 | 1 | running | claude | atlas_geometry | Does normal projection place repair points better than repairing at the raw flagged draw? | atlas_engine=surgery sg_normal_projection=false (ablation) |
+| S3 | 1 | running | claude | atlas_geometry | Do tangent-volume mixture weights (long ridges get more proposal mass) beat uniform weights? | sg_weight_rule=volume |
+| S4 | 1 | confirming (0.92 one seed) | claude+codex | atlas_geometry | Surgery + DE kernel (do the gains combine?); more repair per round: 16 flags, 10 audit rounds | sg_flag_topk=16 atlas_rounds=10 |
+| S5 | 2 | open | claude | atlas_geometry | Does true splitting help or hurt? (C2 box problem: repeated splits cost coverage) | sg_do_split=false |
+| S6 | 2 | open | claude | atlas_geometry | Rank-detection criterion: gap_min 3 vs 10 vs 30; rank_tau 0.5 / 2 | sg_gap_min=3; sg_rank_tau=0.5 |
+| S7 | 1 | running (btau 100) | claude | atlas_geometry | Branch criterion: branch_tau 5 vs 10 vs 20 (how easily a discrepancy becomes a new stratum) | sg_branch_tau=5 / 20 |
+| S8 | 2 | open | claude | atlas_geometry | Audit sample size 16384 with ESS-based stop: can fewer downstream MCMC evaluations achieve the same G after a better atlas? | n_audit=16384 sg_stop_ess=0.3 n_steps=16000 |
+| S9 | 3 | open | claude | atlas_geometry | Warm-up (H12) + surgery: does a better seed population change which operations fire? | warmup_steps=1000 atlas_engine=surgery |
+| S10 | 3 | open | claude | atlas_geometry | Merge criterion: merge_tol 0.5 vs 2 (cost vs coverage) | sg_merge_tol=2.0 |
+| P1 | - | rule | codex (iter 4) | strategy | Kernel-tuning family (H1-H4, H11) paused until a valid experiment shows the posterior basin is represented in the atlas; local mixing cannot repair a missing basin | - |
+| T1 | 1 | running | osse-session/user | tempering | Likelihood-only tempering, EDC hard gate kept at every rung, 4-6 geometric temperatures, DE moves within rungs, adjacent swaps; walkers initialised stratified by mode (share on the high-allocation charts) so gamma=1 DE jumps span both modes | new code |
+| B1 | 3 | parked: KDE bridge unreliable at 89-D (estimates 0.1-1.0 for the same fit) | osse-session/user | mode-weights | Two-cell bridge estimate of log Z_high - log Z_low (cells f_wood > / <= 0.5, moment-matched Gaussian per cell, sarla_evidence._bridge_logr) to reweight pooled DE draws; test on the iteration-13 DE fits and on real NL-Loo vs 0.815 | new code |
+| M1 | - | rule | osse-session/user | protocol | Promotion requires across-seed sd of the high-mode fraction <= 0.10 at NL-Loo and DK-Sor; real-data NL-Loo mode fraction reported at every milestone | - |
+
+
+=== BASELINE VARIANT (knob names) ===
+{
+ "name": "v3_baseline",
+ "category": "baseline",
+ "notes": "",
+ "n_seeds": 128,
+ "lbfgs_maxiter": 300,
+ "seed_seed": 0,
+ "atlas_rounds": 6,
+ "n_audit": 4096,
+ "atlas_seed": 3,
+ "tau": 10.0,
+ "n_mid": 7,
+ "region_gap": 100.0,
+ "within": null,
+ "start_policy": "balanced",
+ "init_seed": 99,
+ "kernel": "chart_rwm",
+ "mix": 0.0,
+ "n_chains": 64,
+ "n_steps": 32000,
+ "burn_frac": 0.5,
+ "gamma0": 0.05,
+ "target_acc": 0.23,
+ "flat_mult": 1.0,
+ "de_gamma": null,
+ "stretch_a": 2.0,
+ "adapt_start": 0.25,
+ "adapt_every": 200,
+ "restart_gap": 100.0,
+ "restart_every": 500,
+ "restart_until": 0.5,
+ "max_draws": 40000,
+ "kernel_seed": 5
+}

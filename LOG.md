@@ -316,3 +316,19 @@ setup notes. Times are US Pacific.
   nats between bandwidths. The kernel-density proposal is too narrow to
   bridge an 89-D cell; the estimator is not usable as built. Parked; the
   tempering test (iteration 17) is the route to correct mode weights.
+
+## Iteration 13 result (2026-09-02 23:15 PDT): the DE kernel passes the score test and fails the mode-weight gate
+
+- Three fresh kernel seeds, protocol v4: chart + DE moves at 128 walkers x
+  16k steps gives dev G 1.07 +/- 0.08 against the baseline's 1.72 +/- 0.43;
+  the two-sample test passes (t = 2.6), the per-site guard passes, wall-clock
+  is unchanged.
+- The mode-weight gate fails, and not marginally: the fraction of posterior
+  mass in the high-wood-allocation mode is 0.61 / 0.84 / 0.71 across seeds at
+  NL-Loo (truth is in that mode) and 0.97 / 0.06 / 0.27 at DK-Sor (truth in
+  the low mode). The kernel visits both modes but their relative weight is
+  set by which walkers happened to start where. This is exactly the mode
+  inversion seen on the real NL-Loo data, now reproduced under a known truth.
+- Not promoted. Tempering (iteration 17, queued) is the candidate designed
+  to fix this; surgery + DE confirmation (iteration 14) and stretch fresh
+  seeds (15) are running.
