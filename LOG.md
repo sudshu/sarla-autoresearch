@@ -235,3 +235,25 @@ setup notes. Times are US Pacific.
   truth chains filled. It is being restarted on the large local data volume.
   The loop's job mirror and truth-chain archives now live there as well
   (symlinked from runs/), so the loop can no longer starve the home quota.
+
+## Iterations 9 and 10 (2026-09-02 17:30 PDT): population kernels confirmed at 1.05; surgery + DE is the best screen at 0.92
+
+- Three-seed results: chart + DE 1.05 +/- 0.09, chart + stretch 1.05 +/- 0.01,
+  baseline 1.72 +/- 0.43. Under the v3 rule neither is accepted (0.67 short of
+  the 0.86 threshold that the baseline's own erratic seeds set); the
+  two-sample test gives t = 2.6 for both. Protocol v4 (logged) adopts that
+  test from iteration 13, where DE runs three fresh seeds.
+- Iteration 10 single-seed screens: surgery atlas + DE kernel 0.92 (best so
+  far; NL-Loo 0.97, BE-Vie 0.80, DE-Gri 0.85, DK-Sor 1.06), surgery with a
+  100-nat branch threshold 1.01. Confirmation seeds for surgery + DE queued.
+- Mode weights are the unsolved part. The NL-Loo OSSE truth is in the
+  high-allocation mode (f_wood 0.64). Fraction of posterior mass there across
+  seeds: baseline 0.11 / 0.58 / 0.55, DE 0.52 / 1.00 / 0.82, stretch
+  0.51 / 0.26 / 0.81. From now on promotion also requires that this fraction
+  be stable across seeds (sd <= 0.10) at NL-Loo and DK-Sor, and every
+  candidate is fitted once to the real NL-Loo data to compare with ADEMCMC's
+  0.815 (queued for baseline, DE, surgery+DE, volume-surgery+DE).
+- Suggestions received from the sibling OSSE session (relayed from the user)
+  and added to the idea bank: likelihood-only tempering with the EDC gate at
+  every rung and mode-stratified initialisation (T1), and a two-cell bridge
+  estimator of the relative mode mass to reweight pooled DE draws (B1).

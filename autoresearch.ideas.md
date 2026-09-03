@@ -26,7 +26,7 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | S1 | 1 | running | external+claude | atlas_geometry | Does topology-aware surgery (extend/refine/split/branch/rank-change/merge) reduce importance discrepancies faster per evaluation than v1's add-a-chart, and does the final posterior improve? | atlas_engine=surgery |
 | S2 | 1 | running | claude | atlas_geometry | Does normal projection place repair points better than repairing at the raw flagged draw? | atlas_engine=surgery sg_normal_projection=false (ablation) |
 | S3 | 1 | running | claude | atlas_geometry | Do tangent-volume mixture weights (long ridges get more proposal mass) beat uniform weights? | sg_weight_rule=volume |
-| S4 | 1 | running | claude+codex | atlas_geometry | Surgery + DE kernel (do the gains combine?); more repair per round: 16 flags, 10 audit rounds | sg_flag_topk=16 atlas_rounds=10 |
+| S4 | 1 | confirming (0.92 one seed) | claude+codex | atlas_geometry | Surgery + DE kernel (do the gains combine?); more repair per round: 16 flags, 10 audit rounds | sg_flag_topk=16 atlas_rounds=10 |
 | S5 | 2 | open | claude | atlas_geometry | Does true splitting help or hurt? (C2 box problem: repeated splits cost coverage) | sg_do_split=false |
 | S6 | 2 | open | claude | atlas_geometry | Rank-detection criterion: gap_min 3 vs 10 vs 30; rank_tau 0.5 / 2 | sg_gap_min=3; sg_rank_tau=0.5 |
 | S7 | 1 | running (btau 100) | claude | atlas_geometry | Branch criterion: branch_tau 5 vs 10 vs 20 (how easily a discrepancy becomes a new stratum) | sg_branch_tau=5 / 20 |
@@ -34,3 +34,6 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | S9 | 3 | open | claude | atlas_geometry | Warm-up (H12) + surgery: does a better seed population change which operations fire? | warmup_steps=1000 atlas_engine=surgery |
 | S10 | 3 | open | claude | atlas_geometry | Merge criterion: merge_tol 0.5 vs 2 (cost vs coverage) | sg_merge_tol=2.0 |
 | P1 | - | rule | codex (iter 4) | strategy | Kernel-tuning family (H1-H4, H11) paused until a valid experiment shows the posterior basin is represented in the atlas; local mixing cannot repair a missing basin | - |
+| T1 | 1 | open | osse-session/user | tempering | Likelihood-only tempering, EDC hard gate kept at every rung, 4-6 geometric temperatures, DE moves within rungs, adjacent swaps; walkers initialised stratified by mode (share on the high-allocation charts) so gamma=1 DE jumps span both modes | new code |
+| B1 | 1 | open | osse-session/user | mode-weights | Two-cell bridge estimate of log Z_high - log Z_low (cells f_wood > / <= 0.5, moment-matched Gaussian per cell, sarla_evidence._bridge_logr) to reweight pooled DE draws; test on the iteration-13 DE fits and on real NL-Loo vs 0.815 | new code |
+| M1 | - | rule | osse-session/user | protocol | Promotion requires across-seed sd of the high-mode fraction <= 0.10 at NL-Loo and DK-Sor; real-data NL-Loo mode fraction reported at every milestone | - |

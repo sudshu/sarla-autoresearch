@@ -168,3 +168,14 @@ holdout check. Results judged under v3 are NOT re-judged: the DE kernel's
 iteration-9 verdict stands as "discard under v3", and its v4 test uses three
 fresh kernel seeds (iteration 13). Single-seed screens remain screens: they
 never promote.
+
+**Addendum to v4 (2026-09-02 17:30 PDT): mode-weight gate and real-data check.**
+Promotion additionally requires, over the candidate's >= 3 kernel seeds, that
+the across-seed standard deviation of the high-allocation mode fraction
+(fraction of draws with wood-allocation f_wood > 0.5) is <= 0.10 at both
+NL-Loo and DK-Sor: G averages over sites and can improve while the mode
+weights, which decide the wood residence time, still swing between seeds.
+Each candidate is also fitted once to the REAL NL-Loo data and its
+high-allocation fraction compared with the converged 64-chain ADEMCMC
+reference (0.815, 90% CI 0.794-0.834); this is reported at every milestone
+and is not a truth-selection question.

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 13:09 PDT",
+ "updated": "2026-09-02 19:42 PDT",
  "runs": [
   {
    "run": 1,
@@ -355,6 +355,106 @@
    "commit": "4d03d9e",
    "timestamp": 1788379745,
    "protocol_version": 3
+  },
+  {
+   "run": 15,
+   "iteration": 9,
+   "variant": "h2_de128",
+   "hypothesis": "H2",
+   "category": "moves",
+   "metric": 1.048122119272529,
+   "metrics": {
+    "G_dev": 1.048122119272529,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.1195355090397372,
+     "26": 1.0074749050388556,
+     "58": 0.694053535486678,
+     "71": 1.3714245275248451
+    },
+    "wall_median": 3240.026337623596
+   },
+   "status": "discard",
+   "description": "Chart + DE moves (128 x 16k), three seeds: dev G 1.05 +/- 0.09 vs baseline 1.72 +/- 0.43. Under the v3 rule (0.86 below baseline) not accepted; the two-sample test gives t = 2.6. Re-tested with three fresh seeds under protocol v4 in iteration 13.",
+   "commit": "453ea9f",
+   "timestamp": 1788393018,
+   "protocol_version": 3
+  },
+  {
+   "run": 16,
+   "iteration": 9,
+   "variant": "h3_stretch128",
+   "hypothesis": "H3",
+   "category": "moves",
+   "metric": 1.0525471192515174,
+   "metrics": {
+    "G_dev": 1.0525471192515174,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.1633129171168282,
+     "26": 0.9758252947325023,
+     "58": 0.7856251220000724,
+     "71": 1.285425143156667
+    },
+    "wall_median": 2820.0365352630615
+   },
+   "status": "discard",
+   "description": "Chart + stretch moves (128 x 16k), three seeds: dev G about 1.06 with very small seed spread; same situation as DE under v3.",
+   "commit": "453ea9f",
+   "timestamp": 1788393018,
+   "protocol_version": 3
+  },
+  {
+   "run": 17,
+   "iteration": 10,
+   "variant": "s4_surgery_de128",
+   "hypothesis": "S4",
+   "category": "atlas_geometry",
+   "metric": 0.9186858333816019,
+   "metrics": {
+    "G_dev": 0.9186858333816019,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.9678083943345781,
+     "26": 0.8000668436165391,
+     "58": 0.8466090378822501,
+     "71": 1.0602590576930406
+    },
+    "wall_median": 3270.025158405304
+   },
+   "status": "confirm",
+   "description": "Surgery atlas + chart/DE kernel (128 x 16k): dev G 0.92 on one seed, best single-seed screen so far (NL-Loo 0.97, BE-Vie 0.80, DE-Gri 0.85, DK-Sor 1.06). Confirmation seeds queued (iteration 14).",
+   "commit": "4d03d9e",
+   "timestamp": 1788403316,
+   "protocol_version": 4
+  },
+  {
+   "run": 18,
+   "iteration": 10,
+   "variant": "s5_surgery_btau100",
+   "hypothesis": "S7",
+   "category": "atlas_geometry",
+   "metric": 1.0074766331461154,
+   "metrics": {
+    "G_dev": 1.0074766331461154,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.2631944249396831,
+     "26": 0.9475669803135277,
+     "58": 0.8953952608019401,
+     "71": 0.9237498665293108
+    },
+    "wall_median": 3330.040359735489
+   },
+   "status": "discard",
+   "description": "Surgery with branch only above a 100-nat dip and 16 flags/round: 1.01 on one seed; DK-Sor 0.92 with a near-perfect typical-set gap, NL-Loo 1.26 (rank 1.00).",
+   "commit": "4d03d9e",
+   "timestamp": 1788403316,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -555,6 +655,87 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3030.0398502349854
+   }
+  },
+  "9": {
+   "h2_de128": {
+    "G_dev_per_seed": [
+     0.9620959634013013,
+     1.0492302730126015,
+     1.1330401214036845
+    ],
+    "sd_dev": 0.08547746657640048,
+    "delta": 0.17095493315280097,
+    "G_dev": 1.048122119272529,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3240.026337623596,
+    "v4_diff": 0.6693050366435787,
+    "v4_se": 0.25284483193340695,
+    "v4_t": 2.647097951441843,
+    "v4_pass": true
+   },
+   "h3_stretch128": {
+    "G_dev_per_seed": [
+     1.0450846328146113,
+     1.0558390166802034,
+     1.0567177082597379
+    ],
+    "sd_dev": 0.006477619361211603,
+    "delta": 0.1,
+    "G_dev": 1.0525471192515174,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2820.0365352630615,
+    "v4_diff": 0.6648800366645902,
+    "v4_se": 0.24801014049602052,
+    "v4_t": 2.6808582719030336,
+    "v4_pass": true
+   },
+   "h9_seedstarts": {
+    "G_dev_per_seed": [
+     1.3285389726041807
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.3285389726041807,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3000.039076089859
+   }
+  },
+  "10": {
+   "s4_surgery_de128": {
+    "G_dev_per_seed": [
+     0.9186858333816019
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9186858333816019,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3270.025158405304
+   },
+   "s5_surgery_btau100": {
+    "G_dev_per_seed": [
+     1.0074766331461154
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.0074766331461154,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.040359735489
    }
   }
  }
