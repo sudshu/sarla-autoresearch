@@ -600,3 +600,13 @@ setup notes. Times are US Pacific.
   truths are in that budget: consistent, and consistently wrong there. The
   sibling session's interactive explainer of today's two-hills findings is
   now linked from the page (Deep dives).
+
+## Iteration 30 result (2026-09-03 15:50 PDT): longer DE trajectories do not stabilise the weights either
+
+- Chart + DE at 64 walkers x 32k steps, three seeds at NL-Loo and DK-Sor:
+  G 0.68 / 1.17 / 1.66 at NL-Loo with high-allocation mass 0.48 / 0.06 / 0.07
+  (truth 0.64), G 1.08 to 1.36 at DK-Sor with mass 0.07 to 0.19 (truth 0.29,
+  low budget). Neither 256 x 8k (iteration 18) nor 64 x 32k moves the DE
+  kernel's weights off their initialisation. Discarded. Mode-stratified
+  starts (half the walkers on high-allocation charts) are queued for both the
+  DE kernel and full-posterior tempering (iteration 39).

@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 15:06 PDT",
+ "updated": "2026-09-03 15:17 PDT",
  "runs": [
   {
    "run": 1,
@@ -997,6 +997,29 @@
    "commit": "4d03d9e",
    "timestamp": 1788473167,
    "protocol_version": 4
+  },
+  {
+   "run": 41,
+   "iteration": 30,
+   "variant": "h14_de64",
+   "hypothesis": "H14",
+   "category": "moves",
+   "metric": 1.1896834823284121,
+   "metrics": {
+    "G_dev": 1.1896834823284121,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.1704288584292317,
+     "71": 1.2089381062275926
+    },
+    "wall_median": 4770.038713693619
+   },
+   "status": "discard",
+   "description": "Chart + DE at 64 walkers x 32k steps, three seeds on NL-Loo and DK-Sor: G 0.68 to 1.36; longer trajectories do not stabilise the mode weights (see per-seed high-mode fractions in the log).",
+   "commit": "453ea9f",
+   "timestamp": 1788473804,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1650,6 +1673,19 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3330.045303106308
+   }
+  },
+  "30": {
+   "h14_de64": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1896834823284121,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 4770.038713693619
    }
   },
   "31": {
