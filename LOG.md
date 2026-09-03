@@ -410,3 +410,19 @@ setup notes. Times are US Pacific.
   1.81; each walker gets too few steps) and the high-allocation mass at
   NL-Loo still 0.38 / 0.46 / 0.67 across seeds. Discarded. The 16-rung
   tempering fits are running now.
+
+## Iteration 21 result (2026-09-03 06:20 PDT): a working temperature ladder, and still the wrong mode weight
+
+- 16 rungs (temperature ratio 0.79), 16 walkers each, swaps every 5 steps:
+  adjacent-rung swap acceptance 26 to 42% at both sites, so the rungs now
+  exchange walkers freely. Yet at NL-Loo the cold rung ends with density rank
+  1.00, its median log-posterior 40 nats below the truth's, and 12% of its
+  mass in the high-allocation mode where the truth sits (G 0.96); DK-Sor G
+  1.46 with 20% in the high mode (truth in the low mode).
+- Reading: with 8,000 steps and 16 walkers per rung the cold chain has not
+  equilibrated; tempering is not yet disproved, but at the fixed budget it
+  does not beat the plain population kernels. A diagnostic run at twice the
+  sampling budget (iteration 24, labelled as such and not a promotion
+  candidate) will tell whether the ladder equilibrates the weights given
+  time. Six-rung tempering (iteration 19) is landing with swap rates of 3 to
+  18% and G 0.81 to 0.91 on the first two sites.
