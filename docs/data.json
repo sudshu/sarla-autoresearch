@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02 22:40 PDT",
+ "updated": "2026-09-03 00:39 PDT",
  "runs": [
   {
    "run": 1,
@@ -555,6 +555,31 @@
    "commit": "453ea9f",
    "timestamp": 1788414052,
    "protocol_version": 4
+  },
+  {
+   "run": 23,
+   "iteration": 14,
+   "variant": "s4_surgery_de128",
+   "hypothesis": "S4",
+   "category": "atlas_geometry",
+   "metric": 0.9636345994931599,
+   "metrics": {
+    "G_dev": 0.9636345994931599,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 1.0219206168998305,
+     "26": 0.837184132640476,
+     "58": 0.7834154305646152,
+     "71": 1.212018217867718
+    },
+    "wall_median": 2880.040667295456
+   },
+   "status": "discard",
+   "description": "Surgery atlas + DE kernel, three seeds: dev G 0.96 +/- 0.04 vs baseline 1.72 +/- 0.43, t = 3.0 PASSES the score test; mode-weight gate FAILS at NL-Loo (high-mode mass 0.54/0.32/0.79, sd 0.23), passes at DK-Sor (0.11/0.05/0.06). Real NL-Loo data: 0.61 vs ADEMCMC 0.815. Best score so far; not promoted.",
+   "commit": "4d03d9e",
+   "timestamp": 1788421140,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -932,6 +957,40 @@
     "v4_se": 0.25191232649660866,
     "v4_t": 2.5779991327979994,
     "v4_pass": true
+   }
+  },
+  "14": {
+   "s4_surgery_de128": {
+    "G_dev_per_seed": [
+     0.9186858333816019,
+     0.9895121460820571,
+     0.9827058190158205
+    ],
+    "sd_dev": 0.039075250520589105,
+    "delta": 0.1,
+    "G_dev": 0.9636345994931599,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2880.040667295456,
+    "v4_diff": 0.7537925564229477,
+    "v4_se": 0.24900602738168515,
+    "v4_t": 3.0272060654479986,
+    "v4_pass": true
+   },
+   "s5_surgery_btau100": {
+    "G_dev_per_seed": [
+     1.0074766331461154
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.0074766331461154,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3330.040359735489
    }
   }
  }

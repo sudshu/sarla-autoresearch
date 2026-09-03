@@ -332,3 +332,24 @@ setup notes. Times are US Pacific.
 - Not promoted. Tempering (iteration 17, queued) is the candidate designed
   to fix this; surgery + DE confirmation (iteration 14) and stretch fresh
   seeds (15) are running.
+
+## Iteration 14 result (2026-09-03 01:00 PDT): surgery + DE is the best score yet (0.96) and still fails the mode-weight gate; first real-data check
+
+- Surgery atlas + DE kernel over three seeds: dev G 0.96 +/- 0.04 (baseline
+  1.72 +/- 0.43; two-sample t = 3.0). Per site 1.02 / 0.78 / 0.78 / 1.21
+  (NL-Loo / BE-Vie / DE-Gri / DK-Sor). Not promoted: at NL-Loo the
+  high-allocation mode holds 54%, 32% and 79% of the mass across seeds
+  (gate needs an sd of 0.10 or less); at DK-Sor the weights are stable
+  (5 to 11%).
+- Real NL-Loo data, one fit each, fraction of mass in the high-allocation
+  mode against the converged ADEMCMC reference of 0.815 (90% CI 0.79-0.83):
+  baseline 0.54, DE 0.59, surgery + DE 0.61, volume-weighted surgery + DE
+  0.91. None inside the interval. Every chain sits entirely in one mode
+  (per-chain spread 0.25 to 0.47), so the fraction is set at initialisation.
+  Interesting aside: the surgery + DE fits reach best log-posteriors of
+  -184.5 and -179.2 on the real data, above the 64-chain ADEMCMC fleet's best
+  of -192.8.
+- Conclusion so far: the population kernels and the surgery atlas fix
+  coverage and score; the relative mode weight remains a coin toss decided
+  by where walkers start. Tempering (iteration 17) is the queued remedy;
+  256-walker DE (18) tests the cheap alternative.

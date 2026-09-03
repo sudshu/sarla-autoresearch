@@ -16,6 +16,39 @@
    "f_wood_q05": 0.08423086467937488,
    "f_wood_q95": 0.894059146651899,
    "inside_ref_ci": false
+  },
+  "s4_surgery_de128_s5": {
+   "high_frac": 0.6075,
+   "n": 2000,
+   "n_chains": 128,
+   "per_chain_sd": 0.47252976569804794,
+   "lp_best": -184.53533819682173,
+   "lp_median": -204.97322887885463,
+   "f_wood_q05": 0.056871902912697905,
+   "f_wood_q95": 0.8681158081996595,
+   "inside_ref_ci": false
+  },
+  "s7_surgery_volume_de128_s5": {
+   "high_frac": 0.9115,
+   "n": 2000,
+   "n_chains": 128,
+   "per_chain_sd": 0.24674781088221037,
+   "lp_best": -179.17138116187246,
+   "lp_median": -203.03414614820585,
+   "f_wood_q05": 0.39693546645650934,
+   "f_wood_q95": 0.8866377964657354,
+   "inside_ref_ci": false
+  },
+  "v3_baseline_s5": {
+   "high_frac": 0.542,
+   "n": 2000,
+   "n_chains": 64,
+   "per_chain_sd": 0.43556196834429484,
+   "lp_best": -212.64789006869498,
+   "lp_median": -230.94927072874844,
+   "f_wood_q05": 0.1609801362661667,
+   "f_wood_q95": 0.8150705772528267,
+   "inside_ref_ci": false
   }
  }
 }
