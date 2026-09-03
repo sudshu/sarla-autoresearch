@@ -12,8 +12,8 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | id | pri | status | source | category | hypothesis | variant |
 |---|---|---|---|---|---|---|
 | H1 | 1 | discarded | claude | walkers | Many more walkers at the same evaluation budget (512 x 4k, 256 x 8k): start diversity decided the v2/v3 posterior, and the GPU is launch-latency bound so this is nearly free | n_chains=512 n_steps=4000; n_chains=256 n_steps=8000 |
-| H2 | 1 | running (512: discarded; 128 running) | claude | moves | Chart move mixed 50/50 with differential-evolution moves (CARDAMOM's STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see | kernel=chart_de mix=0.5 n_chains=512 n_steps=4000 |
-| H3 | 1 | running (512: discarded = baseline, faster; 128/256 running) | claude | moves | Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers | kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000 |
+| H2 | 1 | discarded as standalone (passes score test, fails mode-weight gate) | claude | moves | Chart move mixed 50/50 with differential-evolution moves (CARDAMOM's STEP_DEMCMC), 512 walkers: affine-invariant steps learn valley lengths the Laplace charts cannot see | kernel=chart_de mix=0.5 n_chains=512 n_steps=4000 |
+| H3 | 1 | fresh seeds running (iteration 15) | claude | moves | Chart move mixed with Goodman-Weare stretch moves (CARDAMOM mode 4 on the GPU), 512 walkers | kernel=chart_stretch mix=0.5 n_chains=512 n_steps=4000 |
 | H4 | 2 | running | claude | moves | Adaptive pooled covariance (Haario) learned from the ensemble during burn-in, mixed 50/50 with chart moves | kernel=chart_adaptcov mix=0.5 |
 | H5 | 1 | running | claude | charts | Inflate chart variance in flat (prior-capped) eigendirections x3 | flat_mult=3 |
 | H6 | 3 | open | claude+codex | restarts | Restarts through the whole burn-in, tighter gap | restart_until=0.5 restart_gap=50 restart_every=250 |
@@ -37,3 +37,4 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | T1 | 1 | running | osse-session/user | tempering | Likelihood-only tempering, EDC hard gate kept at every rung, 4-6 geometric temperatures, DE moves within rungs, adjacent swaps; walkers initialised stratified by mode (share on the high-allocation charts) so gamma=1 DE jumps span both modes | new code |
 | B1 | 3 | parked: KDE bridge unreliable at 89-D (estimates 0.1-1.0 for the same fit) | osse-session/user | mode-weights | Two-cell bridge estimate of log Z_high - log Z_low (cells f_wood > / <= 0.5, moment-matched Gaussian per cell, sarla_evidence._bridge_logr) to reweight pooled DE draws; test on the iteration-13 DE fits and on real NL-Loo vs 0.815 | new code |
 | M1 | - | rule | osse-session/user | protocol | Promotion requires across-seed sd of the high-mode fraction <= 0.10 at NL-Loo and DK-Sor; real-data NL-Loo mode fraction reported at every milestone | - |
+| H13 | 2 | running | codex (iter 13) | moves | DE at 256 walkers x 8k steps, judged on across-seed mode-weight sd at NL-Loo and DK-Sor first | n_chains=256 n_steps=8000 |
