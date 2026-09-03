@@ -99,6 +99,7 @@ class Variant:
     pt_beta_min: float = 0.05
     pt_swap_every: int = 10
     pt_temper_edc: bool = False     # True: temper EDC penalties too (hard gate kept), not only the data term
+    pt_temper_edc_terms: str = ""   # or: comma list of EDC names to temper with the data term (e.g. state_trajectories,cfcr_ratio,nsc_ratio)
     mix: float = 0.0
     n_chains: int = 64
     n_steps: int = 32000
@@ -286,7 +287,8 @@ def main():
 
     t0 = time.time()
     if cfg.kernel == "pt_de":
-        tb = make_tempered_batch(a.cbf, temper_edc=cfg.pt_temper_edc)
+        tb = make_tempered_batch(a.cbf, temper_edc=cfg.pt_temper_edc,
+                                 edc_terms=tuple(t.strip() for t in cfg.pt_temper_edc_terms.split(",") if t.strip()))
         n_pt = [0]
         def tb_counted(Z):
             n_pt[0] += len(np.atleast_2d(Z)); return tb(Z)

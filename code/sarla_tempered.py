@@ -35,7 +35,7 @@ import jax.numpy as jnp
 D = 89
 
 
-def make_tempered_batch(cbf_path, temper_edc=False):
+def make_tempered_batch(cbf_path, temper_edc=False, edc_terms=()):
     """Return batch(Z) -> (P_full, L): P_full = mlf2 total + logit Jacobian; L is the
     part that gets tempered: the data likelihood alone (default) or, with
     temper_edc=True, the whole finite posterior except the Jacobian (EDC
@@ -43,8 +43,9 @@ def make_tempered_batch(cbf_path, temper_edc=False):
     from dalec_jax.likelihood import data_prep, mlf2
     from dalec_jax import edcs
     from dalec_jax.model.dalec_1100 import run_dalec_1100, prederive_vegk
-    from dalec_jax.indices import PARMIN, PARMAX
+    from dalec_jax.indices import PARMIN, PARMAX, E
     from dalec_jax.inference.target import logit_jacobian
+    sel = [getattr(E, name) for name in edc_terms if name]   # selective EDC tempering
     cbf = data_prep.load_cbf(cbf_path)
     ecfg = {"n_timesteps": cbf.n_timesteps, "dint": edcs.compute_dint(cbf.time),
             "edc_eqf": cbf.edc_eqf, "skt_ref_mean": cbf.skt_ref_mean}
@@ -55,7 +56,12 @@ def make_tempered_batch(cbf_path, temper_edc=False):
         p = pmin * jnp.exp(jax.nn.sigmoid(z) * lr)
         pools, fluxes = run_dalec_1100(p, cbf.met, cbf.LAT, cbf.deltat, VegK)
         rec, ML, P = mlf2(cbf, ecfg, p, pools, fluxes)
-        L = P if temper_edc else jnp.sum(ML)
+        if temper_edc:
+            L = P                                    # everything finite except the Jacobian
+        elif sel:
+            L = jnp.sum(ML) + jnp.sum(jnp.asarray([rec[i] for i in sel]))   # data + chosen EDC penalties
+        else:
+            L = jnp.sum(ML)
         return P + logit_jacobian(z), L
     f = jax.jit(jax.vmap(one))
 

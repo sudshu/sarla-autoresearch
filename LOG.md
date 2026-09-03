@@ -542,3 +542,12 @@ setup notes. Times are US Pacific.
   exact Hessian was not the tool (stalled at -186; some Hessians still NaN).
 - Queued: full-posterior tempering on the real NL-Loo CBF (iteration 35), to
   compare its high-mode mass with ADEMCMC's 0.815.
+- 13:30 PDT: per the sibling session's per-EDC profile of real ADEMCMC
+  mode transitions (state_trajectories carries most of the soft-EDC part of
+  the 10-38 nat crossing dip; cfcr_ratio and nsc_ratio occasionally; the other
+  12 EDCs nothing), selective tempering is implemented: the data term plus a
+  chosen list of EDC penalties is flattened, the hard gate and the remaining
+  EDCs stay at full strength. Queued as iteration 36 on NL-Loo and DK-Sor.
+  The real-data MAP point (log-posterior -161.9, found by the sibling
+  session) is added to the NL-Loo seed files (a feasible point; feasibility
+  depends on parameters only).
