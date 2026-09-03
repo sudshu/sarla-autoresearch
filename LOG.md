@@ -310,3 +310,9 @@ setup notes. Times are US Pacific.
   EDC gate and EDC penalties at full strength on every rung, only the cold
   rung recorded (exact). Toy-scale check: swap acceptance 0.38 / 0.51 / 0.14.
   Queued as iteration 17 with and without the surgery atlas (8 fits).
+- B1 second test (22:00 PDT): on a fresh DE fit at NL-Loo (pooled high-mode
+  fraction 0.62) the bridge gives 0.22 at bandwidth 0.05 sd and 0.10 at 0.1
+  sd, with split halves disagreeing by 0.3, and the cell evidences shift by 44
+  nats between bandwidths. The kernel-density proposal is too narrow to
+  bridge an 89-D cell; the estimator is not usable as built. Parked; the
+  tempering test (iteration 17) is the route to correct mode weights.
