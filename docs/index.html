@@ -12,7 +12,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-03 13:01 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-03 14:55 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -33,7 +33,7 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 </div>
 
 <div class="now"><b>Latest:</b> Iteration 29 result (2026-09-03 13:50 PDT): a four-times larger audit does not improve the atlas<br>
-<b>Right now:</b> iteration 30: 5 fits running, 1 waiting, 0 done<br>iteration 31: 0 fits running, 4 waiting, 0 done<br>iteration 32: 0 fits running, 4 waiting, 0 done<br>iteration 33: 0 fits running, 6 waiting, 0 done<br>iteration 34: 0 fits running, 4 waiting, 0 done<br>iteration 35: 0 fits running, 1 waiting, 0 done<br>iteration 36: 0 fits running, 2 waiting, 0 done<br>iteration 37: 0 fits running, 4 waiting, 0 done<br>iteration 38: 0 fits running, 6 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 12:59 PDT</div>
+<b>Right now:</b> iteration 30: 1 fits running, 0 waiting, 5 done<br>iteration 31: 2 fits running, 0 waiting, 2 done<br>iteration 32: 2 fits running, 2 waiting, 0 done<br>iteration 33: 0 fits running, 6 waiting, 0 done<br>iteration 34: 0 fits running, 4 waiting, 0 done<br>iteration 35: 0 fits running, 1 waiting, 0 done<br>iteration 36: 0 fits running, 2 waiting, 0 done<br>iteration 37: 0 fits running, 4 waiting, 0 done<br>iteration 38: 0 fits running, 6 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 14:54 PDT</div>
 
 <h2>How to read this page</h2>
 <ul>
@@ -60,6 +60,12 @@ cells are failures. A variant that fixes the red columns without turning green o
 Right: where the truth's probability density ranks among the posterior draws (should be 0.50; near 0 means the
 posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <img src="charts/speed.png" alt="speed chart">
+
+<h2>Deep dives</h2>
+<ul>
+<li><a href="two_hills.html">Two hills: peak versus mass in the wood-allocation posterior at NL-Loo</a> (interactive explainer of the 2026-09-03 findings, maintained by the sibling OSSE session).</li>
+<li><a href="https://github.com/sudshu/sarla-autoresearch/blob/main/ATLAS_SURGERY.md">Topology-aware atlas surgery: design, what is implemented, box problems</a>.</li>
+</ul>
 
 <h2>Experiments</h2>
 <p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own

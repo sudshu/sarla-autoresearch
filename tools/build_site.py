@@ -356,6 +356,12 @@ Right: where the truth's probability density ranks among the posterior draws (sh
 posterior is too narrow or misplaced). Grey band: holdout sites.</p>
 <img src="charts/speed.png" alt="speed chart">
 
+<h2>Deep dives</h2>
+<ul>
+<li><a href="two_hills.html">Two hills: peak versus mass in the wood-allocation posterior at NL-Loo</a> (interactive explainer of the 2026-09-03 findings, maintained by the sibling OSSE session).</li>
+<li><a href="https://github.com/sudshu/sarla-autoresearch/blob/main/ATLAS_SURGERY.md">Topology-aware atlas surgery: design, what is implemented, box problems</a>.</li>
+</ul>
+
 <h2>Experiments</h2>
 <p class="small">Rows marked <b>v1-invalid</b> were scored against protocol-v1 truths, which the model's own
 ecological constraints reject (see the log entry "Protocol v2"); they are kept for the record and decide nothing.</p>
