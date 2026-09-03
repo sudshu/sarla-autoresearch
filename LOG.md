@@ -261,3 +261,15 @@ setup notes. Times are US Pacific.
   arm no longer exists (deleted during the redirect by the sibling session);
   nothing will be scored on it. The 32-chain NL-Loo OSSE reference arm was
   relaunched at about 19:50 PDT on the data volume, a fresh 33 h.
+
+## B1 first test (2026-09-02 20:00 PDT): a bridge estimate of the mode weights points the right way but is noisy
+
+- Two-cell bridge sampling (cells: wood allocation above / below 0.5) with a
+  kernel-density proposal on the cell's own draws (a moment-matched Gaussian
+  is entirely EDC-infeasible at 89-D; bandwidth 0.3 sd also infeasible, 0.1 sd
+  works). On the volume-surgery + DE fit at NL-Loo the pooled draws put 8% of
+  the mass in the high-allocation mode; the bridge says about 100% (split
+  halves 0.99 and 0.72). The OSSE truth is in that mode, and ADEMCMC on real
+  data puts 82% there, so the direction is right but the estimate is too
+  noisy to reweight with yet. Next: smaller bandwidth, more proposal draws,
+  and the three fresh DE fits of iteration 13 as test cases.
