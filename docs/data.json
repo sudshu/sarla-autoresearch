@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 08:40 PDT",
+ "updated": "2026-09-03 09:16 PDT",
  "runs": [
   {
    "run": 1,
@@ -826,6 +826,29 @@
    "commit": "4d03d9e",
    "timestamp": 1788449992,
    "protocol_version": 4
+  },
+  {
+   "run": 34,
+   "iteration": 24,
+   "variant": "t1_pt16_de_2x",
+   "hypothesis": "T1",
+   "category": "tempering",
+   "metric": 1.1712043875668428,
+   "metrics": {
+    "G_dev": 1.1712043875668428,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.8718743041976267,
+     "71": 1.4705344709360588
+    },
+    "wall_median": 3780.030505657196
+   },
+   "status": "discard",
+   "description": "DIAGNOSTIC at 2x the sampling budget (4.1M evaluations), 16-rung ladder with working swaps: NL-Loo and DK-Sor still end with density rank 1.00 and cold-rung medians 25-30 nats below the truth; high-allocation mass at NL-Loo stays far below the truth's mode. Time is not the missing ingredient; tempering does not equilibrate the mode weights here. Not a promotion candidate.",
+   "commit": "453ea9f",
+   "timestamp": 1788452144,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1387,6 +1410,19 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3240.0459139347076
+   }
+  },
+  "24": {
+   "t1_pt16_de_2x": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.1712043875668428,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3780.030505657196
    }
   }
  }

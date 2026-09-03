@@ -465,3 +465,16 @@ setup notes. Times are US Pacific.
   gate crossings as unknown (0.93, iteration 20), and the operation mix is the
   same (about 75 rank-changes per fit). Discarded. The rank-jump threshold
   (iteration 26) is the remaining lever on the operation mix.
+
+## Iteration 24 result (2026-09-03 10:10 PDT): tempering does not equilibrate the mode weights even with twice the budget
+
+- Diagnostic only (4.1M evaluations, twice the protocol budget), 16 rungs with
+  26 to 42% swap acceptance: NL-Loo G 0.87 and DK-Sor 1.47, both with density
+  rank 1.00 and the cold rung's median 25 to 30 nats below the truth; high-
+  allocation mass 0.19 at NL-Loo (truth in that mode) and 0.08 at DK-Sor.
+  With a working ladder and double the steps the cold chain still does not
+  reach the truth's density, so time is not what tempering lacks. Tempering
+  is parked; the full-posterior variant (iteration 27, which also flattens
+  the EDC penalties) is the last tempering test in the queue.
+- House rule recorded: the local A100s are never used unless the user asks;
+  all local work runs on CPU.

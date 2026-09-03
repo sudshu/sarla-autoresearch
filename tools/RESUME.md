@@ -40,3 +40,8 @@ ademcmc_truth/ and ademcmc_truth60k/ (thinned truth chains, symlinked from
 runs/). The sibling session's reference arm restarts under
 /export/data1/spandey/cardamom/ademcmc_osse_full. Never write large files
 under /home/spandey (100 GB hard quota shared with everything else).
+
+## GPUs (user rule, 2026-09-03)
+Never use the local A100s unless the user explicitly asks. Local scoring and
+tooling run with JAX_PLATFORMS=cpu. GPU fits only on the H100 (az-ms) and the
+two Blackwell cards on aws_kyo, as in tools/hosts.json.
