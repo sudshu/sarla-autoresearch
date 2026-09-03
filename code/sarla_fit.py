@@ -73,6 +73,7 @@ class Variant:
     sg_rank_hysteresis: float = 2.0
     sg_bend_tol: float = 1.0
     sg_fallback_patch: bool = True
+    sg_branch_on_infeasible: bool = True
     sg_do_extend: bool = True
     sg_do_refine: bool = True
     sg_do_split: bool = True

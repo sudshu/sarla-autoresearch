@@ -69,6 +69,7 @@ class SurgeryConfig:
     rank_hysteresis: float = 2.0    # a rank change must survive rank_tau / and * this factor
     bend_tol: float = 1.0           # normal displacement (in normal sigmas) beyond which the ridge "bends"
     fallback_patch: bool = True     # if a round has flags but no structural op, add a chart (v1 behaviour)
+    branch_on_infeasible: bool = True  # False: a segment through the hard gate is "unknown", not a new stratum
     # which operations are enabled (for ablations)
     do_extend: bool = True
     do_refine: bool = True
@@ -249,10 +250,17 @@ class Atlas2:
                    and c.model_err(w, logpi_w) < self.cfg.model_tol for c in self.charts)
 
     def density_connected(self, wa, wb, lpa, lpb):
+        """Straight-segment connectivity. At 89-D the feasible set is thin, so
+        the segment between two feasible points usually crosses the hard
+        gate; with branch_on_infeasible=False such a segment is treated as
+        'unknown' (connected) rather than as evidence of a new stratum."""
         ts = np.linspace(0, 1, self.cfg.n_mid + 2)[1:-1]
         mids = wa[None] + ts[:, None] * (wb - wa)[None]
         lpm = self.lp(mids)
-        return bool(np.all(np.isfinite(lpm)) and lpm.min() > min(lpa, lpb) - self.cfg.branch_tau)
+        fin = np.isfinite(lpm)
+        if not fin.all():
+            return not self.cfg.branch_on_infeasible
+        return bool(lpm.min() > min(lpa, lpb) - self.cfg.branch_tau)
 
     def nearest(self, w):
         return int(np.argmin([c.maha2(w[None])[0] for c in self.charts]))
@@ -458,7 +466,9 @@ def sarla2(target, seeds_z, cfg=None, seed=0, verbose=True):
     clean, prev_q95 = 0, None
     for r in range(cfg.rounds):
         aud = audit(atlas, rng)
-        ranks = np.bincount([c.rank for c in atlas.charts], minlength=1).tolist()
+        rk = np.array([c.rank for c in atlas.charts])
+        ranks = dict(min=int(rk.min()), q25=float(np.percentile(rk, 25)), med=float(np.median(rk)),
+                     q75=float(np.percentile(rk, 75)), max=int(rk.max()))
         rec = dict(round=r, K=len(atlas.charts), ranks=ranks, n_branches=len({c.branch for c in atlas.charts}),
                    ess=aud["ess"], n_flags=int(len(aud["flags"])), n_uncovered=aud["n_uncovered"],
                    logw_max=aud["logw_max"], logw_q95=aud["logw_q95"], logw_q99=aud["logw_q99"],
@@ -483,7 +493,8 @@ def sarla2(target, seeds_z, cfg=None, seed=0, verbose=True):
         atlas.history.append(rec)
         if verbose:
             o = rec["ops"]
-            print(f"[sarla2] audit {r}: K={rec['K']} ranks={ranks} branches={rec['n_branches']} "
+            print(f"[sarla2] audit {r}: K={rec['K']} rank med {ranks['med']:.0f} [{ranks['min']}-{ranks['max']}] "
+                  f"branches={rec['n_branches']} "
                   f"ESS={aud['ess']:.3f} uncovered={aud['n_uncovered']} (q95 {aud['logw_q95']:.1f}, "
                   f"max {aud['logw_max']:.1f}) -> "
                   + ", ".join(f"{v} {k}" for k, v in o.items() if v) + (" freeze" if stop else "")
@@ -527,6 +538,8 @@ def history_table(atlas):
         o = h.get("ops", {})
         acts = ", ".join(f"{v} {k}" for k, v in o.items() if v and k not in ("duplicate", "infeasible"))
         acts += f"  ({o.get('duplicate', 0)} dup)" if o.get("duplicate") else ""
+        rk = h["ranks"]
         lines.append(f"audit {h['round']}: {h['n_uncovered']} uncovered (q95 {h['logw_q95']:.1f}), "
-                     f"K={h['K']} ranks={h['ranks']} ESS={h['ess']:.3f} -> {acts or 'nothing'}")
+                     f"K={h['K']} rank med {rk['med']:.0f} [{rk['min']}-{rk['max']}] ESS={h['ess']:.3f} "
+                     f"-> {acts or 'nothing'}")
     return "\n".join(lines)
