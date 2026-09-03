@@ -426,3 +426,13 @@ setup notes. Times are US Pacific.
   candidate) will tell whether the ladder equilibrates the weights given
   time. Six-rung tempering (iteration 19) is landing with swap rates of 3 to
   18% and G 0.81 to 0.91 on the first two sites.
+
+## Iteration 19 result (2026-09-03 07:20 PDT): six rungs, same story
+
+- Six-rung tempering, 24 walkers per rung: dev G 0.98 (single seed), swap
+  acceptance 3 to 18%. High-allocation mass 0.30 at NL-Loo and 0.23 at
+  BE-Vie against truths in that mode; DK-Sor 0.35 against a low-mode truth.
+  Every tempering configuration at the fixed budget lands between 0.96 and
+  0.99 in G with the same mode-weight problem as the plain kernels. The
+  2x-budget diagnostic (iteration 24) decides whether time is the missing
+  ingredient. Feasible-path surgery with the DE kernel queued (iteration 25).

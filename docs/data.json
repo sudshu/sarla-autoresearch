@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 05:41 PDT",
+ "updated": "2026-09-03 06:22 PDT",
  "runs": [
   {
    "run": 1,
@@ -726,6 +726,31 @@
    "commit": "453ea9f",
    "timestamp": 1788439259,
    "protocol_version": 4
+  },
+  {
+   "run": 30,
+   "iteration": 19,
+   "variant": "t1_pt6_de",
+   "hypothesis": "T1",
+   "category": "tempering",
+   "metric": 0.9766837747094338,
+   "metrics": {
+    "G_dev": 0.9766837747094338,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.913981915809122,
+     "26": 0.6760248654184661,
+     "58": 0.8130157592653631,
+     "71": 1.503712558344784
+    },
+    "wall_median": 2760.021462202072
+   },
+   "status": "discard",
+   "description": "Six-rung likelihood tempering (beta 1 -> 0.03), 24 walkers per rung: dev G 0.98 on one seed; swap acceptance 3-18%. High-allocation mass 0.30 at NL-Loo and 0.23 at BE-Vie where the truths sit in that mode (0.64, 0.74): still under-weighted.",
+   "commit": "453ea9f",
+   "timestamp": 1788441735,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1214,6 +1239,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2220.0171394348145
+   }
+  },
+  "19": {
+   "t1_pt6_de": {
+    "G_dev_per_seed": [
+     0.9766837747094338
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.9766837747094338,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2760.021462202072
    }
   },
   "21": {
