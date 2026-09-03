@@ -366,3 +366,8 @@ setup notes. Times are US Pacific.
   improve calibration without fixing the mode weights. Iterations 16 to 18
   (absolute-rank surgery, tempering, 256 walkers) are on the GPUs; tempering
   is the only one designed to move mass between modes.
+- 03:15 PDT: first full-scale tempering fit (4 rungs, beta 1 / 0.37 / 0.14 /
+  0.05): DE-Gri G 0.87, but adjacent-rung swap acceptance only 3-5%: the
+  ladder is far too coarse for a likelihood whose spread across modes is tens
+  of nats. A 16-rung ladder (ratio 0.79, 16 walkers per rung, same budget) is
+  queued as iteration 21 on the two mode-sensitive sites.
