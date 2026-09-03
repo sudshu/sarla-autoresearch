@@ -560,3 +560,15 @@ setup notes. Times are US Pacific.
   the wood budget wrong while the posterior mass gets it right. This is why
   the loop scores calibration of the mass, and why the real-data MAP at
   -161.9 in the plausible budget is not evidence for that budget at Loobos.
+- 12:10 PDT, two more negative results from the sibling session, both about
+  weight estimators and both consistent with the loop's bridge failure:
+  (a) a two-hill Laplace mass estimate (Gaussian at each budget's maximum)
+  cannot work at 89-D with EDC walls: both "maxima" have 9 to 13 negative
+  Hessian eigenvalues (wall-bounded points), 13 to 21 eigenvalues below prior
+  precision, and only 1% of draws from either Gaussian are feasible; on the
+  OSSE it gives 0.000 for a truth in the high hill, and its 0.80 on real data
+  is a convention coincidence. (b) Gauss-Newton / Levenberg-Marquardt with the
+  exact residual Jacobian stalls where damped Newton stalled (real -185.8,
+  OSSE -294.3 vs L-BFGS -161.9 / -263.2): the quadratic model step is
+  rejected and the method degenerates to short gradient steps. Newton-family
+  optimisers are off the table for the point estimate; L-BFGS seeds stay.
