@@ -37,6 +37,10 @@ def load_fit(path):
     for k in ("wall", "variant"):
         if k in d.files:
             meta[k] = json.loads(str(d[k]))
+    # parallel tempering records only the cold rung: chain interleaving is per rung
+    v = meta.get("variant") or {}
+    if v.get("kernel") == "pt_de" and v.get("pt_rungs"):
+        meta["n_chains"] = int(d["n_chains"]) // int(v["pt_rungs"])
     for k in ("n_eval", "acc_pop", "n_restart", "n_charts", "n_degraded", "chart_ranks"):
         if k in d.files:
             meta[k] = np.asarray(d[k]).tolist()

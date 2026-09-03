@@ -371,3 +371,16 @@ setup notes. Times are US Pacific.
   ladder is far too coarse for a likelihood whose spread across modes is tens
   of nats. A 16-rung ladder (ratio 0.79, 16 walkers per rung, same budget) is
   queued as iteration 21 on the two mode-sensitive sites.
+
+## Iteration 16 result (2026-09-03 03:40 PDT): the surgery's branch test was measuring infeasibility, not topology
+
+- Surgery with the spectral-gap rank rule off, a 4x-robust rank change and a
+  1000-nat branch threshold: dev G 1.20 on one seed (BE-Vie 0.75, DE-Gri 0.85,
+  DK-Sor 1.79, NL-Loo 1.39). Still 39 branch and 45 rank-change operations per
+  fit. Reading the code against the trace: the connectivity test declared
+  "not connected" whenever any midpoint of the straight segment was
+  infeasible under the hard EDC gate, and at 89-D almost every segment between
+  two feasible points leaves the thin feasible set. The engine was labelling
+  gate crossings as new strata. This is now a switch (default unchanged for
+  reproducibility); iteration 20 tests the variant where gate crossings are
+  "unknown" and the repair falls to refine/extend.
