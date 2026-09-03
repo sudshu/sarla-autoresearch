@@ -519,3 +519,26 @@ setup notes. Times are US Pacific.
   (iteration 33). This supports the sibling session's reading that the
   barrier between the allocation modes is the EDC penalty surface, not the
   data term.
+
+## Findings received from the sibling OSSE session (2026-09-03 13:00 PDT), real NL-Loo data
+
+- Barrier between the two wood-allocation budgets: along actual ADEMCMC
+  transitions the log-posterior dips only 10 to 38 nats below the lower
+  endpoint, and the dip is made of soft EDC penalties (state_trajectories
+  first, then the cfcr / nsc / fffr ratio constraints), with the data term flat
+  or rising. An ADEMCMC walker crosses f_wood = 0.5 dozens of times per few
+  thousand iterations: for it the two "modes" are not separate basins but one
+  low, EDC-textured ridge. (A 700-nat wall seen along a straight line in z was
+  an interpolation artefact.) This matches iteration 27: flattening the EDC
+  penalties is what lets the cold chain cross; the chart walk and the DE moves
+  at our budget cross it rarely, so the weights depend on initialisation.
+- New maximum of the real-data posterior: log-posterior -161.9 (hard gate,
+  verified under jitter), found by L-BFGS from a high-allocation Laplace
+  chart, and it lies in the LOW-allocation budget (f_wood 0.19, wood residence
+  43 yr). ADEMCMC's best draw is -192.5 (f_wood 0.77, 10 yr); 82% of the
+  posterior mass is in the high-throughput budget while the density maximum
+  is in the plausible one. A MAP product and a posterior-median product would
+  report opposite wood residence times at this site. Damped Newton with the
+  exact Hessian was not the tool (stalled at -186; some Hessians still NaN).
+- Queued: full-posterior tempering on the real NL-Loo CBF (iteration 35), to
+  compare its high-mode mass with ADEMCMC's 0.815.
