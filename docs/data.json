@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 15:17 PDT",
+ "updated": "2026-09-03 16:10 PDT",
  "runs": [
   {
    "run": 1,
@@ -1020,6 +1020,31 @@
    "commit": "453ea9f",
    "timestamp": 1788473804,
    "protocol_version": 4
+  },
+  {
+   "run": 42,
+   "iteration": 32,
+   "variant": "s16_surgery_indep",
+   "hypothesis": "S16",
+   "category": "atlas_geometry",
+   "metric": 1.851100588241642,
+   "metrics": {
+    "G_dev": 1.851100588241642,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 4.42238066889965,
+     "26": 0.7439308510132987,
+     "58": 0.8086024706852685,
+     "71": 1.4294883623683512
+    },
+    "wall_median": 3810.0280768871307
+   },
+   "status": "discard",
+   "description": "Surgery atlas + exact independence-MH jumps from the frozen atlas mixture (20% of steps): the jumps are accepted at a rate of 5e-5 to 1e-4, i.e. the atlas mixture is a useless global proposal at 89-D (its ESS 0.0002 said so); dev G 1.85 with NL-Loo in the wrong basin (4.42). Discarded.",
+   "commit": "4d03d9e",
+   "timestamp": 1788477043,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1701,6 +1726,21 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 3450.0317571163177
+   }
+  },
+  "32": {
+   "s16_surgery_indep": {
+    "G_dev_per_seed": [
+     1.851100588241642
+    ],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 1.851100588241642,
+    "n_dev": 4,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 3810.0280768871307
    }
   }
  }

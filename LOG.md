@@ -610,3 +610,14 @@ setup notes. Times are US Pacific.
   kernel's weights off their initialisation. Discarded. Mode-stratified
   starts (half the walkers on high-allocation charts) are queued for both the
   DE kernel and full-posterior tempering (iteration 39).
+
+## Iteration 32 result (2026-09-03 16:40 PDT): global jumps from the atlas mixture are never accepted
+
+- Exact independence-Metropolis proposals drawn from the frozen surgery atlas
+  (20% of steps) were accepted 5 to 10 times in 100,000: an 89-D mixture
+  whose importance ESS is 0.0002 is not a usable global proposal, and the
+  atlas as built covers too little of the posterior to teleport walkers
+  between budgets. Dev G 1.85, with NL-Loo landing in the wrong basin
+  (4.42). Discarded. Together with iterations 26 and 29 this closes the
+  question for the current engine: the audit-and-repair loop improves where
+  the chart walk starts, not what the atlas covers.
