@@ -257,3 +257,7 @@ setup notes. Times are US Pacific.
   and added to the idea bank: likelihood-only tempering with the EDC gate at
   every rung and mode-stratified initialisation (T1), and a two-cell bridge
   estimator of the relative mode mass to reweight pooled DE draws (B1).
+- Correction (19:55 PDT): the 13-h partial output of the crashed reference
+  arm no longer exists (deleted during the redirect by the sibling session);
+  nothing will be scored on it. The 32-chain NL-Loo OSSE reference arm was
+  relaunched at about 19:50 PDT on the data volume, a fresh 33 h.
