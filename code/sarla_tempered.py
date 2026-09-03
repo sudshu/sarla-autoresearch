@@ -35,8 +35,11 @@ import jax.numpy as jnp
 D = 89
 
 
-def make_tempered_batch(cbf_path):
-    """Return batch(Z) -> (P_full, Plik) with the logit Jacobian folded into P_full."""
+def make_tempered_batch(cbf_path, temper_edc=False):
+    """Return batch(Z) -> (P_full, L): P_full = mlf2 total + logit Jacobian; L is the
+    part that gets tempered: the data likelihood alone (default) or, with
+    temper_edc=True, the whole finite posterior except the Jacobian (EDC
+    penalties included; the hard gate stays -inf at every temperature)."""
     from dalec_jax.likelihood import data_prep, mlf2
     from dalec_jax import edcs
     from dalec_jax.model.dalec_1100 import run_dalec_1100, prederive_vegk
@@ -52,7 +55,8 @@ def make_tempered_batch(cbf_path):
         p = pmin * jnp.exp(jax.nn.sigmoid(z) * lr)
         pools, fluxes = run_dalec_1100(p, cbf.met, cbf.LAT, cbf.deltat, VegK)
         rec, ML, P = mlf2(cbf, ecfg, p, pools, fluxes)
-        return P + logit_jacobian(z), jnp.sum(ML)
+        L = P if temper_edc else jnp.sum(ML)
+        return P + logit_jacobian(z), L
     f = jax.jit(jax.vmap(one))
 
     def batch(Z, chunk=4096):

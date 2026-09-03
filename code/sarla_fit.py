@@ -98,6 +98,7 @@ class Variant:
     pt_rungs: int = 4               # parallel tempering (kernel=pt_de): rungs, geometric betas 1 -> pt_beta_min
     pt_beta_min: float = 0.05
     pt_swap_every: int = 10
+    pt_temper_edc: bool = False     # True: temper EDC penalties too (hard gate kept), not only the data term
     mix: float = 0.0
     n_chains: int = 64
     n_steps: int = 32000
@@ -285,7 +286,7 @@ def main():
 
     t0 = time.time()
     if cfg.kernel == "pt_de":
-        tb = make_tempered_batch(a.cbf)
+        tb = make_tempered_batch(a.cbf, temper_edc=cfg.pt_temper_edc)
         n_pt = [0]
         def tb_counted(Z):
             n_pt[0] += len(np.atleast_2d(Z)); return tb(Z)
