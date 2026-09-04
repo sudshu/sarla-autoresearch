@@ -668,3 +668,21 @@ setup notes. Times are US Pacific.
   from 8 partners and almost never accepted, so within the tempering runs the
   movement is chart walk plus swaps. An 8-rung ladder with 32 walkers per rung
   is queued (iteration 43) to see whether DE recovers inside rungs.
+
+## Toy referee (2026-09-03 20:10 PDT): the tempering kernel is biased; its tempering results are withdrawn pending a fix
+
+- On the 24-D toy (six basins with known weights 0.35 / 0.25 / 0.15 / 0.12 /
+  0.08 / 0.05), the same code paths used on CARDAMOM give: chart walk 64 x 32k
+  basin-mass TV 0.13, chart + DE 128 x 16k TV 0.14, and the tempering kernel
+  (16 rungs, 256 x 8k, whole density flattened, swaps 0.5 to 0.7) TV 0.44
+  with masses 0.79 / 0.21 / 0.00 / 0.00 / 0.00 / 0.00; 8 rungs TV 0.53. The
+  tempering kernel concentrates mass in the largest basin and empties the
+  rest, which a posterior-invariant kernel cannot do at any budget. One
+  defect is found already (the DE difference vector inside rungs was gathered
+  along a single coordinate); ablations without swaps, with one rung, and
+  with chart moves only are running to localise the bias.
+- Consequence: every tempering result above (iterations 17, 19, 21, 24, 27,
+  33, 34, 35) is the output of a kernel that fails a known-answer test and
+  must not be read as a posterior estimate; the real-data 0.22 in particular
+  is void. The pending tempering jobs (37, 39-T2, 40 to 43) are withdrawn
+  until the kernel passes the toy.
