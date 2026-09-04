@@ -368,3 +368,48 @@ construction, which inflates W1. The high-hill tie is the solid part.
 **Recorded next step, not taken:** `scripts/osse_fit.py:69` still builds the atlas
 on gate="none". The fix is one word once target.py is synced, but the six refcheck
 fits are running against the current code, so nothing is being redeployed.
+
+## Addendum 2026-09-04e: I mutated an input file mid-campaign (methodological error)
+
+On 2026-09-03 at 10:46 I added the real-data MAP point to
+`runs/osse_sites_v2/183real/seeds.npz` in place, with no versioning, after 14
+iterations of real-data fits had already been run against the previous contents.
+Every real-data fit after that date used a different atlas from the ones before
+it. This was recorded in LOG.md at the time as a one-line aside and its
+consequences were not thought through.
+
+**The original is recoverable.** `runs/osse_sites_v2/183realb/seeds.npz` holds
+exactly the pre-edit 24 rows: all 24 are bytewise present in the current 25-row
+file, and the added row is index 24. No data was lost.
+
+**The seed-count explanation does not hold.** Running the forward model on all 25
+points: the original 24 contained 1 high-allocation point (f_wood 0.65), 4 low and
+19 degenerate (f_wood <= 0, i.e. NPP below zero); the current 25 contain 1 high, 5
+low, 19 degenerate. The number of healthy high-allocation seeds is ONE in both. So
+the observation that today's fits land at 9 to 17 percent high-allocation mass
+cannot be attributed to the seed set being high-allocation-poor, because the set
+that produced 0.594 and 0.912 was equally poor.
+
+**The specific mechanism to test instead.** The row I added is the global MAP
+(f_wood 0.194, log-posterior -161.9), the highest-density point known anywhere in
+the space, and it sits in the LOW-allocation budget. Injecting the global density
+maximum into the L-BFGS seed set plausibly builds a dominant chart at the low peak
+and restructures the atlas around it. That predicts the observed collapse.
+
+**Ruled out as confounds.** (a) Code drift: the three surgery changes committed
+between the two run dates (branch_on_infeasible, connectivity_rule, rank_min_diff)
+all default to the previous behaviour, and the s4/s7 variant files do not pin them.
+(b) Start assignment: chain starts come from init_seed, fixed at 99 in both
+variants, while kernel_seed drives only the sampler. Starts therefore differ
+between the two run dates only through the atlas, hence only through the added
+point.
+
+**The clean A/B, well posed and not run:** the same kernel seeds against 183realb
+(24 points, no MAP) and 183real (25 points). If mode mass follows the seed file,
+the MAP injection caused the collapse. If it does not, then kernel-seed variance
+in mode mass is enormous, which is itself the finding. Either way the s7-vs-s4
+comparison across the two dates is confounded and cannot be read as a seed effect.
+
+**Rule for any restart:** input data files are immutable once any fit has run
+against them. A change means a new site directory and a new name, never an in-place
+edit.
