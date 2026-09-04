@@ -789,3 +789,19 @@ not been run: the campaign is stopped and restarting GPU work is the user's call
 It is also not a clean winner even on this evidence, since it overshoots the mode
 mass (0.91 against 0.81) with too narrow a spread on residence time, so it finds
 the right hill but loses the tail.
+
+## 2026-09-04c: one targeted check, outside the stopped loop
+
+The loop remains stopped: its dispatcher is off, the STOP file is in place, and
+the eight jobs still queued from iterations 38 and 39 have been parked rather than
+run (six on the H100, two on the Blackwell host; they are moved aside, not
+deleted). Nothing in the campaign has resumed.
+
+Separately, at the user's instruction, a companion session is running six fits to
+settle the one question this campaign left open: whether the discarded variant
+s7_surgery_volume_de128 really does reproduce the reference posterior better than
+s4_surgery_de128, or whether the single-seed advantage was noise. Three kernel
+seeds each on real NL-Loobos data, which with the existing fits gives four seeds
+per variant. They will be ranked on distance to the 64-chain reference posterior,
+against its split-half floor of 0.033, rather than on the gap score whose defects
+are recorded in the two addenda above. Results are not in yet.
