@@ -636,3 +636,20 @@ setup notes. Times are US Pacific.
   40). Note for the record: stability is not correctness; at NL-Loo the
   tempered mass in the high-allocation budget (0.17 to 0.39) is well below the
   truth's budget, so even a passing gate would leave the weights biased.
+
+## Iteration 35 (2026-09-03 18:30 PDT): full-posterior tempering on the REAL NL-Loo data puts 22% of the mass in the high-allocation budget; ADEMCMC says 82%
+
+- One fit of the 16-rung full-posterior tempering on the real NL-Loo CBF:
+  high-allocation fraction 0.22 (ADEMCMC reference 0.815, 90% CI 0.79-0.83),
+  per-chain spread 0.32. Its best draw reaches log-posterior -162.0, the
+  new maximum found yesterday by L-BFGS (the point was added to the seed
+  file), which lies in the low-allocation budget. So on real data the
+  tempered chain concentrates around the density peak and under-weights the
+  broad high-throughput budget that carries most of the mass: the opposite
+  error to the chart walk's, and the same peak-versus-mass tension the
+  sibling session measured. None of the fast-path variants so far reproduces
+  0.815: baseline 0.54, DE 0.59, surgery+DE 0.61, volume-surgery+DE 0.91,
+  tempering 0.22.
+- Iteration 34 (DE step scale within tempering) is landing with the best
+  NL-Loo scores of the campaign: G 0.47 (gamma 0.12) and 0.54 (gamma 0.25),
+  high-allocation mass 0.31 and 0.51 (truth 0.64).
