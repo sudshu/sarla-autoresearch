@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 17:18 PDT",
+ "updated": "2026-09-03 17:47 PDT",
  "runs": [
   {
    "run": 1,
@@ -1070,6 +1070,75 @@
    "commit": "453ea9f",
    "timestamp": 1788479148,
    "protocol_version": 4
+  },
+  {
+   "run": 44,
+   "iteration": 36,
+   "variant": "t3_pt16_sel",
+   "hypothesis": "T3",
+   "category": "tempering",
+   "metric": 0.8739500505711144,
+   "metrics": {
+    "G_dev": 0.8739500505711144,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.5978503404205452,
+     "71": 1.1500497607216835
+    },
+    "wall_median": 2070.0296585559845
+   },
+   "status": "discard",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: void] Selective EDC tempering (state_trajectories, cfcr_ratio, nsc_ratio + data term), NL-Loo and DK-Sor, one seed: recorded for completeness only.",
+   "commit": "453ea9f",
+   "timestamp": 1788481237,
+   "protocol_version": 4
+  },
+  {
+   "run": 45,
+   "iteration": 34,
+   "variant": "t2_pt16_full_g12",
+   "hypothesis": "T2",
+   "category": "tempering",
+   "metric": 0.8685091649579009,
+   "metrics": {
+    "G_dev": 0.8685091649579009,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.46773457268437796,
+     "71": 1.2692837572314237
+    },
+    "wall_median": 2250.017961502075
+   },
+   "status": "discard",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: void] DE-scale sweep within full-posterior tempering (t2_pt16_full_g12), NL-Loo and DK-Sor, one seed; recorded for completeness only.",
+   "commit": "453ea9f",
+   "timestamp": 1788481326,
+   "protocol_version": 4
+  },
+  {
+   "run": 46,
+   "iteration": 34,
+   "variant": "t2_pt16_full_g25",
+   "hypothesis": "T2",
+   "category": "tempering",
+   "metric": 0.8593993926225707,
+   "metrics": {
+    "G_dev": 0.8593993926225707,
+    "G_holdout": null,
+    "G_devB": null,
+    "per_site": {
+     "183": 0.5397193877972645,
+     "71": 1.1790793974478768
+    },
+    "wall_median": 2040.0267643928528
+   },
+   "status": "discard",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: void] DE-scale sweep within full-posterior tempering (t2_pt16_full_g25), NL-Loo and DK-Sor, one seed; recorded for completeness only.",
+   "commit": "453ea9f",
+   "timestamp": 1788481326,
+   "protocol_version": 4
   }
  ],
  "best_G_dev": 1.7174271559161076,
@@ -1781,6 +1850,43 @@
     "n_holdout": 0,
     "G_devB": null,
     "wall_median": 2100.0273954868317
+   }
+  },
+  "34": {
+   "t2_pt16_full_g12": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.8685091649579009,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2250.017961502075
+   },
+   "t2_pt16_full_g25": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.8593993926225707,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2040.0267643928528
+   }
+  },
+  "36": {
+   "t3_pt16_sel": {
+    "G_dev_per_seed": [],
+    "sd_dev": null,
+    "delta": null,
+    "G_dev": 0.8739500505711144,
+    "n_dev": 2,
+    "G_holdout": null,
+    "n_holdout": 0,
+    "G_devB": null,
+    "wall_median": 2070.0296585559845
    }
   }
  }

@@ -99,6 +99,9 @@ class Variant:
     pt_beta_min: float = 0.05
     pt_swap_every: int = 10
     pt_temper_edc: bool = False     # True: temper EDC penalties too (hard gate kept), not only the data term
+    pt_hot_indep: float = 0.0       # probability per step of an independence move (atlas mixture) on the hottest rungs
+    pt_hot_rungs: int = 1
+    pt_hot_inflate: float = 0.0     # mixture inflation; 0 -> 1/sqrt(beta_min)
     pt_temper_edc_terms: str = ""   # or: comma list of EDC names to temper with the data term (e.g. state_trajectories,cfcr_ratio,nsc_ratio)
     mix: float = 0.0
     n_chains: int = 64

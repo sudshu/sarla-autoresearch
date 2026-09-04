@@ -692,3 +692,39 @@ setup notes. Times are US Pacific.
   and the in-place exchange read correctly; a run with all rungs at beta = 1
   (swaps without a temperature gradient) is running to separate mechanics
   from the tempered targets. Iterations 34 and 36 (tempering) recorded as void.
+
+## 2026-09-03 late evening: tempering resolved, run stopped on request
+
+**What the toy referee actually found.** The tempering kernel is exact: with all
+rungs at beta = 1 (swaps always accepted) the toy masses are recovered (TV 0.09),
+and the swap acceptance and exchange code check out. What fails is ergodicity on
+budget. On the toy no rung's own moves change basin (hot-rung basin changes 0.003
+per 13 steps without swaps); the swap chain then merely permutes a fixed pool of
+basin labels set by the initialisation, and the cold rung collects the densest
+states: the two heavy, narrow basins (0.84/0.16 instead of 0.35/0.25/0.15/0.12/
+0.08/0.05). Four times more steps, swaps every step (85 round trips), hotter
+ladders (beta_min 0.003 and 0.001, 32 rungs), DE-heavy mixes and hot-rung
+independence moves from the atlas mixture (accepted 0.1%: the atlas is a poor
+proposal for the warped basins at any temperature) all leave the cold rung at
+TV 0.42 to 0.57. This is exactly the peak-versus-mass failure: tempering ranks
+the initial pool by density, so at NL-Loo it under-weights the broad
+high-allocation budget (mass 0.17 to 0.39 against truth 0.64) while looking good
+on the per-parameter scores. T1 to T3 are closed as negative. The 17 deferred
+tempering jobs were cancelled, not re-queued.
+
+**Referee caveat (important for reading the page).** The v1 toy referee starts
+chains spread over the atlas charts, so a kernel that never changes basin looks
+correct by construction (chart-RWM/DE at TV 0.13 is initialisation, not mixing).
+A referee v2 that starts all chains in one basin (scripts/pt_toy_init.py) was
+written but not run: the user stopped the run before it finished. Any future
+mode-weight claim must pass that test first.
+
+**Stopped.** At the user's request the loop was stopped: dispatcher loop killed,
+STOP file written, GPU workers stopped, in-flight fits of iterations 37 to 39
+abandoned (iteration 37 was tempering, void anyway; 38 h15_de128_restart and
+39 h16_de128_strat can be re-queued from variants/). Everything needed to resume
+is on disk (tools/RESUME.md). Standing: nothing promoted under protocol v4; the
+kernels that pass the score test still fail the mode-weight gate; the atlas
+(S-family) remains the primary target because mode weights need a proposal that
+jumps between budgets with a correct Hastings ratio, which no local kernel or
+tempering ladder supplies.

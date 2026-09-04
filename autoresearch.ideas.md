@@ -42,3 +42,13 @@ Priority 1 = try first. Variant configs live in `variants/`.
 | S10 | 2 | running | codex (iter 16) | atlas_geometry | Surgery atlas + adaptive pooled-covariance kernel (no DE cross-mode jumps) | atlas_engine=surgery kernel=chart_adaptcov |
 | S11 | 2 | staged (iteration 23) | codex (iter 16/17) | atlas_geometry | Feasible-path connectivity implemented: infeasible midpoints replaced by nearby feasible perturbations in the chart metric | sg_connectivity_rule=feasible_path |
 | S17 | 2 | open | codex (iter 26) | atlas_geometry | Replace operation-count heuristics by an audit-loss objective: choose repairs that most reduce held-out importance discrepancy / uncovered mass (an atlas training loss), with the ESS stop as the criterion | new code |
+
+
+## Closed 2026-09-03: tempering family (T1-T3)
+Exact kernel (beta=1 swap test passes) but not ergodic on budget: no rung changes
+basin on its own, so swaps sort the initial pool by density and the cold rung
+over-weights the peaked budget. Not a mode-weight estimator for this problem.
+Tried and failed on the toy: 4x steps, swaps every step, beta_min 0.003/0.001,
+32 rungs, DE-heavy, hot-rung independence from the atlas (0.1% acceptance).
+Referee v2 rule (M2): any mode-weight claim must recover the toy weights from an
+all-chains-in-one-basin start (scripts/pt_toy_init.py) before GPU time.

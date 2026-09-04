@@ -86,6 +86,7 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
     C = np.stack([c.center for c in charts])
     E = np.stack([c.eigvecs for c in charts])
     Vs = np.stack([np.sqrt(c.var) for c in charts])
+    D = C.shape[1]                                  # dimension from the atlas, not a constant
     burn_end = int(round(n_steps * cfg.burn_frac))
     thin = max(5, n_steps // 600)
     if cfg.max_draws:
@@ -102,13 +103,13 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
         X0 = np.asarray(init_X, float)[:n_chains] + 0.01 * rng.standard_normal((n_chains, D))
     X = X0.reshape(K, n, D).copy()
     P, L = tbatch(X.reshape(-1, D) * scale)
-    P, L = P.reshape(K, n), L.reshape(K, n)
+    P, L = np.array(P, float).reshape(K, n), np.array(L, float).reshape(K, n)   # writable copies
     bad = ~np.isfinite(P)
     while bad.any():
         idx = rng.integers(0, len(charts), int(bad.sum()))
         X[bad] = C[idx] + 0.01 * rng.standard_normal((int(bad.sum()), D))
         p2, l2 = tbatch(X[bad] * scale)
-        P[bad], L[bad] = p2, l2
+        P[bad], L[bad] = np.array(p2, float), np.array(l2, float)
         bad = ~np.isfinite(P)
 
     def nearest(W):
@@ -120,6 +121,7 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
     half = n // 2
     halves = (np.arange(half), np.arange(half, n))
     keep, t0 = [], time.time()
+    keep_hot = []                                    # thinned hottest-rung trace (chain identity kept) for diagnostics
     ident = np.arange(K * n).reshape(K, n)          # replica identity travels with swaps
     seen_hot = np.zeros(K * n, bool); seen_cold_after_hot = np.zeros(K * n, bool)
     round_trips = np.zeros(K * n, int); hot_visits = 0
@@ -129,16 +131,35 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
         y = np.einsum("nd,ndk->nk", B - A, E[kk]) / s
         return -0.5 * np.sum(y * y, 1) - np.sum(np.log(s), 1)
 
+    # hot-rung independence moves from the (inflated) atlas mixture: re-randomise the basin
+    # of the hottest rungs every step so replicas do not merely get sorted by density
+    hot_p = float(getattr(cfg, "pt_hot_indep", 0.0) or 0.0)
+    hot_rungs = int(getattr(cfg, "pt_hot_rungs", 1) or 1)
+    infl = float(getattr(cfg, "pt_hot_inflate", 0.0) or 0.0) or 1.0 / np.sqrt(betas[-1])
+    nC = len(charts)
+    def mix_logq(W):
+        comp = np.stack([-0.5 * c.maha2(W) / infl**2 - np.sum(np.log(np.sqrt(c.var) * infl)) for c in charts], 1)
+        m = comp.max(1, keepdims=True)
+        return (m[:, 0] + np.log(np.exp(comp - m).sum(1))) - np.log(nC)
+    def mix_sample(m):
+        j = rng.integers(0, nC, m)
+        return C[j] + np.einsum("nj,ndj->nd", rng.standard_normal((m, D)) * Vs[j] * infl, E[j])
+    iacc = np.zeros(2)
+    hot_prev = None; hot_changes = np.zeros(2)          # nearest-chart changes at the hottest rung (basin-hopping proxy)
+
     for t in range(n_steps):
         use_de = cfg.mix > 0 and rng.random() < cfg.mix
         if not use_de:
             # chart move on all rungs at once (one batched evaluation)
             kx = nearest(X.reshape(-1, D)).reshape(K, n)
+            if hot_prev is not None:
+                hot_changes += ((kx[-1] != hot_prev).sum(), n)
+            hot_prev = kx[-1].copy()
             xi = rng.standard_normal((K, n, D)) * (gamma[:, None, None] * Vs[kx])
             Y = X + np.einsum("knk2,knd2->knd", xi[..., None, :][..., 0, :], E[kx]) if False else \
                 X + np.einsum("knj,kndj->knd", xi, E[kx])
             Py, Ly = tbatch(Y.reshape(-1, D) * scale)
-            Py, Ly = Py.reshape(K, n), Ly.reshape(K, n)
+            Py, Ly = np.array(Py, float).reshape(K, n), np.array(Ly, float).reshape(K, n)
             ky = nearest(Y.reshape(-1, D)).reshape(K, n)
             for k in range(K):
                 lq_fwd = loc_lq(kx[k], X[k], Y[k], gamma[k]); lq_bwd = loc_lq(ky[k], Y[k], X[k], gamma[k])
@@ -157,16 +178,28 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
                 while same.any():
                     b[same] = S2[rng.integers(0, len(S2), int(same.sum()))]; same = a == b
                 g = np.where(rng.random((K, n1)) < 0.9, de_gamma, 1.0)
-                Xa = np.take_along_axis(X, a[..., None], 1); Xb = np.take_along_axis(X, b[..., None], 1)
+                rows = np.arange(K)[:, None]
+                Xa, Xb = X[rows, a], X[rows, b]            # (K, n1, D) partner states
                 Y = X[:, S1] + g[..., None] * (Xa - Xb) + 1e-6 * rng.standard_normal((K, n1, D))
                 Py, Ly = tbatch(Y.reshape(-1, D) * scale)
-                Py, Ly = Py.reshape(K, n1), Ly.reshape(K, n1)
+                Py, Ly = np.array(Py, float).reshape(K, n1), np.array(Ly, float).reshape(K, n1)
                 for k in range(K):
                     loga = np.where(np.isfinite(Py[k]), V(Py[k], Ly[k], k) - V(P[k][S1], L[k][S1], k), -np.inf)
                     take = np.log(rng.random(n1)) < loga
                     pacc[k] += (take.sum(), n1)
                     idx = S1[take]
                     X[k][idx], P[k][idx], L[k][idx] = Y[k][take], Py[k][take], Ly[k][take]
+        if hot_p > 0 and rng.random() < hot_p:
+            ks = list(range(K - hot_rungs, K))
+            Yh = mix_sample(n * len(ks)).reshape(len(ks), n, D)
+            Ph, Lh = tbatch(Yh.reshape(-1, D) * scale)
+            Ph, Lh = np.array(Ph, float).reshape(len(ks), n), np.array(Lh, float).reshape(len(ks), n)
+            for i, k in enumerate(ks):
+                lq_new = mix_logq(Yh[i]); lq_old = mix_logq(X[k])
+                loga = np.where(np.isfinite(Ph[i]), V(Ph[i], Lh[i], k) - V(P[k], L[k], k) + (lq_old - lq_new), -np.inf)
+                take = np.log(rng.random(n)) < loga
+                iacc += (take.sum(), n)
+                X[k][take], P[k][take], L[k][take] = Yh[i][take], Ph[i][take], Lh[i][take]
         if cfg.pt_swap_every and t % cfg.pt_swap_every == 0 and K > 1:
             for k in range(K - 1):
                 loga = (betas[k] - betas[k + 1]) * (L[k + 1] - L[k])
@@ -181,6 +214,8 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
             round_trips[cold_ids[back]] += 1; seen_hot[cold_ids[back]] = False
         if t >= burn_end and t % thin == 0:
             keep.append((X[0] * scale).copy())
+            if getattr(cfg, "pt_keep_hot", False):
+                keep_hot.append((X[-1] * scale).copy())
         if report and t % report == 0:
             print(f"    pt step {t:6d}/{n_steps} cold acc {acc[0,0]/max(acc[0,1],1):.3f} "
                   f"de-acc {pacc[0,0]/max(pacc[0,1],1):.3f} swaps "
@@ -188,7 +223,9 @@ def run_pt(atlas, tbatch, cfg, n_steps, n_chains, seed=5, init_ks=None, report=N
                   + f" best {P[0].max():.2f} hot-best {P[-1].max():.2f} {time.time()-t0:.0f}s", flush=True)
     diag = dict(acc_chart=float(acc[0, 0] / max(acc[0, 1], 1)), acc_pop=float(pacc[0, 0] / max(pacc[0, 1], 1)),
                 swap_acc=[float(swaps[k, 0] / max(swaps[k, 1], 1)) for k in range(K - 1)],
-                round_trips_total=int(round_trips.sum()), replicas_with_round_trip=int((round_trips > 0).sum()),
+                round_trips_total=int(round_trips.sum()), acc_hot_indep=float(iacc[0] / max(iacc[1], 1)),
+                hot_chart_change_rate=float(hot_changes[0] / max(hot_changes[1], 1)),
+                hot_draws=(np.stack(keep_hot) if keep_hot else None), replicas_with_round_trip=int((round_trips > 0).sum()),
                 n_replicas=int(K * n),
                 betas=betas.tolist(), n_pop_steps=int(pacc[0, 1] // max(n, 1)), n_restart=0,
                 gamma_final=float(gamma[0]), s_ad_final=0.0, thin=thin, final_lp=P[0].copy())
