@@ -809,3 +809,39 @@ seeds each on real NL-Loobos data, which with the existing fits gives four seeds
 per variant. They will be ranked on distance to the 64-chain reference posterior,
 against its split-half floor of 0.033, rather than on the gap score whose defects
 are recorded in the two addenda above. Results are not in yet.
+
+## 2026-09-04d: the bug was real, the fix works, and it moves the target
+
+Two results, and together they redraw the plan.
+
+**The curvature fix works, and it takes back yesterday's retraction.** A corrected
+target that keeps the soft ecological penalties and zeroes only the hard cliffs
+reproduces the true posterior to fourteen decimal places on real draws, and stays
+differentiable where the old one did not. Rebuilt on it, the local Gaussian
+approximation at each of the two carbon-allocation hills is well behaved, and it
+estimates the split between them as 0.83 against the slow method's 0.81, from two
+curvature calculations in about five minutes. Yesterday we recorded that this
+approach was unusable here. It was our own bug. That verdict is withdrawn.
+
+**But mode weighting is not the main error.** We took each fast fit, forced its
+balance between the two hills to match the slow method exactly, and re-measured
+the distance. It barely moved: five to ten percent of the gap. Conditional on
+being on the right hill, the fast path's parameter distributions are still ten to
+eighteen times further from the reference than the reference is from itself. So
+even a perfect rule for weighting the two hills, which we now have, would not make
+the fast answer match the slow one. The shape of the posterior within each hill is
+the real problem, and it was never what the campaign was optimising.
+
+**It also answers the question the six running fits were meant to settle.** Within
+the correct hill the discarded variant and the one that beat it are tied. The
+discarded variant looked better only because its hill balance happened to land
+nearer the truth, which is consistent with its distinguishing feature being unable
+to influence the production sampler at all. One caveat we should not gloss: the
+claim that it is worse on the smaller hill leans on a sample a fifth the size of
+the comparison, which inflates that number. The tie on the main hill is the solid
+part.
+
+For a restart, this is a better place to begin than where we were: the target is
+fixed, the geometry tool works, and the thing to attack is within-mode shape, not
+mode weighting. Nothing has been redeployed; the atlas builder still uses the old
+target and the running fits are using it.
