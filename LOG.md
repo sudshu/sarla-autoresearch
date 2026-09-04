@@ -686,3 +686,9 @@ setup notes. Times are US Pacific.
   must not be read as a posterior estimate; the real-data 0.22 in particular
   is void. The pending tempering jobs (37, 39-T2, 40 to 43) are withdrawn
   until the kernel passes the toy.
+- Ablations on the toy (20:40 PDT): one rung 0.10, 16 rungs without swaps
+  0.13, 16 rungs with swaps 0.44 (chart-only 0.48; mild ladder to beta 0.3
+  0.43). The bias enters through the swap step. The swap acceptance formula
+  and the in-place exchange read correctly; a run with all rungs at beta = 1
+  (swaps without a temperature gradient) is running to separate mechanics
+  from the tempered targets. Iterations 34 and 36 (tempering) recorded as void.
