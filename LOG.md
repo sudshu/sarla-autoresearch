@@ -662,3 +662,9 @@ setup notes. Times are US Pacific.
   ridge disagree on the weight. A control with the MAP point removed from the
   seed file is queued (iteration 42) to rule out seeding; until it lands the
   0.22 carries that caveat.
+- Correction and a finding (19:00 PDT): the real-data tempering fit's cold
+  rung accepted 22% of chart moves and only 0.5% of DE moves (swaps 26 to
+  46%). With 16 walkers per rung the differential-evolution vectors are drawn
+  from 8 partners and almost never accepted, so within the tempering runs the
+  movement is chart walk plus swaps. An 8-rung ladder with 32 walkers per rung
+  is queued (iteration 43) to see whether DE recovers inside rungs.
