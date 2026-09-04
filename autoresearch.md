@@ -311,3 +311,60 @@ standing carbon: C_wood 5967 vs 5478 (ratio 1.09), ABGB at step 179 6377 vs 6376
 and the products agree to one percent. This is an allocation-turnover confound.
 The mode error must NOT be described as a large disagreement about present carbon
 storage; it changes future stock change and turnover-limited persistence.
+
+## Addendum 2026-09-04d: the curvature fix works, and mode weighting is not the main error
+
+Both results from the companion session, both checked here.
+
+**1. gate="soft" is the correct curvature target, and it un-retracts Laplace.**
+The new branch keeps the likelihood, every FINITE EDC term and the Jacobian, and
+zeroes only the -inf cliffs. Verified here on 30 evenly spaced reference draws at
+NL-Loo: max |logpost(hard) - logpost(soft)| = 5.7e-14 nats over the 29 feasible
+ones, and soft is finite on all 30. Compare the old gate="none", measured in
+addendum 4c at a median 11 nats off, with gradient directions differing by a
+median relative 0.99, so it was not a mild distortion.
+
+With the corrected curvature the companion session reports the high hill carrying
+2 negative eigenvalues out of 89 and the low hill 0, against the 9 to 13 we
+previously reported, and a two-hill Laplace mass estimate of 0.827 against the
+reference 0.815, from two Hessians in about five minutes (peak height alone gives
+0.007). So "Laplace geometry is unusable for this posterior" was our own bug, and
+that retraction is now itself withdrawn: Laplace geometry works here. Caveats
+carried from the source: the feasibility correction rests on about 4 and 12
+feasible draws out of 400 per hill, and the convention for flat and negative
+directions moves the answer between 0.827 and 0.949. A 20k-draw re-estimate was
+running when this was written.
+
+**2. Mode weighting is NOT the main error (this changes the priority order).**
+Each real-data fit's own draws were reweighted to the reference mode proportions
+and per-parameter 1-Wasserstein distance re-measured, median over 89 parameters,
+in reference-sd units. Sample sizes are matched between the floor and the variant
+figures (4000 vs 4000 unconditional, 2000 vs 2000 within-high, 1000 vs 1000
+within-low).
+
+  variant                  mass_hi  W1 all  W1 rewt  W1|high  W1|low
+  reference (floor)          0.812   0.039    0.039    0.045   0.065
+  v3_baseline                0.539   0.873    0.791    0.795   0.741
+  h2_de128                   0.576   0.528    0.515    0.529   0.581
+  s4_surgery_de128           0.592   0.505    0.490    0.477   0.512
+  s7_surgery_volume_de128    0.916   0.429    0.464    0.465   0.596
+
+Reweighting removes only 5 to 10 percent of the discrepancy, and for s7 it makes
+matters slightly worse because s7 overshoots the mass. Conditional on being in the
+correct hill the fast path is still 10 to 18 times the reference's own noise floor
+(within-high: baseline 17.8x, h2 11.8x, s4 10.7x, s7 10.4x). A correct
+mode-weighting rule, including the one the fixed Laplace now supplies, would NOT
+rescue the fast path. The within-mode shape error is the thing to attack.
+
+**This also settles the s7 question ahead of the seed runs.** Within the high hill
+s7 and s4 are effectively tied (0.465 vs 0.477, both about 10x floor). s7's whole
+apparent advantage was that its mode proportion happened to land nearer the
+reference. Consistent with the chart-volume weight being unable to act through the
+production chart_de kernel at all. **Caveat added here:** the claim that s7 is
+worse in the low hill (0.596 vs 0.512) is partly a sample-size artifact, since
+s7's 0.916 mass leaves only ~506 low-hill draws against the floor's 1000-vs-1000
+construction, which inflates W1. The high-hill tie is the solid part.
+
+**Recorded next step, not taken:** `scripts/osse_fit.py:69` still builds the atlas
+on gate="none". The fix is one word once target.py is synced, but the six refcheck
+fits are running against the current code, so nothing is being redeployed.
