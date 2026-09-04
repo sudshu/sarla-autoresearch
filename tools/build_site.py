@@ -94,10 +94,16 @@ def chart_progress(runs):
         ax.scatter([], [], color="0.75", label="invalid truths (v1)")
         ax.legend(fontsize=7.5, ncol=4, loc="upper left", bbox_to_anchor=(0, -0.18))
     ax.set_xlabel("experiment number")
-    ax.set_ylabel("calibration gap G, development sites\n(0 = perfect; capped at 5)")
+    ax.set_ylabel("calibration gap G, development sites\n(capped at 5)")
     ax.set_ylim(-0.1, 5.4)
-    ax.set_title("Progress: lower is better", loc="left")
+    ax.set_title("Progress: lower is better, but not below the floor", loc="left")
     ax.axhline(0, color="0.7", lw=0.8)
+    # a perfectly calibrated sampler does not score 0: with one truth draw the density rank is
+    # uniform, so G has a floor. Band = 90% range of G under exact calibration (Monte Carlo).
+    ax.axhspan(0.23, 0.81, color="#2e7d32", alpha=0.10, zorder=0)
+    ax.axhline(0.52, color="#2e7d32", lw=1.0, ls="--", zorder=1)
+    ax.text(0.995, 0.55, "a perfect sampler scores here (0.52); the slow reference scores 0.62 at the main site",
+            transform=ax.get_yaxis_transform(), ha="right", va="bottom", fontsize=7, color="#2e7d32")
     fig.savefig(os.path.join(CH, "progress.png"))
     plt.close(fig)
 
@@ -317,7 +323,12 @@ data using a Markov-chain sampler that takes about 33 hours per site. SARLA is a
 uncertainty ranges the slow method would? We test that with synthetic experiments where the truth is known
 (an "OSSE"): a known parameter set generates fake observations at a real site, the sampler fits them, and we
 check whether the truth falls inside the sampler's uncertainty ranges as often as it should. The single score
-is the <b>calibration gap G</b>: 0 means perfectly calibrated; larger is worse. The loop proposes a change to the
+is the <b>calibration gap G</b>: larger is worse. It does <i>not</i> reach 0 for a perfect sampler. Because the
+truth is a single draw, a flawless sampler still scores about 0.52, and the slow reference method scores 0.62.
+Scores near 0.6 therefore mean "as good as the metric can see", not "nearly perfect". <b>Closing caveat:</b> after
+the loop was stopped we found that G is blind to the one thing that matters most here, which budget of carbon
+allocation the sampler believes in. Across 53 runs at the main site, G and the fraction of mass in the correct
+allocation mode are uncorrelated. Read the scores below with that in mind. The loop proposes a change to the
 sampler, tests it at four development sites, keeps it only if G improves, and periodically checks four
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 

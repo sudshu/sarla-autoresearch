@@ -12,7 +12,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-03 17:47 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-04 15:21 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -22,7 +22,12 @@ data using a Markov-chain sampler that takes about 33 hours per site. SARLA is a
 uncertainty ranges the slow method would? We test that with synthetic experiments where the truth is known
 (an "OSSE"): a known parameter set generates fake observations at a real site, the sampler fits them, and we
 check whether the truth falls inside the sampler's uncertainty ranges as often as it should. The single score
-is the <b>calibration gap G</b>: 0 means perfectly calibrated; larger is worse. The loop proposes a change to the
+is the <b>calibration gap G</b>: larger is worse. It does <i>not</i> reach 0 for a perfect sampler. Because the
+truth is a single draw, a flawless sampler still scores about 0.52, and the slow reference method scores 0.62.
+Scores near 0.6 therefore mean "as good as the metric can see", not "nearly perfect". <b>Closing caveat:</b> after
+the loop was stopped we found that G is blind to the one thing that matters most here, which budget of carbon
+allocation the sampler believes in. Across 53 runs at the main site, G and the fraction of mass in the correct
+allocation mode are uncorrelated. Read the scores below with that in mind. The loop proposes a change to the
 sampler, tests it at four development sites, keeps it only if G improves, and periodically checks four
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
@@ -32,7 +37,7 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 <div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
 
-<div class="now"><b>Latest:</b> 2026-09-03 late evening: tempering resolved, run stopped on request<br>
+<div class="now"><b>Latest:</b> 2026-09-04: closing out — the score we were optimising was mostly blind<br>
 <b>Right now:</b> iteration 38: 3 fits running, 3 waiting, 0 done<br>iteration 39: 2 fits running, 0 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 17:44 PDT</div>
 
 <h2>How to read this page</h2>
@@ -927,6 +932,34 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>(S-family) remains the primary target because mode weights need a proposal that</p>
 <p>jumps between budgets with a correct Hastings ratio, which no local kernel or</p>
 <p>tempering ladder supplies.</p>
+<h3>2026-09-04: closing out — the score we were optimising was mostly blind</h3>
+<p>Two measurements made after the stop, using the finished ADEMCMC reference runs,</p>
+<p>change how the 39 iterations should be read. Both were checked independently here</p>
+<p>before being written down.</p>
+<p><b>The score never went to zero, and it was not supposed to.</b> Because the truth</p>
+<p>is a single draw, even a flawless sampler scores about 0.5 on our gap metric, not</p>
+<p>0. The slow reference method scores 0.62 at the main site. The best fast run we</p>
+<p>ever recorded there scored 0.55. So for most of the campaign we were comparing</p>
+<p>numbers inside the range a perfect sampler would produce by chance, and the</p>
+<p>across-seed spread (0.21) was comparable to the differences we were accepting or</p>
+<p>rejecting on.</p>
+<p><b>The score does not notice the mode error.</b> Across 53 runs at the main site the</p>
+<p>gap metric is uncorrelated with the fraction of posterior mass in the correct</p>
+<p>carbon-allocation budget (rank correlation -0.00). On the pilot OSSE, the fast</p>
+<p>version with the best gap score put 3% of its mass in the correct budget while</p>
+<p>the slow reference put 88% there. We were optimising a number that could improve</p>
+<p>while the physically decisive quantity got worse. This is the same peak-versus-mass</p>
+<p>failure seen on real data, now confirmed against known truth: the converged</p>
+<p>reference puts 0.896 of its mass in the true high-allocation mode (90% CI 0.874</p>
+<p>to 0.917) and recovers wood residence time near the true 10.1 years, while the</p>
+<p>best single point (the MAP) sits in the wrong budget entirely.</p>
+<p><b>What this means for the result.</b> The honest summary of the campaign is not</p>
+<p>&quot;39 experiments, nothing beat the baseline&quot;. It is: the fast path&#x27;s real defect is</p>
+<p>mode weighting, the metric we used to judge it was insensitive to exactly that,</p>
+<p>and the compute went into distinguishing variants inside the noise. The protocol</p>
+<p>addendum records what a restart would need: score against the reference value</p>
+<p>rather than zero, and add a mode-mass gate. The page has been corrected; it no</p>
+<p>longer tells the reader that zero is the target.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -989,7 +1022,7 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>CARDAMOM&#x27;s ADEMCMC takes ~33 h at one site. The loop proposes sampler-design</p>
 <p>hypotheses, tests them on synthetic-truth experiments at several FLUXNET</p>
 <p>sites, keeps what helps, and publishes every step.</p>
-<p><b>Metric.</b> Calibration gap G (lower is better; 0 = perfectly calibrated</p>
+<p><b>Metric.</b> Calibration gap G (lower is better; NOT 0 for a perfect sampler: measured floor 0.52, 90% range 0.23-0.81; ADEMCMC reference 0.62. See the 2026-09-04 addendum: G is uncorrelated with mode mass</p>
 <p>posterior). Computed per site by <code>scripts/osse_score_site.py</code> from an OSSE</p>
 <p>(observing-system simulation experiment): a known truth generates</p>
 <p>pseudo-observations, the sampler fits them, and the posterior is scored</p>
@@ -1142,4 +1175,37 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>high-allocation fraction compared with the converged 64-chain ADEMCMC</p>
 <p>reference (0.815, 90% CI 0.794-0.834); this is reported at every milestone</p>
 <p>and is not a truth-selection question.</p>
+<h3>Addendum 2026-09-04 (post-stop): the metric had a floor and a blind spot</h3>
+<p>Measured after the loop was stopped, using the converged ADEMCMC reference on the</p>
+<p>same v2 site-183 dataset (8 chains, 400k rows) and on the v1 pilot OSSE.</p>
+<p>1. <b>G has a floor near 0.5, not 0.</b> Monte Carlo of the G formula under exact</p>
+<p>   calibration (89 parameters, one truth draw, binomial coverage, rank ~ U(0,1),</p>
+<p>   rms_z ~ sqrt(chi2_D/D)) gives G mean 0.52 with 90% range 0.23 to 0.81</p>
+<p>   (an independent replication with fully independent projection steps gives 0.45,</p>
+<p>   90% range 0.17 to 0.72; the difference is only the assumed effective sample</p>
+<p>   size of the projection streams). The rank term alone contributes 1.67 of the</p>
+<p>   six-term average, because with a single truth realisation the density rank is</p>
+<p>   uniform, not 0.5. The ADEMCMC reference scores G 0.618 at site 183 and 0.707 on</p>
+<p>   the v1 pilot: statistically indistinguishable from a perfect sampler. The best</p>
+<p>   non-tempering SARLA run at site 183 scored 0.55, i.e. already at the floor.</p>
+<p>   The statement &quot;0 = perfectly calibrated&quot; in the original protocol is wrong.</p>
+<p>2. <b>G does not see the mode error.</b> Across the 53 non-tempering runs scored at</p>
+<p>   site 183, Spearman correlation between G and the high-allocation mass fraction</p>
+<p>   is rho = -0.00 (p = 0.99); mode fractions span 0.01 to 1.00 over that set. The</p>
+<p>   clearest case is the v1 pilot, four arms on identical pseudo-data (truth</p>
+<p>   f_wood 0.80): ADEMCMC G 0.707 / mode 0.88; sarla_v3 G 0.833 / mode 0.03;</p>
+<p>   sarla_v2 G 1.385 / mode 0.15; sarla_v1 G 1.481 / mode 0.14. The fast version</p>
+<p>   with the best G has the worst mode recovery of any arm.</p>
+<p>3. <b>Decision noise.</b> Across-seed sd of G at site 183 is 0.21 and the</p>
+<p>   perfect-sampler 90% range spans 0.58 in G. Most accept/reject margins in the</p>
+<p>   39 iterations were inside that.</p>
+<p>4. <b>OSSE confirmation of peak versus mass.</b> On the v1-truth OSSE (truth f_wood</p>
+<p>   0.80, realised tau_wood 10.1 yr) the converged 32-chain ADEMCMC puts 0.896 of</p>
+<p>   its mass in the high-allocation mode (chain-bootstrap 90% CI 0.874 to 0.917)</p>
+<p>   and recovers tau_wood near the truth (high-mode median 8.5 yr), while the MAP</p>
+<p>   sits in the low-allocation mode. 23 of 32 chains visit both modes.</p>
+<p><b>If the loop is ever restarted:</b> G must be scored against the reference value,</p>
+<p>not against zero, and must be paired with a mode-mass term or gate scored against</p>
+<p>the ADEMCMC fraction. Protocol v4 results should not be re-judged under this</p>
+<p>addendum; they should be read as largely inside the noise floor.</p>
 </body></html>

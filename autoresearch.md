@@ -8,7 +8,7 @@ CARDAMOM's ADEMCMC takes ~33 h at one site. The loop proposes sampler-design
 hypotheses, tests them on synthetic-truth experiments at several FLUXNET
 sites, keeps what helps, and publishes every step.
 
-**Metric.** Calibration gap G (lower is better; 0 = perfectly calibrated
+**Metric.** Calibration gap G (lower is better; NOT 0 for a perfect sampler: measured floor 0.52, 90% range 0.23-0.81; ADEMCMC reference 0.62. See the 2026-09-04 addendum: G is uncorrelated with mode mass
 posterior). Computed per site by `scripts/osse_score_site.py` from an OSSE
 (observing-system simulation experiment): a known truth generates
 pseudo-observations, the sampler fits them, and the posterior is scored
@@ -179,3 +179,43 @@ Each candidate is also fitted once to the REAL NL-Loo data and its
 high-allocation fraction compared with the converged 64-chain ADEMCMC
 reference (0.815, 90% CI 0.794-0.834); this is reported at every milestone
 and is not a truth-selection question.
+
+## Addendum 2026-09-04 (post-stop): the metric had a floor and a blind spot
+
+Measured after the loop was stopped, using the converged ADEMCMC reference on the
+same v2 site-183 dataset (8 chains, 400k rows) and on the v1 pilot OSSE.
+
+1. **G has a floor near 0.5, not 0.** Monte Carlo of the G formula under exact
+   calibration (89 parameters, one truth draw, binomial coverage, rank ~ U(0,1),
+   rms_z ~ sqrt(chi2_D/D)) gives G mean 0.52 with 90% range 0.23 to 0.81
+   (an independent replication with fully independent projection steps gives 0.45,
+   90% range 0.17 to 0.72; the difference is only the assumed effective sample
+   size of the projection streams). The rank term alone contributes 1.67 of the
+   six-term average, because with a single truth realisation the density rank is
+   uniform, not 0.5. The ADEMCMC reference scores G 0.618 at site 183 and 0.707 on
+   the v1 pilot: statistically indistinguishable from a perfect sampler. The best
+   non-tempering SARLA run at site 183 scored 0.55, i.e. already at the floor.
+   The statement "0 = perfectly calibrated" in the original protocol is wrong.
+
+2. **G does not see the mode error.** Across the 53 non-tempering runs scored at
+   site 183, Spearman correlation between G and the high-allocation mass fraction
+   is rho = -0.00 (p = 0.99); mode fractions span 0.01 to 1.00 over that set. The
+   clearest case is the v1 pilot, four arms on identical pseudo-data (truth
+   f_wood 0.80): ADEMCMC G 0.707 / mode 0.88; sarla_v3 G 0.833 / mode 0.03;
+   sarla_v2 G 1.385 / mode 0.15; sarla_v1 G 1.481 / mode 0.14. The fast version
+   with the best G has the worst mode recovery of any arm.
+
+3. **Decision noise.** Across-seed sd of G at site 183 is 0.21 and the
+   perfect-sampler 90% range spans 0.58 in G. Most accept/reject margins in the
+   39 iterations were inside that.
+
+4. **OSSE confirmation of peak versus mass.** On the v1-truth OSSE (truth f_wood
+   0.80, realised tau_wood 10.1 yr) the converged 32-chain ADEMCMC puts 0.896 of
+   its mass in the high-allocation mode (chain-bootstrap 90% CI 0.874 to 0.917)
+   and recovers tau_wood near the truth (high-mode median 8.5 yr), while the MAP
+   sits in the low-allocation mode. 23 of 32 chains visit both modes.
+
+**If the loop is ever restarted:** G must be scored against the reference value,
+not against zero, and must be paired with a mode-mass term or gate scored against
+the ADEMCMC fraction. Protocol v4 results should not be re-judged under this
+addendum; they should be read as largely inside the noise floor.

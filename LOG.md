@@ -728,3 +728,36 @@ kernels that pass the score test still fail the mode-weight gate; the atlas
 (S-family) remains the primary target because mode weights need a proposal that
 jumps between budgets with a correct Hastings ratio, which no local kernel or
 tempering ladder supplies.
+
+## 2026-09-04: closing out — the score we were optimising was mostly blind
+
+Two measurements made after the stop, using the finished ADEMCMC reference runs,
+change how the 39 iterations should be read. Both were checked independently here
+before being written down.
+
+**The score never went to zero, and it was not supposed to.** Because the truth
+is a single draw, even a flawless sampler scores about 0.5 on our gap metric, not
+0. The slow reference method scores 0.62 at the main site. The best fast run we
+ever recorded there scored 0.55. So for most of the campaign we were comparing
+numbers inside the range a perfect sampler would produce by chance, and the
+across-seed spread (0.21) was comparable to the differences we were accepting or
+rejecting on.
+
+**The score does not notice the mode error.** Across 53 runs at the main site the
+gap metric is uncorrelated with the fraction of posterior mass in the correct
+carbon-allocation budget (rank correlation -0.00). On the pilot OSSE, the fast
+version with the best gap score put 3% of its mass in the correct budget while
+the slow reference put 88% there. We were optimising a number that could improve
+while the physically decisive quantity got worse. This is the same peak-versus-mass
+failure seen on real data, now confirmed against known truth: the converged
+reference puts 0.896 of its mass in the true high-allocation mode (90% CI 0.874
+to 0.917) and recovers wood residence time near the true 10.1 years, while the
+best single point (the MAP) sits in the wrong budget entirely.
+
+**What this means for the result.** The honest summary of the campaign is not
+"39 experiments, nothing beat the baseline". It is: the fast path's real defect is
+mode weighting, the metric we used to judge it was insensitive to exactly that,
+and the compute went into distinguishing variants inside the noise. The protocol
+addendum records what a restart would need: score against the reference value
+rather than zero, and add a mode-mass gate. The page has been corrected; it no
+longer tells the reader that zero is the target.
