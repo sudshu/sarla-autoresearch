@@ -761,3 +761,31 @@ and the compute went into distinguishing variants inside the noise. The protocol
 addendum records what a restart would need: score against the reference value
 rather than zero, and add a mode-mass gate. The page has been corrected; it no
 longer tells the reader that zero is the target.
+
+## 2026-09-04b: measured against the slow method's own answer
+
+With the reference runs finished we could finally ask the direct question: how
+close does each fast fit come to the posterior the slow method produces on the
+same real data? The reference's own noise, from splitting its chains in half, is
+0.033 in units of its spread.
+
+The loop did make real progress. Distance to the reference fell by half from the
+starting point to the best variant, and the standardised error across development
+sites came down over the campaign. But no variant is close: for every one of them,
+zero of the 89 parameters land inside the reference's own noise, and the best is
+still about 13 times outside it. The parameters that miss worst are soil-water and
+leaf-timing nuisance terms rather than the headline carbon fluxes.
+
+The uncomfortable part: the variant that came closest to the reference, and the
+only one that got wood residence time right (10.1 years against the reference's
+10.4), was thrown out at iteration 12. It lost a single-seed comparison by 0.11
+on a score whose seed-to-seed spread is 0.21. The variant that beat it was itself
+discarded two iterations later. That is the metric problem from this morning's
+entry showing up as a concrete lost result, not an abstraction.
+
+The obvious follow-up is to re-run that variant on real data with three seeds and
+rank it on distance to the reference posterior instead of on the gap score. It has
+not been run: the campaign is stopped and restarting GPU work is the user's call.
+It is also not a clean winner even on this evidence, since it overshoots the mode
+mass (0.91 against 0.81) with too narrow a spread on residence time, so it finds
+the right hill but loses the tail.

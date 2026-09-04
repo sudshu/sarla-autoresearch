@@ -1,0 +1,113 @@
+{
+ "what": "Deeper SARLA-vs-ADEMCMC comparison: fast-path posteriors scored against the converged reference posterior on real NL-Loobos data, plus every loop variant re-ranked on mode recovery.",
+ "generated": "2026-09-04",
+ "caveat": "One real-data seed per variant. Chain-bootstrap CIs are Monte Carlo only; the loop's own across-seed sd of mode mass at NL-Loo was 0.23, which dominates.",
+ "reference_internal_floor": {
+  "method": "split the 64 ADEMCMC chains in half, 12 random splits",
+  "W1_median_sd_units": 0.033,
+  "W1_p95": 0.092,
+  "KS_median": 0.02,
+  "KS_p95": 0.04,
+  "half_fleet_mass_range": [
+   0.81,
+   0.846
+  ]
+ },
+ "real_data_183": {
+  "reference": {
+   "mass_hi": 0.805,
+   "ci": [
+    0.783,
+    0.826
+   ],
+   "tau_wood_yr": 10.43,
+   "W1_median": 0.033,
+   "params_within_floor": "89/89 by construction"
+  },
+  "variants": {
+   "v3_baseline": {
+    "loop_status": "baseline",
+    "G_dev": 1.72,
+    "mass_hi": 0.539,
+    "ci": [
+     0.448,
+     0.628
+    ],
+    "tau_wood_yr": 19.16,
+    "W1_median": 0.89,
+    "params_within_floor": 0
+   },
+   "h2_de128": {
+    "loop_status": "confirm",
+    "G_dev": 0.96,
+    "mass_hi": 0.58,
+    "ci": [
+     0.51,
+     0.649
+    ],
+    "tau_wood_yr": 15.4,
+    "W1_median": 0.55,
+    "params_within_floor": 0
+   },
+   "s4_surgery_de128": {
+    "loop_status": "confirm then discard",
+    "G_dev": 0.92,
+    "mass_hi": 0.583,
+    "ci": [
+     0.512,
+     0.653
+    ],
+    "tau_wood_yr": 13.43,
+    "W1_median": 0.5,
+    "params_within_floor": 0
+   },
+   "s7_surgery_volume_de128": {
+    "loop_status": "discard",
+    "G_dev": 1.03,
+    "mass_hi": 0.911,
+    "ci": [
+     0.873,
+     0.945
+    ],
+    "tau_wood_yr": 10.11,
+    "W1_median": 0.43,
+    "params_within_floor": 0
+   },
+   "t2_pt16_full": {
+    "loop_status": "VOID tempering",
+    "G_dev": 0.95,
+    "mass_hi": 0.215,
+    "ci": [
+     0.183,
+     0.247
+    ],
+    "tau_wood_yr": 43.11,
+    "W1_median": 0.38,
+    "params_within_floor": 0
+   }
+  }
+ },
+ "cross_site_ranking": {
+  "note": "mass on the truth's side, 4 dev sites, all seeds; reference achieves 0.88 at site 183",
+  "best_variant": "s13_surgery_geomops 0.75 (n=4, G 1.18)",
+  "baseline": "v3_baseline 0.49",
+  "median_variant": 0.57,
+  "spearman_G_vs_mode_variant_level": {
+   "rho": -0.28,
+   "p": 0.11,
+   "n": 35
+  }
+ },
+ "chronological": {
+  "rms_z_first3": 2.19,
+  "rms_z_last3": 1.67,
+  "rms_z_reference": 0.96,
+  "G_first3": 1.44,
+  "G_last3": 1.33,
+  "G_floor": 0.52,
+  "mass_first3": 0.52,
+  "mass_last3": 0.51,
+  "mass_reference": 0.88
+ },
+ "recommendation": "Re-run s7_surgery_volume_de128 on real NL-Loo with 3 seeds and score against the reference posterior, not against G."
+}

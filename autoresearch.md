@@ -219,3 +219,40 @@ same v2 site-183 dataset (8 chains, 400k rows) and on the v1 pilot OSSE.
 not against zero, and must be paired with a mode-mass term or gate scored against
 the ADEMCMC fraction. Protocol v4 results should not be re-judged under this
 addendum; they should be read as largely inside the noise floor.
+
+## Addendum 2026-09-04b: scoring against the reference posterior, not a point truth
+
+Retained real-data fits at NL-Loo compared to the converged 64-chain ADEMCMC
+posterior itself (scripts/sarla_vs_ref.py; artifacts runs/sarla_vs_ref_*.json).
+Instrument floor from splitting the reference fleet in half over 12 random splits:
+per-parameter 1-Wasserstein distance 0.033 reference-sd units (95th pct 0.092),
+half-fleet high-allocation mass in [0.810, 0.846].
+
+  variant                   loop verdict  mass_hi  90% CI         tau_wood  W1 med  in floor
+  ADEMCMC reference         -             0.805    [0.783,0.826]  10.43 yr  0.033   -
+  s7_surgery_volume_de128   discard       0.911    [0.873,0.945]  10.11 yr  0.43    0/89
+  s4_surgery_de128          confirm/disc  0.583    [0.512,0.653]  13.43 yr  0.50    0/89
+  h2_de128                  confirm       0.580    [0.510,0.649]  15.40 yr  0.55    0/89
+  v3_baseline               baseline      0.539    [0.448,0.628]  19.16 yr  0.89    0/89
+  t2_pt16_full              VOID          0.215    [0.183,0.247]  43.11 yr  0.38    0/89
+
+1. **Real progress was made.** Median distance to the reference posterior fell
+   from 0.89 to 0.43 sd-units, baseline to best variant; dev-site rms_z fell from
+   2.19 (first three iterations) to 1.67 (last three), reference 0.96.
+2. **No variant is close.** Zero of 89 parameters land inside the reference's own
+   split-half floor for any variant; the closest is ~13x the floor. Worst
+   offenders are hydrology/phenology nuisance terms: init_LAIW_mem, thetas_opt,
+   LY1_vhc, LY2_z, beta_lgrHMF, t_lab, k_leaf.
+3. **The best variant was discarded on noise.** s7_surgery_volume_de128 has the
+   smallest posterior distance and the only correct wood residence time
+   (10.11 vs 10.43 yr). It was dropped at iteration 12 because its single-seed
+   G_dev 1.03 lost to s4's 0.92 — a gap of 0.11 against an across-seed sd of 0.21.
+   s4 was itself discarded at iteration 14 on the mode gate. s7 also overshoots
+   the mode mass (0.911 vs 0.805) with a tau_wood interval much narrower than the
+   reference's, so it finds the right hill but loses the low-allocation tail.
+
+**Caveat:** one real-data seed per variant; the bootstrap intervals are Monte
+Carlo only and the loop's own across-seed mode-mass sd at NL-Loo was 0.23. s7's
+advantage is suggestive, not established. The recorded next step, NOT run because
+the campaign is stopped: three seeds of s7 on real NL-Loo, ranked on distance to
+the reference posterior rather than on G.
