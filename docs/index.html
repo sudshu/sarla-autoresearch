@@ -12,7 +12,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-04 15:21 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-04 16:10 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -25,9 +25,10 @@ check whether the truth falls inside the sampler's uncertainty ranges as often a
 is the <b>calibration gap G</b>: larger is worse. It does <i>not</i> reach 0 for a perfect sampler. Because the
 truth is a single draw, a flawless sampler still scores about 0.52, and the slow reference method scores 0.62.
 Scores near 0.6 therefore mean "as good as the metric can see", not "nearly perfect". <b>Closing caveat:</b> after
-the loop was stopped we found that G is blind to the one thing that matters most here, which budget of carbon
-allocation the sampler believes in. Across 53 runs at the main site, G and the fraction of mass in the correct
-allocation mode are uncorrelated. Read the scores below with that in mind. The loop proposes a change to the
+the loop was stopped we found that G is a weak and unreliable guide to the thing that matters most here, which
+budget of carbon allocation the sampler believes in. Across 53 individual fits at the main site the two are
+uncorrelated; compared variant by variant G leans the right way but not significantly. Read the scores below
+with that in mind. The loop proposes a change to the
 sampler, tests it at four development sites, keeps it only if G improves, and periodically checks four
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
@@ -37,8 +38,8 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 <div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
 
-<div class="now"><b>Latest:</b> 2026-09-04: closing out — the score we were optimising was mostly blind<br>
-<b>Right now:</b> iteration 38: 3 fits running, 3 waiting, 0 done<br>iteration 39: 2 fits running, 0 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-03 17:44 PDT</div>
+<div class="now"><b>Latest:</b> 2026-09-04c: one targeted check, outside the stopped loop<br>
+<b>Right now:</b> refchk (outside the loop): 5 fits running, 1 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-04 16:09 PDT</div>
 
 <h2>How to read this page</h2>
 <ul>
@@ -932,7 +933,7 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>(S-family) remains the primary target because mode weights need a proposal that</p>
 <p>jumps between budgets with a correct Hastings ratio, which no local kernel or</p>
 <p>tempering ladder supplies.</p>
-<h3>2026-09-04: closing out — the score we were optimising was mostly blind</h3>
+<h3>2026-09-04: closing out — the score we were optimising was a weak guide</h3>
 <p>Two measurements made after the stop, using the finished ADEMCMC reference runs,</p>
 <p>change how the 39 iterations should be read. Both were checked independently here</p>
 <p>before being written down.</p>
@@ -943,9 +944,13 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>numbers inside the range a perfect sampler would produce by chance, and the</p>
 <p>across-seed spread (0.21) was comparable to the differences we were accepting or</p>
 <p>rejecting on.</p>
-<p><b>The score does not notice the mode error.</b> Across 53 runs at the main site the</p>
-<p>gap metric is uncorrelated with the fraction of posterior mass in the correct</p>
-<p>carbon-allocation budget (rank correlation -0.00). On the pilot OSSE, the fast</p>
+<p><b>The score is a weak guide to the mode error.</b> Across 53 individual fits at the</p>
+<p>main site the gap metric is uncorrelated with the fraction of posterior mass in the</p>
+<p>correct carbon-allocation budget (rank correlation -0.00). Compared variant by</p>
+<p>variant it leans the right way but not significantly (rank correlation -0.28,</p>
+<p>p 0.11; lower G is better and higher mass is better, so a negative value is the</p>
+<p>correct direction). The defensible claim is that it is weak and unreliable here,</p>
+<p>not that it is blind. (Corrected 2026-09-04 from an earlier sign error.) On the pilot OSSE, the fast</p>
 <p>version with the best gap score put 3% of its mass in the correct budget while</p>
 <p>the slow reference put 88% there. We were optimising a number that could improve</p>
 <p>while the physically decisive quantity got worse. This is the same peak-versus-mass</p>
@@ -960,6 +965,42 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>addendum records what a restart would need: score against the reference value</p>
 <p>rather than zero, and add a mode-mass gate. The page has been corrected; it no</p>
 <p>longer tells the reader that zero is the target.</p>
+<h3>2026-09-04b: measured against the slow method&#x27;s own answer</h3>
+<p>With the reference runs finished we could finally ask the direct question: how</p>
+<p>close does each fast fit come to the posterior the slow method produces on the</p>
+<p>same real data? The reference&#x27;s own noise, from splitting its chains in half, is</p>
+<p>0.033 in units of its spread.</p>
+<p>The loop did make real progress. Distance to the reference fell by half from the</p>
+<p>starting point to the best variant, and the standardised error across development</p>
+<p>sites came down over the campaign. But no variant is close: for every one of them,</p>
+<p>zero of the 89 parameters land inside the reference&#x27;s own noise, and the best is</p>
+<p>still about 13 times outside it. The parameters that miss worst are soil-water and</p>
+<p>leaf-timing nuisance terms rather than the headline carbon fluxes.</p>
+<p>The uncomfortable part: the variant that came closest to the reference, and the</p>
+<p>only one that got wood residence time right (10.1 years against the reference&#x27;s</p>
+<p>10.4), was thrown out at iteration 12. It lost a single-seed comparison by 0.11</p>
+<p>on a score whose seed-to-seed spread is 0.21. The variant that beat it was itself</p>
+<p>discarded two iterations later. That is the metric problem from this morning&#x27;s</p>
+<p>entry showing up as a concrete lost result, not an abstraction.</p>
+<p>The obvious follow-up is to re-run that variant on real data with three seeds and</p>
+<p>rank it on distance to the reference posterior instead of on the gap score. It has</p>
+<p>not been run: the campaign is stopped and restarting GPU work is the user&#x27;s call.</p>
+<p>It is also not a clean winner even on this evidence, since it overshoots the mode</p>
+<p>mass (0.91 against 0.81) with too narrow a spread on residence time, so it finds</p>
+<p>the right hill but loses the tail.</p>
+<h3>2026-09-04c: one targeted check, outside the stopped loop</h3>
+<p>The loop remains stopped: its dispatcher is off, the STOP file is in place, and</p>
+<p>the eight jobs still queued from iterations 38 and 39 have been parked rather than</p>
+<p>run (six on the H100, two on the Blackwell host; they are moved aside, not</p>
+<p>deleted). Nothing in the campaign has resumed.</p>
+<p>Separately, at the user&#x27;s instruction, a companion session is running six fits to</p>
+<p>settle the one question this campaign left open: whether the discarded variant</p>
+<p>s7_surgery_volume_de128 really does reproduce the reference posterior better than</p>
+<p>s4_surgery_de128, or whether the single-seed advantage was noise. Three kernel</p>
+<p>seeds each on real NL-Loobos data, which with the existing fits gives four seeds</p>
+<p>per variant. They will be ranked on distance to the 64-chain reference posterior,</p>
+<p>against its split-half floor of 0.033, rather than on the gap score whose defects</p>
+<p>are recorded in the two addenda above. Results are not in yet.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -1208,4 +1249,92 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>not against zero, and must be paired with a mode-mass term or gate scored against</p>
 <p>the ADEMCMC fraction. Protocol v4 results should not be re-judged under this</p>
 <p>addendum; they should be read as largely inside the noise floor.</p>
+<h3>Addendum 2026-09-04b: scoring against the reference posterior, not a point truth</h3>
+<p>Retained real-data fits at NL-Loo compared to the converged 64-chain ADEMCMC</p>
+<p>posterior itself (scripts/sarla_vs_ref.py; artifacts runs/sarla_vs_ref_*.json).</p>
+<p>Instrument floor from splitting the reference fleet in half over 12 random splits:</p>
+<p>per-parameter 1-Wasserstein distance 0.033 reference-sd units (95th pct 0.092),</p>
+<p>half-fleet high-allocation mass in [0.810, 0.846].</p>
+<p>  variant                   loop verdict  mass_hi  90% CI         tau_wood  W1 med  in floor</p>
+<p>  ADEMCMC reference         -             0.805    [0.783,0.826]  10.43 yr  0.033   -</p>
+<p>  s7_surgery_volume_de128   discard       0.911    [0.873,0.945]  10.11 yr  0.43    0/89</p>
+<p>  s4_surgery_de128          confirm/disc  0.583    [0.512,0.653]  13.43 yr  0.50    0/89</p>
+<p>  h2_de128                  confirm       0.580    [0.510,0.649]  15.40 yr  0.55    0/89</p>
+<p>  v3_baseline               baseline      0.539    [0.448,0.628]  19.16 yr  0.89    0/89</p>
+<p>  t2_pt16_full              VOID          0.215    [0.183,0.247]  43.11 yr  0.38    0/89</p>
+<p>1. <b>Real progress was made.</b> Median distance to the reference posterior fell</p>
+<p>   from 0.89 to 0.43 sd-units, baseline to best variant; dev-site rms_z fell from</p>
+<p>   2.19 (first three iterations) to 1.67 (last three), reference 0.96.</p>
+<p>2. <b>No variant is close.</b> Zero of 89 parameters land inside the reference&#x27;s own</p>
+<p>   split-half floor for any variant; the closest is ~13x the floor. Worst</p>
+<p>   offenders are hydrology/phenology nuisance terms: init_LAIW_mem, thetas_opt,</p>
+<p>   LY1_vhc, LY2_z, beta_lgrHMF, t_lab, k_leaf.</p>
+<p>3. <b>The best variant was discarded on noise.</b> s7_surgery_volume_de128 has the</p>
+<p>   smallest posterior distance and the only correct wood residence time</p>
+<p>   (10.11 vs 10.43 yr). It was dropped at iteration 12 because its single-seed</p>
+<p>   G_dev 1.03 lost to s4&#x27;s 0.92 — a gap of 0.11 against an across-seed sd of 0.21.</p>
+<p>   s4 was itself discarded at iteration 14 on the mode gate. s7 also overshoots</p>
+<p>   the mode mass (0.911 vs 0.805) with a tau_wood interval much narrower than the</p>
+<p>   reference&#x27;s, so it finds the right hill but loses the low-allocation tail.</p>
+<p><b>Caveat:</b> one real-data seed per variant; the bootstrap intervals are Monte</p>
+<p>Carlo only and the loop&#x27;s own across-seed mode-mass sd at NL-Loo was 0.23. s7&#x27;s</p>
+<p>advantage is suggestive, not established. The recorded next step, NOT run because</p>
+<p>the campaign is stopped: three seeds of s7 on real NL-Loo, ranked on distance to</p>
+<p>the reference posterior rather than on G.</p>
+<h3>Addendum 2026-09-04c: the atlas was built on the wrong curvature (RETRACTION)</h3>
+<p>Found by a Codex advisor via the companion session, confirmed independently here.</p>
+<p><b>The bug.</b> <code>build_logpost(gate=&quot;none&quot;)</code> is not equal to the hard-gate target</p>
+<p>inside the feasible set, contrary to its docstring. The &quot;hard&quot; branch calls</p>
+<p><code>mlf2()</code>, which returns the likelihood PLUS finite EDC penalties; the &quot;none&quot;</p>
+<p>branch calls <code>likelihood()</code>, which drops them along with the -inf gate. Several</p>
+<p>EDCs contribute finite penalties, not just gates (vcmax_lcma contributes</p>
+<p>-0.5*r^2; state_trajectories accumulates a squared log-ratio penalty).</p>
+<p><b>Measured here</b> on 40 evenly spaced feasible draws of the 64-chain NL-Loo</p>
+<p>reference: logpost(hard) - logpost(none) has median -11.11 nats, range -18.62 to</p>
+<p>-6.58, and is never zero. The companion session measured median -10.94 over 185</p>
+<p>draws with a wider range. The two targets are simply different functions.</p>
+<p><b>What this invalidates.</b> <code>scripts/osse_fit.py:69</code> builds the Laplace atlas</p>
+<p>curvature with <code>gate=&quot;none&quot;</code>. So every chart in every SARLA atlas across all 39</p>
+<p>iterations was fitted to a Hessian of the wrong function. The same applies to the</p>
+<p>companion session&#x27;s newton_map.py, gauss_newton_map.py and laplace_mode_mass.py.</p>
+<p><b>Claims now retracted, not disproved:</b></p>
+<ul>
+<li>that damped Newton &quot;stalls 25 nats short&quot; and Newton-family optimisers are off</li>
+</ul>
+<p>  the table (LOG entries of 2026-09-03);</p>
+<ul>
+<li>that a two-hill Laplace mass estimate is unusable because the maxima carry 9 to</li>
+</ul>
+<p>  13 negative eigenvalues;</p>
+<ul>
+<li>that Laplace geometry does not work for this posterior.</li>
+</ul>
+<p>These were all measured on the wrong curvature and are unresolved, not settled.</p>
+<p><b>Why it may matter for the campaign&#x27;s central failure.</b> The atlas is the object</p>
+<p>that is supposed to supply cross-budget proposals. Building it on a curvature that</p>
+<p>omits the EDC penalties, which are exactly the terms that shape the 10 to 38 nat</p>
+<p>ridge between the two allocation budgets, is a plausible mechanism for the fast</p>
+<p>path misplacing mode weights. Untested: nothing has been rebuilt, the campaign is</p>
+<p>stopped.</p>
+<p><b>Two further corrections from the same review.</b></p>
+<ul>
+<li><code>scripts/gauss_newton_map.py</code> uses diag(u*(1-u)) for the logit-Jacobian</li>
+</ul>
+<p>  curvature; the correct value is 2*u*(1-u), so that term is half its true size.</p>
+<ul>
+<li>The chart &quot;volume&quot; weight (<code>sarla2.py</code> log_volume) sums 0.5*log(var) over</li>
+</ul>
+<p>  tangent directions only, omitting density height, normal-direction width,</p>
+<p>  feasible fraction and overlap. It is not posterior mass. It also feeds only</p>
+<p>  <code>atlas.draw</code>/<code>atlas.logq</code>, which the production chart_de kernel does not use,</p>
+<p>  so with chart_de the weight flag can act only through surgery audit draws and</p>
+<p>  initialisation. The open s7 question is therefore &quot;better atlas, or merely a</p>
+<p>  better starting population&quot;.</p>
+<p><b>Ecological correction.</b> On 3840 reference draws split at f_wood 0.5, the two</p>
+<p>modes differ 4.9x in allocation and 0.21x in wood residence time but give the SAME</p>
+<p>standing carbon: C_wood 5967 vs 5478 (ratio 1.09), ABGB at step 179 6377 vs 6376</p>
+<p>(ratio 1.00), GPP and NBE identical. Near equilibrium C_wood ~ f_wood * NPP * tau</p>
+<p>and the products agree to one percent. This is an allocation-turnover confound.</p>
+<p>The mode error must NOT be described as a large disagreement about present carbon</p>
+<p>storage; it changes future stock change and turnover-limited persistence.</p>
 </body></html>

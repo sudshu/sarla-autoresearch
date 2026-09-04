@@ -267,8 +267,12 @@ def now_panel():
             by_it[it][j["state"]] += 1
         for it in sorted(by_it):
             c = by_it[it]
-            if c.get("running") or c.get("pending"):
-                lines.append(f"iteration {int(it[1:])}: {c.get('running', 0)} fits running, {c.get('pending', 0)} waiting, {c.get('done', 0)} done")
+            if not (c.get("running") or c.get("pending")):
+                continue
+            # job ids are "iNNN_..." for loop iterations; anything else (e.g. a
+            # one-off check submitted outside the loop) is labelled by its prefix
+            label = f"iteration {int(it[1:])}" if it[:1] == "i" and it[1:].isdigit() else f"{it} (outside the loop)"
+            lines.append(f"{label}: {c.get('running', 0)} fits running, {c.get('pending', 0)} waiting, {c.get('done', 0)} done")
         hosts = [f"{h}: {'down' if 'error' in v else str(len(v['running'])) + ' running'}" for h, v in st["hosts"].items()]
         lines.append("GPU hosts: " + "; ".join(hosts))
         lines.append(f"queue snapshot {time.strftime('%Y-%m-%d %H:%M %Z', time.localtime(st['time']))}")
