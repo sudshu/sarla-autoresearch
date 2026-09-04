@@ -729,7 +729,7 @@ kernels that pass the score test still fail the mode-weight gate; the atlas
 jumps between budgets with a correct Hastings ratio, which no local kernel or
 tempering ladder supplies.
 
-## 2026-09-04: closing out — the score we were optimising was mostly blind
+## 2026-09-04: closing out — the score we were optimising was a weak guide
 
 Two measurements made after the stop, using the finished ADEMCMC reference runs,
 change how the 39 iterations should be read. Both were checked independently here
@@ -743,9 +743,13 @@ numbers inside the range a perfect sampler would produce by chance, and the
 across-seed spread (0.21) was comparable to the differences we were accepting or
 rejecting on.
 
-**The score does not notice the mode error.** Across 53 runs at the main site the
-gap metric is uncorrelated with the fraction of posterior mass in the correct
-carbon-allocation budget (rank correlation -0.00). On the pilot OSSE, the fast
+**The score is a weak guide to the mode error.** Across 53 individual fits at the
+main site the gap metric is uncorrelated with the fraction of posterior mass in the
+correct carbon-allocation budget (rank correlation -0.00). Compared variant by
+variant it leans the right way but not significantly (rank correlation -0.28,
+p 0.11; lower G is better and higher mass is better, so a negative value is the
+correct direction). The defensible claim is that it is weak and unreliable here,
+not that it is blind. (Corrected 2026-09-04 from an earlier sign error.) On the pilot OSSE, the fast
 version with the best gap score put 3% of its mass in the correct budget while
 the slow reference put 88% there. We were optimising a number that could improve
 while the physically decisive quantity got worse. This is the same peak-versus-mass

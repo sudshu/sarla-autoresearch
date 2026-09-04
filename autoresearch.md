@@ -256,3 +256,58 @@ Carlo only and the loop's own across-seed mode-mass sd at NL-Loo was 0.23. s7's
 advantage is suggestive, not established. The recorded next step, NOT run because
 the campaign is stopped: three seeds of s7 on real NL-Loo, ranked on distance to
 the reference posterior rather than on G.
+
+## Addendum 2026-09-04c: the atlas was built on the wrong curvature (RETRACTION)
+
+Found by a Codex advisor via the companion session, confirmed independently here.
+
+**The bug.** `build_logpost(gate="none")` is not equal to the hard-gate target
+inside the feasible set, contrary to its docstring. The "hard" branch calls
+`mlf2()`, which returns the likelihood PLUS finite EDC penalties; the "none"
+branch calls `likelihood()`, which drops them along with the -inf gate. Several
+EDCs contribute finite penalties, not just gates (vcmax_lcma contributes
+-0.5*r^2; state_trajectories accumulates a squared log-ratio penalty).
+
+**Measured here** on 40 evenly spaced feasible draws of the 64-chain NL-Loo
+reference: logpost(hard) - logpost(none) has median -11.11 nats, range -18.62 to
+-6.58, and is never zero. The companion session measured median -10.94 over 185
+draws with a wider range. The two targets are simply different functions.
+
+**What this invalidates.** `scripts/osse_fit.py:69` builds the Laplace atlas
+curvature with `gate="none"`. So every chart in every SARLA atlas across all 39
+iterations was fitted to a Hessian of the wrong function. The same applies to the
+companion session's newton_map.py, gauss_newton_map.py and laplace_mode_mass.py.
+
+**Claims now retracted, not disproved:**
+- that damped Newton "stalls 25 nats short" and Newton-family optimisers are off
+  the table (LOG entries of 2026-09-03);
+- that a two-hill Laplace mass estimate is unusable because the maxima carry 9 to
+  13 negative eigenvalues;
+- that Laplace geometry does not work for this posterior.
+These were all measured on the wrong curvature and are unresolved, not settled.
+
+**Why it may matter for the campaign's central failure.** The atlas is the object
+that is supposed to supply cross-budget proposals. Building it on a curvature that
+omits the EDC penalties, which are exactly the terms that shape the 10 to 38 nat
+ridge between the two allocation budgets, is a plausible mechanism for the fast
+path misplacing mode weights. Untested: nothing has been rebuilt, the campaign is
+stopped.
+
+**Two further corrections from the same review.**
+- `scripts/gauss_newton_map.py` uses diag(u*(1-u)) for the logit-Jacobian
+  curvature; the correct value is 2*u*(1-u), so that term is half its true size.
+- The chart "volume" weight (`sarla2.py` log_volume) sums 0.5*log(var) over
+  tangent directions only, omitting density height, normal-direction width,
+  feasible fraction and overlap. It is not posterior mass. It also feeds only
+  `atlas.draw`/`atlas.logq`, which the production chart_de kernel does not use,
+  so with chart_de the weight flag can act only through surgery audit draws and
+  initialisation. The open s7 question is therefore "better atlas, or merely a
+  better starting population".
+
+**Ecological correction.** On 3840 reference draws split at f_wood 0.5, the two
+modes differ 4.9x in allocation and 0.21x in wood residence time but give the SAME
+standing carbon: C_wood 5967 vs 5478 (ratio 1.09), ABGB at step 179 6377 vs 6376
+(ratio 1.00), GPP and NBE identical. Near equilibrium C_wood ~ f_wood * NPP * tau
+and the products agree to one percent. This is an allocation-turnover confound.
+The mode error must NOT be described as a large disagreement about present carbon
+storage; it changes future stock change and turnover-limited persistence.

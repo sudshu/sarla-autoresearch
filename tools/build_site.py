@@ -326,9 +326,10 @@ check whether the truth falls inside the sampler's uncertainty ranges as often a
 is the <b>calibration gap G</b>: larger is worse. It does <i>not</i> reach 0 for a perfect sampler. Because the
 truth is a single draw, a flawless sampler still scores about 0.52, and the slow reference method scores 0.62.
 Scores near 0.6 therefore mean "as good as the metric can see", not "nearly perfect". <b>Closing caveat:</b> after
-the loop was stopped we found that G is blind to the one thing that matters most here, which budget of carbon
-allocation the sampler believes in. Across 53 runs at the main site, G and the fraction of mass in the correct
-allocation mode are uncorrelated. Read the scores below with that in mind. The loop proposes a change to the
+the loop was stopped we found that G is a weak and unreliable guide to the thing that matters most here, which
+budget of carbon allocation the sampler believes in. Across 53 individual fits at the main site the two are
+uncorrelated; compared variant by variant G leans the right way but not significantly. Read the scores below
+with that in mind. The loop proposes a change to the
 sampler, tests it at four development sites, keeps it only if G improves, and periodically checks four
 holdout sites that are never used for choosing, so the method cannot be tuned to one site's quirks.</p>
 
