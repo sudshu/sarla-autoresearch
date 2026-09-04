@@ -89,7 +89,7 @@ def score(it, ndraw=500):
         todo = {k: v for k, v in d.items() if k not in have}
         if not todo:
             continue
-        if tag == "real":
+        if tag.startswith("real"):
             # real-data mode-weight check (no truth): high-allocation fraction vs ADEMCMC 0.815
             cmd = [PY, os.path.join(ROOT, "scripts", "realdata_mode_check.py"), "--out", out + ".part"]
             for k, v in d.items():

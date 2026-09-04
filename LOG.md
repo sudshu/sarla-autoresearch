@@ -653,3 +653,12 @@ setup notes. Times are US Pacific.
 - Iteration 34 (DE step scale within tempering) is landing with the best
   NL-Loo scores of the campaign: G 0.47 (gamma 0.12) and 0.54 (gamma 0.25),
   high-allocation mass 0.31 and 0.51 (truth 0.64).
+- Follow-up on the 0.22 (sibling session's confound check, 18:50 PDT): per
+  cold walker, 12 of 16 visited both budgets during the recorded 308 draws,
+  with a mean of 29 budget switches per walker (ADEMCMC: about 16 per 60
+  stored draws), while 4 walkers never left the low budget. So the tempered
+  cold chain does cross, frequently, and still integrates to 22% high-
+  allocation mass against ADEMCMC's 82%: two samplers that both traverse the
+  ridge disagree on the weight. A control with the MAP point removed from the
+  seed file is queued (iteration 42) to rule out seeding; until it lands the
+  0.22 carries that caveat.
