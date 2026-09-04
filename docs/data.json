@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-03 17:06 PDT",
+ "updated": "2026-09-03 17:18 PDT",
  "runs": [
   {
    "run": 1,
@@ -651,7 +651,7 @@
     "wall_median": 3330.025600671768
    },
    "status": "discard",
-   "description": "Likelihood-only parallel tempering, 4 rungs (beta 1/0.37/0.14/0.05), 32 walkers each, chart/DE within rungs: dev G 0.98 on one seed, but adjacent-rung swap acceptance 0-2%, so the rungs do not communicate and the run is effectively DE with 32 walkers. NL-Loo high-mode mass 0.22 (truth in that mode). 16-rung ladder queued (iteration 21).",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] Likelihood-only parallel tempering, 4 rungs (beta 1/0.37/0.14/0.05), 32 walkers each, chart/DE within rungs: dev G 0.98 on one seed, but adjacent-rung swap acceptance 0-2%, so the rungs do not communicate and the run is effectively DE with 32 walkers. NL-Loo high-mode mass 0.22 (truth in that mode). 16-rung ladder queued (iteration 21).",
    "commit": "453ea9f",
    "timestamp": 1788435612,
    "protocol_version": 4
@@ -676,7 +676,7 @@
     "wall_median": 2790.0365142822266
    },
    "status": "discard",
-   "description": "Same tempering with the surgery atlas: 0.99, swap acceptance 0-2%.",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] Same tempering with the surgery atlas: 0.99, swap acceptance 0-2%.",
    "commit": "453ea9f",
    "timestamp": 1788435612,
    "protocol_version": 4
@@ -722,7 +722,7 @@
     "wall_median": 2250.0175693035126
    },
    "status": "discard",
-   "description": "16-rung likelihood tempering (ratio 0.79), 16 walkers per rung, swaps every 5 steps: the ladder now works (adjacent swap acceptance 26-42%) but on one seed the cold rung still misses: NL-Loo G 0.96, density rank 1.00, high-allocation mass 0.12 with the truth in that mode (median cold log-posterior 40 nats below the truth); DK-Sor 1.46. Working ladder, insufficient steps per walker at this budget.",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] 16-rung likelihood tempering (ratio 0.79), 16 walkers per rung, swaps every 5 steps: the ladder now works (adjacent swap acceptance 26-42%) but on one seed the cold rung still misses: NL-Loo G 0.96, density rank 1.00, high-allocation mass 0.12 with the truth in that mode (median cold log-posterior 40 nats below the truth); DK-Sor 1.46. Working ladder, insufficient steps per walker at this budget.",
    "commit": "453ea9f",
    "timestamp": 1788439259,
    "protocol_version": 4
@@ -747,7 +747,7 @@
     "wall_median": 2760.021462202072
    },
    "status": "discard",
-   "description": "Six-rung likelihood tempering (beta 1 -> 0.03), 24 walkers per rung: dev G 0.98 on one seed; swap acceptance 3-18%. High-allocation mass 0.30 at NL-Loo and 0.23 at BE-Vie where the truths sit in that mode (0.64, 0.74): still under-weighted.",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] Six-rung likelihood tempering (beta 1 -> 0.03), 24 walkers per rung: dev G 0.98 on one seed; swap acceptance 3-18%. High-allocation mass 0.30 at NL-Loo and 0.23 at BE-Vie where the truths sit in that mode (0.64, 0.74): still under-weighted.",
    "commit": "453ea9f",
    "timestamp": 1788441735,
    "protocol_version": 4
@@ -845,7 +845,7 @@
     "wall_median": 3780.030505657196
    },
    "status": "discard",
-   "description": "DIAGNOSTIC at 2x the sampling budget (4.1M evaluations), 16-rung ladder with working swaps: NL-Loo and DK-Sor still end with density rank 1.00 and cold-rung medians 25-30 nats below the truth; high-allocation mass at NL-Loo stays far below the truth's mode. Time is not the missing ingredient; tempering does not equilibrate the mode weights here. Not a promotion candidate.",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] DIAGNOSTIC at 2x the sampling budget (4.1M evaluations), 16-rung ladder with working swaps: NL-Loo and DK-Sor still end with density rank 1.00 and cold-rung medians 25-30 nats below the truth; high-allocation mass at NL-Loo stays far below the truth's mode. Time is not the missing ingredient; tempering does not equilibrate the mode weights here. Not a promotion candidate.",
    "commit": "453ea9f",
    "timestamp": 1788452144,
    "protocol_version": 4
@@ -917,8 +917,8 @@
     },
     "wall_median": 2040.0271306037903
    },
-   "status": "confirm",
-   "description": "Full-posterior tempering (EDC penalties flattened too, hard gate kept), 16 rungs, swaps 27-40%: NL-Loo G 0.75 with density rank 0.95 and high-allocation mass 0.39 (truth 0.64), the first tempering run whose cold rung reaches the truth's density (best -275 vs truth -284); DK-Sor 1.30 (mass 0.09, truth 0.29). Two sites, one seed; remaining dev sites and two more seeds queued (iteration 33).",
+   "status": "discard",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] Full-posterior tempering (EDC penalties flattened too, hard gate kept), 16 rungs, swaps 27-40%: NL-Loo G 0.75 with density rank 0.95 and high-allocation mass 0.39 (truth 0.64), the first tempering run whose cold rung reaches the truth's density (best -275 vs truth -284); DK-Sor 1.30 (mass 0.09, truth 0.29). Two sites, one seed; remaining dev sites and two more seeds queued (iteration 33).",
    "commit": "453ea9f",
    "timestamp": 1788456832,
    "protocol_version": 4
@@ -1065,8 +1065,8 @@
     },
     "wall_median": 2100.0273954868317
    },
-   "status": "confirm",
-   "description": "Full-posterior tempering, 16 rungs: NL-Loo three seeds G 0.75/0.65/0.68 (sd 0.05) with high-allocation mass 0.39/0.36/0.17 (sd 0.12, truth 0.64); DK-Sor 1.29/1.46/1.28 with mass 0.07-0.12 (sd 0.02, truth 0.29); BE-Vie 1.06 and DE-Gri 0.71 one seed each. Dev G 0.95 so far. Most seed-stable variant yet; mode gate marginal at NL-Loo; two more seeds at BE-Vie and DE-Gri queued (iteration 40) for the v4 decision.",
+   "status": "discard",
+   "description": "[KERNEL FAILED KNOWN-ANSWER TEST 2026-09-03: on the 24-D toy this tempering kernel gives basin-mass TV 0.44 vs 0.13 for the chart walk; treat as void] Full-posterior tempering, 16 rungs: NL-Loo three seeds G 0.75/0.65/0.68 (sd 0.05) with high-allocation mass 0.39/0.36/0.17 (sd 0.12, truth 0.64); DK-Sor 1.29/1.46/1.28 with mass 0.07-0.12 (sd 0.02, truth 0.29); BE-Vie 1.06 and DE-Gri 0.71 one seed each. Dev G 0.95 so far. Most seed-stable variant yet; mode gate marginal at NL-Loo; two more seeds at BE-Vie and DE-Gri queued (iteration 40) for the v4 decision.",
    "commit": "453ea9f",
    "timestamp": 1788479148,
    "protocol_version": 4
