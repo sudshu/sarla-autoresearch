@@ -743,3 +743,50 @@ labels every fit from its own artifacts and falls back to the stored score. Dry 
 over iterations 20-37: 23 jobs, mass available for all 23 (2 from draws, 21 from
 stored scores). The re-read is therefore possible and is no longer blocked by the
 host question, which is now settled.
+
+## Addendum 2026-09-04k: the iterations 28-36 re-read (this session's task, complete)
+
+Every site-183 fit in the loop record relabelled from its own artifacts
+(`scripts/reread_28_36.py`): seed set from the log's "N feasible seed points"
+line, host from result.json, mode mass from the fit's draws or, where loop.py had
+pruned them, from `mode.high_frac` in experiments/NNN/scores. 70 jobs, mass
+recovered for all 70 (6 from draws, 64 from stored scores).
+
+**The boundary is stark and confirms 4f as corrected.** Iterations 0-28 ran on the
+restored 24-row set, 29-37 on the contaminated 25-row set:
+
+  restored(24)      n=57  mean 0.559  sd 0.234  range 0.014-0.990  recovered 39/57
+  contaminated(25)  n=13  mean 0.251  sd 0.124  range 0.008-0.506  recovered  1/13
+  Mann-Whitney on location p < 0.0001
+
+Per-iteration means fall off a cliff at the boundary: i028 averages 0.990, i029
+averages 0.008, and no iteration from 29 onward exceeds 0.506. So every conclusion
+drawn at NL-Loo in iterations 29-36 was drawn in the collapsed state. That window
+contains the tempering iterations (33-36), the surgery variants at 31-32 and the
+de64 kernel test at 30.
+
+**The loop record refutes the host hypothesis far more decisively than the controls
+could.** Within the uncontaminated portion alone, n=57 rather than the controls'
+n=10:
+
+  restored on h100  n=23  mean 0.566  sd 0.235  recovered 14/23
+  restored on kyo   n=34  mean 0.554  sd 0.237  recovered 25/34
+
+The two machines are indistinguishable in both mean and spread. Combined with the
+failed pre-registered prediction in 4j, the host hypothesis is closed.
+
+**On the variance result, a caveat in the loop record's favour and against it.**
+The same direction appears here, restored sd 0.234 versus contaminated sd 0.124,
+ratio 1.9x, Levene p = 0.041. But the loop's restored runs span many different
+variants, so their spread mixes genuine irreproducibility with real
+variant-to-variant differences. The matched-variant, matched-seed control fits
+(sd 0.308 vs 0.039, ratio 7.8x, Levene p = 0.0012) remain the primary evidence for
+the variance claim; the loop record corroborates its direction only.
+
+**Consequence for the campaign's conclusions.** Iterations 29-36 cannot be compared
+against 0-28 at this site, and the mode-weight gate readings in that window are not
+informative about the variants they were attributed to. Nothing needs re-judging in
+the other direction: no variant was promoted in that window, so the contamination
+did not cause a false acceptance. Its cost was wasted compute and a set of
+conclusions about tempering and late surgery variants that were really conclusions
+about a broken configuration.
