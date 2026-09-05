@@ -521,8 +521,43 @@ sites 183/183B over iterations 28-36 may have been driven the wrong way, on top 
 the seed confound itself. Re-reading those iterations is deferred until all six
 control fits land.
 
-**Concrete fix for any restart.** Score on the decisive subset, not the mean over
-all parameters: identify the parameters that separate the reference's modes by
-more than ~0.5 sd (11 here, computable from the reference alone before any fit),
-and report their distances alongside, not inside, the 89-parameter average. Report
-tau_wood and mode mass directly, since they are what the science turns on.
+**Concrete fix for any restart (revised, see 4h).** Report the decisive-subset
+distance alongside, not inside, the 89-parameter average, and use the disagreement
+between them as a cheap alarm. But the GATE should be mode mass and tau_wood
+against the reference. See addendum 4h: the decisive subset fixes the sign of the
+comparison but does not separate the two conditions robustly enough to gate on.
+
+## Addendum 2026-09-04h: the decisive subset is a diagnostic, not a gate
+
+I proposed in 4g that a restart should score on the decisive parameter subset. The
+companion session pushed back, and it is right. Both of us then measured the same
+thing and landed on opposite sides of the boundary, which settles it more firmly
+than either result alone.
+
+  companion session (12-parameter subset): worst restored 0.600 > best
+      contaminated 0.580, i.e. the conditions OVERLAP
+  this session (11-parameter subset):      worst restored 0.616 < best
+      contaminated 0.629, i.e. clean separation by a margin of 0.013
+
+The subset definition differs only by where the 0.5-sd threshold falls (11 versus
+12 parameters). A classifier whose verdict flips between "overlapping" and
+"separated" under that benign a choice, on a margin of 0.013, is not fit to gate
+promotions. That is exactly how G went wrong: a number with a real signal in it,
+used at a resolution finer than its own stability.
+
+What the subset IS good for, confirmed at n=9 here: it explains the inversion. The
+sign flips cleanly on the aggregate (decisive 0.66 contaminated vs 0.49 restored;
+nuisance 0.27 contaminated vs 0.42 restored), which is the dimensional-dilution
+mechanism. And the cross-check stands: if the decisive-subset distance and the
+89-parameter median disagree in sign, distrust the run.
+
+The direct quantities separate with no overlap and a wide margin, so they are the
+gate:
+
+  mass_hi    restored 0.57-0.81      contaminated 0.07-0.16
+  tau_wood   restored 10.3-13.9 yr   contaminated 39.3-48.5 yr
+
+**Rule for a restart:** gate on mode mass and tau_wood against the reference;
+report decisive-subset and full-median distances side by side as diagnostics; never
+promote or discard on a margin smaller than the metric's own definitional
+sensitivity.
