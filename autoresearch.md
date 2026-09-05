@@ -657,8 +657,39 @@ split deliberately across hosts; neither the host claim nor the irreducible-fail
 claim can be written up without it. That is GPU work beyond the stopped campaign
 and is the user's call, not ours.
 
-**Method note on us.** In 4h I warned that a min/max margin on 3 and 6 points is an
-extreme-order statistic and that neither verdict was well determined. That warning
-was aimed at the decisive-subset metric. It applied just as much to the gate I
-endorsed in the same breath, and the gate is what it broke. Both sessions over-read
-an n=3 range as a clean separation.
+**Method note on us, and the most transferable finding of the campaign.** In 4h I
+warned that a min/max margin on 3 and 6 points is an extreme-order statistic and
+that neither verdict was well determined. That warning was aimed at the
+decisive-subset metric; it applied just as much to the gate endorsed in the same
+breath, and the gate is what it broke. Both sessions over-read an n=3 range as a
+clean separation.
+
+Generalised, agreed by both sessions: in this campaign THREE metrics in turn --
+the calibration gap G, decisive-subset W1, and the mode-mass/tau_wood gate -- each
+looked clean and then failed as n grew. In all three cases the failure was
+predictable in advance from the sample size alone, with no knowledge of the metric.
+So the rule is NOT "prefer direct physical quantities", which is what the evidence
+appeared to say at 4h. The rule is:
+
+  STATE THE ACHIEVABLE RESOLUTION BEFORE READING THE VERDICT.
+  Compute what the metric can resolve at the n you have, and refuse to read a
+  margin finer than that, whatever the metric is measuring.
+
+Applied to this campaign that single rule would have caught the G floor at
+iteration 0, the decisive-subset instability at 4g, and the gate overlap at 4h,
+before any of them was acted on.
+
+**4i caution, carried from the companion session.** Even if the host split proves
+real, it does not rescue the method. Six of six on one machine is still a sampler
+whose answer to the central scientific question depends on something outside the
+data. It would move the diagnosis from "unreliable" to "unreliable in a way we can
+point at", which helps debugging but is not evidence that the fast path can replace
+the 33-hour reference. Nothing in the seed or host analysis changes the
+distance-to-reference numbers: every variant in the set remains 10 to 15 times the
+reference's split-half floor.
+
+**Division of labour agreed:** the companion session takes the host-split
+submission and scoring (dispatch state and provenance-aware scorers are there);
+this session takes the iterations 28-36 re-read once the host question is settled
+(that record is this session's). Neither is launching GPU work; the host-split
+experiment is with the user.
