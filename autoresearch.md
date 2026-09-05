@@ -826,10 +826,15 @@ Verified here on the exact defaults: restart_end = restart_until * n_steps =
 stops precisely when recording begins. So it is NOT a detailed-balance violation of
 the sampling phase, and no copied state is ever recorded. The accurate description
 is a non-reversible burn-in pruning rule. But its consequence is not benign: it
-shapes the walker population entering the sampling phase, and since this kernel
-demonstrably cannot cross between allocation budgets, the mode composition left at
-the end of burn-in largely determines the recorded mode mass. It is therefore a
-MECHANISM AMPLIFYING seeding dominance, which is the campaign's central failure.
+shapes the walker population entering the sampling phase, and if the kernel cannot
+cross between allocation budgets, the mode composition left at the end of burn-in
+largely determines the recorded mode mass, making it a mechanism that AMPLIFIES
+seeding dominance. [The companion session rightly objected that this middle premise
+was the very thing its running experiment is testing, so the argument assumed its
+own conclusion. The premise has since been measured directly on existing data --
+see 4m -- and it holds: genuine basin transport is 8 chains in 1536. The
+amplification conclusion therefore stands, but on the 4m measurement rather than on
+the assumption made here.]
 
 A clean negative from the companion session, worth keeping because the rule is a
 natural thing to blame: it does not preferentially cull high-allocation walkers.
@@ -849,3 +854,42 @@ distances are the right diagnostic and the companion session is recording them.
 six replicates, six successes and zero failures still leaves a one-sided 95% upper
 bound near 39% on the per-run failure probability. Nothing from it should be
 written as "the kernel is fine".
+
+## Addendum 2026-09-04m: mode transport measured directly, and a trap in measuring it
+
+The companion session objected, correctly, that 4l's amplification argument assumed
+the kernel cannot cross between allocation budgets, which is what its running
+stationarity check is testing. The premise is measurable from data already on disk:
+production draws are chain-interleaved (row t*n_chains + c), so per-chain mode
+histories can be reconstructed from any retained fit.
+
+**The trap, which I walked into first.** Counting sign changes of f_wood across the
+0.5 boundary gives 437 "crossing" chains out of 1536 across twelve fits, which
+looks like free mixing. It is an artefact. In one fit, the 20 chains that "cross"
+spend 24.4% of their draws within 0.05 of the boundary, against 0.3% for the
+non-crossing chains and 2.5% for the reference posterior. Their f_wood runs from
+p10 0.421 to p90 0.758: they sit ON the dividing line and oscillate across it. Not
+one of the 20 spends more than 10% of its draws both below 0.3 and above 0.7.
+
+**The measurement, with a hysteresis definition** (a chain must spend >10% of draws
+below f_wood 0.3 AND >10% above 0.7):
+
+  genuine basin-visiting chains:  8 of 1536   (naive 0.5-crossing count: 437)
+  9 of the 12 fits have exactly 0; the other three have 1, 3 and 4
+
+So mode transport in the production kernel is essentially absent at 89-D, on real
+data, in the recorded phase, and this is now measured rather than inferred from
+seed dependence. 4l's amplification conclusion is restored on this basis, and its
+original assumed-premise wording has been corrected in place.
+
+**Warning for the running stationarity check.** Its mode-crossing counter will hit
+the same artefact if it thresholds at f_wood 0.5. With every walker started on the
+reference posterior, a substantial fraction will sit near the dividing line, and
+naive crossing counts will over-report transport by roughly fifty-fold on this
+evidence. A two-threshold hysteresis definition is required.
+
+**A second observation worth following up.** The chains that hover near the boundary
+occupy an intermediate region (f_wood roughly 0.42 to 0.76) that the reference
+posterior barely visits, 2.5% of its draws within 0.05 of the boundary. A sixth of
+the walker population sitting in a region the target does not support is a defect in
+its own right, distinct from the mode-weight problem.
