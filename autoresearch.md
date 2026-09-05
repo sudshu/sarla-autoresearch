@@ -893,3 +893,57 @@ occupy an intermediate region (f_wood roughly 0.42 to 0.76) that the reference
 posterior barely visits, 2.5% of its draws within 0.05 of the boundary. A sixth of
 the walker population sitting in a region the target does not support is a defect in
 its own right, distinct from the mode-weight problem.
+
+## Addendum 2026-09-04n: why the coverage diagnostic reads 0% vs 100%, and why it matters beyond the diagnostic
+
+The companion session's reference-start diagnostic prints "0.0% land in a kept
+region", while assigning the same draws by plain Euclidean distance gives 99-100%.
+The mechanism is identifiable analytically and confirmed from saved artifacts.
+
+**Mechanism.** Chart proposal variance is capped ABOVE at VAR_CAP = 1.0
+(`sarla.py:122`: var = 1/lam where lam > 1, else VAR_CAP). Since
+maha2(W) = sum_j ((W-c).e_j)^2 / var_j and every var_j <= 1, Mahalanobis distance
+is always >= squared Euclidean distance, with EQUALITY only for a fully flat chart
+whose var_j = 1 in all 89 directions. Stiff charts inflate distances by 1/var_j =
+lam_j, which can be enormous. So argmin-over-charts of maha2 is systematically
+biased toward the flattest charts, almost independently of where the point is.
+
+**Confirmed prediction from fit.npz.** If that is the mechanism, charts in non-kept
+regions should be systematically flatter (higher rank = more directions at the cap).
+Across five fits with a mixed population:
+
+  kept charts       rank median 38-39
+  non-kept charts   rank median 43-47, with rank-89 charts present in two fits
+
+A rank-89 chart is flat in every direction, so its maha2 IS the squared Euclidean
+distance while every other chart inflates. It acts as a universal attractor for the
+argmin. That is sufficient to produce "0% in a kept region" with no coverage
+failure whatever. Neither the 0% nor the 100% should be recorded as a coverage
+finding; the Euclidean number is the more meaningful of the two, and neither is
+coverage.
+
+**Why this matters well beyond the diagnostic.** The SAME rule chooses the proposal
+in the production kernel: `sarla_kernels.py:118` does `kx = nearest(X)` and then
+draws the step from `Vs[kx]`, `E[kx]`. So if flat charts win the argmin for most
+walkers, most walkers are proposing isotropic unit-variance steps in 89 dimensions
+instead of locally shaped ones, and the atlas's entire purpose is defeated at
+sampling time.
+
+Two things follow, and the distinction matters:
+- This is NOT a correctness bug. The assignment is a deterministic function of
+  position and the MH ratio uses loc_lq at both kx and ky, so detailed balance
+  holds. It is an efficiency and behaviour defect, not an invalid sampler.
+- It is a coherent mechanism for what we have measured. Isotropic 89-D proposals
+  have very low acceptance, so the gamma adaptation shrinks the step to hit
+  target_acc 0.23, leaving chains that barely move. That predicts precisely the
+  near-static recorded phase (per-fit drift -0.040 to +0.078), the 8 genuine
+  basin-visiting chains in 1536, and the population of chains parked on the mode
+  boundary.
+
+**Status: mechanism identified and strongly supported, not yet demonstrated.** The
+direct test is to record, for a production run, the fraction of walkers whose
+assigned chart is one of the flat ones. That is not reproducible from artifacts
+because fit.npz saves centers, chart_ranks, lab and kept_regions but NOT chart var
+or eigvecs. Recommended change to `scripts/sarla_fit.py`, deliberately NOT applied
+while the stationarity jobs are mid-flight: persist chart var and eigvecs in
+fit.npz. It is cheap, additive, and makes every future fit auditable for this.
