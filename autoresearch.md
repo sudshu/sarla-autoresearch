@@ -451,8 +451,12 @@ it produces. Note also that the original 24 rows at this site were mostly
 high-allocation (20 of 24), unlike 183real, so the edit did not merely add a point
 to a poor set: it added a dominating low-allocation attractor to a good one.
 
-**Blast radius.** Iterations 0 to 27 ran before the edit; iterations 28 to 36 ran
-after (boundary Sep 3 10:46; i027 finished 10:33, i028 12:31). Site 183 is one of
+**Blast radius.** Iterations 0 to 28 ran before the edit; iterations 29 to 36 ran
+after. [CORRECTED: this was first estimated as a 27/28 boundary from job-directory
+mtimes. Labelling each fit from its OWN log line "N feasible seed points from ..."
+(19 = restored 24-row set, 20 = contaminated 25-row set) puts i027 and i028 on the
+restored set and i029 first on the contaminated one. Provenance from artifacts
+beats provenance from timestamps.] Site 183 is one of
 the four development sites and is one of the two sites the mode-weight gate is
 evaluated on. So dev-G and mode-gate comparisons that straddle iteration 27/28 are
 confounded at that site. Site 183 real-data fits are affected from Sep 3 10:46 too.
@@ -693,3 +697,49 @@ submission and scoring (dispatch state and provenance-aware scorers are there);
 this session takes the iterations 28-36 re-read once the host question is settled
 (that record is this session's). Neither is launching GPU work; the host-split
 experiment is with the user.
+
+## Addendum 2026-09-04j: host hypothesis dead; the real result is variance
+
+**The pre-registered prediction failed, which settles the host question.** The
+final control fit ran on h100 with restored seeds and gave mass 0.327, tau_wood
+21.90 yr, against a predicted mass > 0.5 and tau 10-14 yr. It is also a third
+outcome type, neither clean recovery nor the 40-68 yr collapse. Within the restored
+set the host split is now h100 6/7 versus kyo 1/3, Fisher p = 0.18, weaker than
+before. Recorded as TESTED AND NOT SUPPORTED, not as open. Because the prediction
+was registered before the fit landed, this is a real test rather than a story
+fitted afterwards.
+
+**The seed effect survives:** restored recovered 7 of 10, contaminated 0 of 7,
+Fisher one-sided p = 0.0062.
+
+**The headline result is about variance, not location.** Verified independently
+here on all twelve control fits, matched variants and matched kernel seeds:
+
+  restored      n=6  mean 0.426  sd 0.308  range 0.057-0.810
+  contaminated  n=6  mean 0.113  sd 0.039  range 0.068-0.166
+  spread ratio 7.8x;  Levene p = 0.0012;  Mann-Whitney on location p = 0.066
+
+The variance difference is an order of magnitude better determined than the mean
+difference. The contaminated seed set does not merely bias the answer: it makes the
+method reproducibly wrong, sd 0.039 across independent runs. Restoring the seeds
+does not make it right, it makes it IRREPRODUCIBLE, sd 0.308 spanning nearly the
+whole range. The contamination was masking the instability, and every consistency
+check run during the contaminated period would have looked reassuring for exactly
+the wrong reason.
+
+This also retires an earlier number: the "kernel-seed noise is small, sd 0.019 to
+0.033" measurement quoted in 4f and 4g was taken entirely inside the collapsed
+state. It measured the reproducibility of a failure mode, not of the sampler.
+
+The result is threshold-free and needs no subset definition and no gate, which
+after the 4g/4h/4i sequence is the main thing to recommend it.
+
+**Re-read feasibility (this session's task).** Draws for 10 of 11 site-183 fits in
+iterations 30-36 were pruned by loop.py after scoring, so mode mass cannot be
+recomputed from them. It CAN be recovered: the per-fit `mode.high_frac` survives in
+experiments/NNN/scores/183*.json, and log.txt and result.json survive pruning too,
+so seed set, host and code era remain recoverable per fit. `scripts/reread_28_36.py`
+labels every fit from its own artifacts and falls back to the stored score. Dry run
+over iterations 20-37: 23 jobs, mass available for all 23 (2 from draws, 21 from
+stored scores). The re-read is therefore possible and is no longer blocked by the
+host question, which is now settled.
