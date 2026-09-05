@@ -1300,6 +1300,13 @@ Tested here on 2000 reference draws under the hard gate:
   exact draws, no jitter            11.3%                          0.783 / 0.808
   jittered 0.01 (old behaviour)     17.9%                          0.804 / 0.808
 
+[CORRECTED by 4w: these RATES are wrong as statements about the reference
+posterior. Both were measured on a float32 archive of draws that had already been
+through a p->z->p round trip, and each of those steps inflates apparent
+infeasibility. The reference posterior is about 99% feasible, not 89%. The
+COMPOSITION result is unaffected -- infeasible draws are mode-representative
+whatever inflates their number -- so the identification argument below stands.]
+
 The infeasible draws are mode-representative, so the alternative is refuted and the
 arithmetic IS identified. Solving 0.824*(1-f) + r*f = 0.693 gives r = 2% at f =
 0.164 and r = 10% at f = 0.179. Either way the atlas centres are overwhelmingly
@@ -1405,3 +1412,55 @@ a reliable method must tolerate it.
 **Not deployed.** 63a7880 was cleared for deployment now that all nine jobs have
 landed, but there is nothing to run and the campaign stays stopped, so the code
 fixes remain local. Both sessions are holding for the user's decision.
+
+## Addendum 2026-09-04w: the C/JAX targets agree — the disagreement was our pipeline
+
+The advisor's top-priority item, reconciling the implemented C and production JAX
+targets on identical states, is resolved by the companion session, and the answer is
+that there was never a disagreement.
+
+Oracle `mlf` against JAX `mlf2` on identical float64 parameter vectors, 60
+JAX-infeasible reference draws plus 30 feasible controls, comparing all 15 EDCs, all
+31 likelihood terms and total P: support agreement 87/90, max |C P - JAX P| where
+both are finite = 4.53e-12 nats, zero per-EDC gate disagreements. The residual 3/90
+is symmetric (2 C-finite/JAX-infinite, 1 the reverse) and knife-edge.
+
+**The apparent support disagreement was a cascade of our own last-ulp steps**, each
+perturbation ~1e-16 relative, nothing physical changing:
+
+  0. stored reference parameters, as written by C            1.38% infeasible
+  1. + p->z->p round trip inside nlloo_common.load_chains    6.97%
+  2. + float32 storage in the ref_draws archive             11.00%
+  3. + the kernel's 0.01 initialisation jitter              15.66%
+
+Verified independently here on 2000 draws: 7.400% after the round trip and 11.300%
+after float32 storage, against their 6.97% and 11.00%. Different subsets, same
+cascade. `nlloo_common.load_chains:76` does `p_to_z(Pp)`, and the archive's `z` is
+stored float32.
+
+**Consequences for this record.**
+- Every "x% of the reference is infeasible" statement either session made today is
+  wrong by roughly 5x, including the two rates in 4u. The reference posterior is
+  ~99% feasible. Composition results are unaffected, so 4u's identification
+  argument survives.
+- The initialisation contamination in the stationarity screen was ~90%
+  self-inflicted upstream of the kernel. The fix staged in 63a7880 is still correct
+  but addresses only the smallest term, 11.0% to 15.7%. The larger fix is reading
+  reference parameters directly from the .cbr `Parameters` variable and never
+  storing them as float32.
+- **Any hard-gate feasibility test on this posterior is a coin flip at the 1-ULP
+  level.** Two mathematically identical ways of forming p from z differ by a median
+  of 1 ULP, maximum 62, and that is enough to flip the gate. This is a seventh
+  instance of the 4t pattern, where the "benign analysis choice" is the ORDER OF
+  FLOATING-POINT OPERATIONS. It also means the equivalence suite's
+  CHAOS-CERTIFIED clause is not a tolerance concession; it describes the actual
+  behaviour of this gate.
+
+**Recommended, not applied while both sessions hold for the user:** stop the
+`p_to_z` round trip in `load_chains` (read and keep float64 parameters), and never
+archive draws in float32. Applying it now would change the inputs of every analysis
+run today, so it should be a deliberate, logged change rather than a quiet one.
+
+With this item closed, the advisor's remaining next steps are (2) validate
+normalisation on distributions with known integrals and (3) one bounded
+full-density pilot of the two-hill estimate.
