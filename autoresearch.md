@@ -1197,13 +1197,33 @@ two-basin chains in 1536), and the chains parked on the f_wood boundary (a walke
 whose small neighbourhood straddles 0.5 oscillates across it forever without
 travelling).
 
-**Scale of the shortfall (revised upward).** Fitting net ~ T^a to the measured
-growth gives a = 0.315-0.359, well below the diffusive 0.5. Reaching the
-independence distance therefore needs (13.23/6.1)^(1/a) = about 11x the current
-number of steps, not the 4.7x that assuming pure diffusion would suggest. The
-optimistic diffusive figure was my own error in the other direction from the one
-the companion session caught, and 4.7x should be read as a lower bound. Either way
-it buys ONE independent sample per chain, not a converged posterior. This is a quantitative target rather than a diagnosis of a
+**Scale of the shortfall: no single number is defensible.** The growth exponent in
+net ~ T^a is not constant, so the extrapolation depends on the fit window, and this
+was the fifth definition-dependent quantity of the day. Measured on refchk:
+
+  estimator                                 a
+  two-point, T/4 vs T (mine, unstated)   0.315 - 0.359
+  OLS on log net vs log t, full run      0.384 - 0.427
+  OLS, first half                        0.417 - 0.468
+  OLS, second half                       0.271 - 0.315
+
+The exponent DECLINES through the run, from about 0.47 early to about 0.29 late,
+which is the signature of accumulating step correlation and is a real feature, not
+noise. My 11x came from a two-point estimator whose method I failed to state; the
+companion session's 5-6.6x came from a full-run regression. Both are artefacts of
+an unstated window choice.
+
+Agreed wording: reaching the independence distance requires roughly 5x to 30x more
+sampling steps, depending on whether one extrapolates from early or late trajectory
+behaviour; since the exponent declines, the larger figures are the more relevant and
+the less well determined. Under an optimistic sqrt(T) assumption the factor is 4.7x,
+a lower bound.
+
+**What does NOT depend on any of that.** On every version of the calculation the
+shortfall is between one and one and a half orders of magnitude in sampling steps,
+and the step size cannot simply be scaled up to compensate: the void arm at six
+times the step scale still reached only 0.36-0.38 of the independence distance.
+Either way it buys ONE independent sample per chain, not a converged posterior. This is a quantitative target rather than a diagnosis of a
 barrier, and it is consistent with 4r: the binding constraint is step size and run
 length, not acceptance and not routing.
 
@@ -1212,3 +1232,27 @@ move continuously and diffuse, somewhat sub-diffusively; the run is far too shor
 relative to the step size, for any chain to decorrelate from where it started. The
 second clause carries the argument and is unaffected by the normalisation
 correction.
+
+## Addendum 2026-09-04t: five verdicts have moved under benign analysis choices
+
+Recorded as a numbered observation rather than a general remark, because it is the
+most reliable thing established today.
+
+1. **G's floor.** "0 = perfectly calibrated" versus a measured floor of 0.52; the
+   campaign's accept/reject margins sat inside it.
+2. **The decisive-subset threshold.** Overlap versus clean separation flipped on
+   whether the subset was defined at 0.50 or 0.55 sd, a difference of one parameter,
+   on a margin of 0.013.
+3. **The mode-mass / tau_wood gate.** "No overlap, factor-of-three margin" at n=3
+   became complete overlap at n=5.
+4. **Chart assignment.** 0% versus 100% of reference draws in a kept region, under
+   Mahalanobis versus Euclidean distance on the same charts.
+5. **The growth exponent.** 5x versus 30x more steps, depending on whether the fit
+   window is the early or the late trajectory.
+
+Four of the five were produced by this pair of sessions rather than found in the
+code under study. In every case the number looked decisive until someone recomputed
+it a slightly different way, and in every case the definitional choice had gone
+unstated. The single rule that would have caught all five: state the estimator and
+the achievable resolution BEFORE reading the verdict, and treat any margin smaller
+than the spread across reasonable definitions as absent.
