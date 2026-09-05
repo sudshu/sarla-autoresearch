@@ -12,7 +12,7 @@ th{background:#f4f6f8} code{background:#f4f6f8;padding:0 .2rem} pre{background:#
 .now{background:#fff8e6;border-left:4px solid #e0a800;padding:.6rem 1rem;margin:1rem 0;font-size:.95rem}
 </style></head><body>
 <h1>SARLA autoresearch: making CARDAMOM's calibration fast without making it wrong</h1>
-<p class="small">Updated 2026-09-04 16:10 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
+<p class="small">Updated 2026-09-04 20:51 PDT. An automated research loop run by a Claude Code session, with a Codex advisor
 after each iteration. Repository: <a href="https://github.com/sudshu/sarla-autoresearch">sudshu/sarla-autoresearch</a>.</p>
 
 <h2>In one paragraph</h2>
@@ -38,8 +38,8 @@ holdout sites that are never used for choosing, so the method cannot be tuned to
 <div><b>~50 min</b>per site fit (vs 33 h)</div>
 </div>
 
-<div class="now"><b>Latest:</b> 2026-09-04c: one targeted check, outside the stopped loop<br>
-<b>Right now:</b> refchk (outside the loop): 5 fits running, 1 waiting, 0 done<br>GPU hosts: h100: 3 running; kyo: 2 running<br>queue snapshot 2026-09-04 16:09 PDT</div>
+<div class="now"><b>Latest:</b> 2026-09-04d: the bug was real, the fix works, and it moves the target<br>
+<b>Right now:</b> GPU hosts: h100: 0 running; kyo: 0 running<br>queue snapshot 2026-09-04 20:28 PDT</div>
 
 <h2>How to read this page</h2>
 <ul>
@@ -1001,6 +1001,36 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>per variant. They will be ranked on distance to the 64-chain reference posterior,</p>
 <p>against its split-half floor of 0.033, rather than on the gap score whose defects</p>
 <p>are recorded in the two addenda above. Results are not in yet.</p>
+<h3>2026-09-04d: the bug was real, the fix works, and it moves the target</h3>
+<p>Two results, and together they redraw the plan.</p>
+<p><b>The curvature fix works, and it takes back yesterday&#x27;s retraction.</b> A corrected</p>
+<p>target that keeps the soft ecological penalties and zeroes only the hard cliffs</p>
+<p>reproduces the true posterior to fourteen decimal places on real draws, and stays</p>
+<p>differentiable where the old one did not. Rebuilt on it, the local Gaussian</p>
+<p>approximation at each of the two carbon-allocation hills is well behaved, and it</p>
+<p>estimates the split between them as 0.83 against the slow method&#x27;s 0.81, from two</p>
+<p>curvature calculations in about five minutes. Yesterday we recorded that this</p>
+<p>approach was unusable here. It was our own bug. That verdict is withdrawn.</p>
+<p><b>But mode weighting is not the main error.</b> We took each fast fit, forced its</p>
+<p>balance between the two hills to match the slow method exactly, and re-measured</p>
+<p>the distance. It barely moved: five to ten percent of the gap. Conditional on</p>
+<p>being on the right hill, the fast path&#x27;s parameter distributions are still ten to</p>
+<p>eighteen times further from the reference than the reference is from itself. So</p>
+<p>even a perfect rule for weighting the two hills, which we now have, would not make</p>
+<p>the fast answer match the slow one. The shape of the posterior within each hill is</p>
+<p>the real problem, and it was never what the campaign was optimising.</p>
+<p><b>It also answers the question the six running fits were meant to settle.</b> Within</p>
+<p>the correct hill the discarded variant and the one that beat it are tied. The</p>
+<p>discarded variant looked better only because its hill balance happened to land</p>
+<p>nearer the truth, which is consistent with its distinguishing feature being unable</p>
+<p>to influence the production sampler at all. One caveat we should not gloss: the</p>
+<p>claim that it is worse on the smaller hill leans on a sample a fifth the size of</p>
+<p>the comparison, which inflates that number. The tie on the main hill is the solid</p>
+<p>part.</p>
+<p>For a restart, this is a better place to begin than where we were: the target is</p>
+<p>fixed, the geometry tool works, and the thing to attack is within-mode shape, not</p>
+<p>mode weighting. Nothing has been redeployed; the atlas builder still uses the old</p>
+<p>target and the running fits are using it.</p>
 
 <h2>Idea bank</h2>
 <h2>Idea bank</h2>
@@ -1337,4 +1367,932 @@ ecological constraints reject (see the log entry "Protocol v2"); they are kept f
 <p>and the products agree to one percent. This is an allocation-turnover confound.</p>
 <p>The mode error must NOT be described as a large disagreement about present carbon</p>
 <p>storage; it changes future stock change and turnover-limited persistence.</p>
+<h3>Addendum 2026-09-04d: the curvature fix works, and mode weighting is not the main error</h3>
+<p>Both results from the companion session, both checked here.</p>
+<p><b>1. gate=&quot;soft&quot; is the correct curvature target, and it un-retracts Laplace.</b></p>
+<p>The new branch keeps the likelihood, every FINITE EDC term and the Jacobian, and</p>
+<p>zeroes only the -inf cliffs. Verified here on 30 evenly spaced reference draws at</p>
+<p>NL-Loo: max |logpost(hard) - logpost(soft)| = 5.7e-14 nats over the 29 feasible</p>
+<p>ones, and soft is finite on all 30. Compare the old gate=&quot;none&quot;, measured in</p>
+<p>addendum 4c at a median 11 nats off, with gradient directions differing by a</p>
+<p>median relative 0.99, so it was not a mild distortion.</p>
+<p>With the corrected curvature the companion session reports the high hill carrying</p>
+<p>2 negative eigenvalues out of 89 and the low hill 0, against the 9 to 13 we</p>
+<p>previously reported. So &quot;Laplace geometry is unusable for this posterior&quot; was our</p>
+<p>own bug, and that retraction is itself withdrawn.</p>
+<p>[CORRECTED. This addendum first recorded a two-hill Laplace mass of 0.827 against</p>
+<p>the reference 0.815, i.e. near-agreement. That was a 400-draw-per-hill first pass</p>
+<p>and is SUPERSEDED. Redone at 20000 draws per hill it is 0.865 [0.835, 0.888]</p>
+<p>against the reference 0.815 [0.794, 0.834]: the intervals are essentially</p>
+<p>non-overlapping, so this is within about 0.05 of the answer, not a match. The 0.827</p>
+<p>figure is retired. Two caveats belong with the corrected number: the feasibility</p>
+<p>correction does nearly all the work, since only 0.6% and 2.5% of each fitted</p>
+<p>Gaussian is feasible, and peak height alone gives 0.007. The estimator is doing</p>
+<p>something delicate, not something robust.]</p>
+<p>The practical point survives the correction and is arguably the most useful result</p>
+<p>of the campaign: it reaches within ~0.05 of the reference&#x27;s mode split for roughly</p>
+<p>1/400th of the cost, from two Hessians in about five minutes.</p>
+<p><b>2. Mode weighting is NOT the main error (this changes the priority order).</b></p>
+<p>Each real-data fit&#x27;s own draws were reweighted to the reference mode proportions</p>
+<p>and per-parameter 1-Wasserstein distance re-measured, median over 89 parameters,</p>
+<p>in reference-sd units. Sample sizes are matched between the floor and the variant</p>
+<p>figures (4000 vs 4000 unconditional, 2000 vs 2000 within-high, 1000 vs 1000</p>
+<p>within-low).</p>
+<p>  variant                  mass_hi  W1 all  W1 rewt  W1|high  W1|low</p>
+<p>  reference (floor)          0.812   0.039    0.039    0.045   0.065</p>
+<p>  v3_baseline                0.539   0.873    0.791    0.795   0.741</p>
+<p>  h2_de128                   0.576   0.528    0.515    0.529   0.581</p>
+<p>  s4_surgery_de128           0.592   0.505    0.490    0.477   0.512</p>
+<p>  s7_surgery_volume_de128    0.916   0.429    0.464    0.465   0.596</p>
+<p>Reweighting removes only 5 to 10 percent of the discrepancy, and for s7 it makes</p>
+<p>matters slightly worse because s7 overshoots the mass. Conditional on being in the</p>
+<p>correct hill the fast path is still 10 to 18 times the reference&#x27;s own noise floor</p>
+<p>(within-high: baseline 17.8x, h2 11.8x, s4 10.7x, s7 10.4x). A correct</p>
+<p>mode-weighting rule, including the one the fixed Laplace now supplies, would NOT</p>
+<p>rescue the fast path. The within-mode shape error is the thing to attack.</p>
+<p><b>This also settles the s7 question ahead of the seed runs.</b> Within the high hill</p>
+<p>s7 and s4 are effectively tied (0.465 vs 0.477, both about 10x floor). s7&#x27;s whole</p>
+<p>apparent advantage was that its mode proportion happened to land nearer the</p>
+<p>reference. Consistent with the chart-volume weight being unable to act through the</p>
+<p>production chart_de kernel at all. <b>Caveat added here:</b> the claim that s7 is</p>
+<p>worse in the low hill (0.596 vs 0.512) is partly a sample-size artifact, since</p>
+<p>s7&#x27;s 0.916 mass leaves only ~506 low-hill draws against the floor&#x27;s 1000-vs-1000</p>
+<p>construction, which inflates W1. The high-hill tie is the solid part.</p>
+<p><b>Recorded next step, not taken:</b> <code>scripts/osse_fit.py:69</code> still builds the atlas</p>
+<p>on gate=&quot;none&quot;. The fix is one word once target.py is synced, but the six refcheck</p>
+<p>fits are running against the current code, so nothing is being redeployed.</p>
+<h3>Addendum 2026-09-04e: I mutated an input file mid-campaign (methodological error)</h3>
+<p>On 2026-09-03 at 10:46 I added the real-data MAP point to</p>
+<p><code>runs/osse_sites_v2/183real/seeds.npz</code> in place, with no versioning, after 14</p>
+<p>iterations of real-data fits had already been run against the previous contents.</p>
+<p>Every real-data fit after that date used a different atlas from the ones before</p>
+<p>it. This was recorded in LOG.md at the time as a one-line aside and its</p>
+<p>consequences were not thought through.</p>
+<p><b>The original is recoverable.</b> <code>runs/osse_sites_v2/183realb/seeds.npz</code> holds</p>
+<p>exactly the pre-edit 24 rows: all 24 are bytewise present in the current 25-row</p>
+<p>file, and the added row is index 24. No data was lost.</p>
+<p><b>The seed-count explanation does not hold.</b> Running the forward model on all 25</p>
+<p>points: the original 24 contained 1 high-allocation point (f_wood 0.65), 4 low and</p>
+<p>19 degenerate (f_wood &lt;= 0, i.e. NPP below zero); the current 25 contain 1 high, 5</p>
+<p>low, 19 degenerate. The number of healthy high-allocation seeds is ONE in both. So</p>
+<p>the observation that today&#x27;s fits land at 9 to 17 percent high-allocation mass</p>
+<p>cannot be attributed to the seed set being high-allocation-poor, because the set</p>
+<p>that produced 0.594 and 0.912 was equally poor.</p>
+<p><b>The specific mechanism to test instead.</b> The row I added is the global MAP</p>
+<p>(f_wood 0.194, log-posterior -161.9), the highest-density point known anywhere in</p>
+<p>the space, and it sits in the LOW-allocation budget. Injecting the global density</p>
+<p>maximum into the L-BFGS seed set plausibly builds a dominant chart at the low peak</p>
+<p>and restructures the atlas around it. That predicts the observed collapse.</p>
+<p><b>Ruled out as confounds.</b> (a) Code drift: the three surgery changes committed</p>
+<p>between the two run dates (branch_on_infeasible, connectivity_rule, rank_min_diff)</p>
+<p>all default to the previous behaviour, and the s4/s7 variant files do not pin them.</p>
+<p>(b) Start assignment: chain starts come from init_seed, fixed at 99 in both</p>
+<p>variants, while kernel_seed drives only the sampler. Starts therefore differ</p>
+<p>between the two run dates only through the atlas, hence only through the added</p>
+<p>point.</p>
+<p><b>The clean A/B, well posed and not run:</b> the same kernel seeds against 183realb</p>
+<p>(24 points, no MAP) and 183real (25 points). If mode mass follows the seed file,</p>
+<p>the MAP injection caused the collapse. If it does not, then kernel-seed variance</p>
+<p>in mode mass is enormous, which is itself the finding. Either way the s7-vs-s4</p>
+<p>comparison across the two dates is confounded and cannot be read as a seed effect.</p>
+<p><b>Rule for any restart:</b> input data files are immutable once any fit has run</p>
+<p>against them. A change means a new site directory and a new name, never an in-place</p>
+<p>edit.</p>
+<h3>Addendum 2026-09-04f: correcting 4e — the seed edit also hit the primary dev site</h3>
+<p>Two corrections to addendum 4e, both found by following up a companion-session</p>
+<p>report that the Sep-3 code changes had silently altered every variant.</p>
+<p><b>1. The code-drift claim is wrong; I checked all three diffs.</b> The three</p>
+<p>SurgeryConfig knobs added on Sep 3 are exactly back-compatible under their</p>
+<p>defaults, so no pre-existing variant changed behaviour:</p>
+<ul>
+<li><code>branch_on_infeasible=True</code>: old code returned</li>
+</ul>
+<p>  <code>all(isfinite(lpm)) and lpm.min() &gt; ...</code>; new code returns</p>
+<p>  <code>not branch_on_infeasible</code> when any midpoint is infeasible, i.e. False, then the</p>
+<p>  same comparison. Identical.</p>
+<ul>
+<li><code>connectivity_rule=&quot;segment&quot;</code>: the feasible_path logic is guarded by</li>
+</ul>
+<p>  <code>== &quot;feasible_path&quot;</code>, and its RNG draws happen only inside that branch, so the</p>
+<p>  random stream is also unperturbed.</p>
+<ul>
+<li><code>rank_min_diff=0.0</code>: the added conjunct is <code>abs(...) &gt;= 0.0 * D</code>, always true.</li>
+</ul>
+<p>The presence of <code>sg_branch_on_infeasible</code> in a run&#x27;s echoed variant dict is a</p>
+<p>useful PROVENANCE marker for which code version ran, but it is not evidence of a</p>
+<p>behaviour change. Cross-iteration comparisons are not confounded by code drift.</p>
+<p><b>2. The seed edit is worse than 4e said: it also hit dev site 183.</b> I checked</p>
+<p>mtimes across all site directories. <code>183/seeds.npz</code> and <code>183B/seeds.npz</code> were</p>
+<p>edited at the same moment as <code>183real</code>, on Sep 3 at 10:46, 24 rows to 25. The</p>
+<p>other dev and holdout sites (58, 26, 71, 55, 57, 82, 178 and their B variants)</p>
+<p>were NOT touched and have 24 rows.</p>
+<p>At site 183 the appended row is far more damaging than at 183real:</p>
+<p>  appended row 24: f_wood 0.194 (low-allocation), log-posterior -268.6</p>
+<p>  best of the original 24 rows:                    log-posterior -621.4</p>
+<p>The injected point is 353 nats denser than every other seed. An L-BFGS seed set</p>
+<p>anchored by such an outlier, in the low-allocation budget, will dominate the atlas</p>
+<p>it produces. Note also that the original 24 rows at this site were mostly</p>
+<p>high-allocation (20 of 24), unlike 183real, so the edit did not merely add a point</p>
+<p>to a poor set: it added a dominating low-allocation attractor to a good one.</p>
+<p><b>Blast radius.</b> Iterations 0 to 28 ran before the edit; iterations 29 to 36 ran</p>
+<p>after. [CORRECTED: this was first estimated as a 27/28 boundary from job-directory</p>
+<p>mtimes. Labelling each fit from its OWN log line &quot;N feasible seed points from ...&quot;</p>
+<p>(19 = restored 24-row set, 20 = contaminated 25-row set) puts i027 and i028 on the</p>
+<p>restored set and i029 first on the contaminated one. Provenance from artifacts</p>
+<p>beats provenance from timestamps.] Site 183 is one of</p>
+<p>the four development sites and is one of the two sites the mode-weight gate is</p>
+<p>evaluated on. So dev-G and mode-gate comparisons that straddle iteration 27/28 are</p>
+<p>confounded at that site. Site 183 real-data fits are affected from Sep 3 10:46 too.</p>
+<p>Comparisons within either group, and at the other sites, are unaffected.</p>
+<p><b>Recovery (verified, not inferred).</b> All four site directories share the same</p>
+<p>24 base seeds, and the appended row 24 is bitwise identical across 183, 183B and</p>
+<p>183real. Rows 0-23 of <code>183/seeds.npz</code> are bitwise identical to rows 0-23 of</p>
+<p><code>183real/seeds.npz</code>, and the pre-edit file preserved as <code>183realb/seeds.npz</code> is</p>
+<p>bitwise identical (uint64 view, shape and dtype) to rows 0-23 of both. So the</p>
+<p>pre-edit seed set is RESTORED, not reconstructed: it is saved as</p>
+<p><code>seeds.pre_map_2026-09-03.npz</code> in 183, 183B and 183real, each verified against the</p>
+<p>preserved copy. Any rerun of a pre-edit variant can use it without caveat.</p>
+<p><b>Update (4f, same day):</b> the companion session independently diffed the merged</p>
+<p>variant dicts that sarla_fit.py echoes for a pre-edit and a post-edit run of the</p>
+<p>same variant. The only differences are the seven newly added keys plus the</p>
+<p>kernel seed; no key present in both changed value. That is a stronger check than</p>
+<p>reading the diffs, and it agrees: the code is a no-op at these defaults. The</p>
+<p>companion session has retracted its code-drift claim. With code drift eliminated</p>
+<p>and kernel-seed noise measured at sd 0.019-0.033 in mode mass and 1.7-2.7 yr in</p>
+<p>tau_wood, far too small to move tau_wood from 10 to 45 yr, the seed edit is the</p>
+<p>only surviving explanation for the collapse, pending the control runs.</p>
+<h3>Addendum 2026-09-04g: the seed edit flips the answer, and BOTH metrics hide it</h3>
+<p><b>Control result (companion session, 3 of 6 fits).</b> Identical code, identical</p>
+<p>kernel seeds, only the seed file swapped (reference mass_hi 0.813, tau_wood</p>
+<p>10.36 yr):</p>
+<p>  restored 24-seed set   s4_s6 mass 0.599 tau 13.54 | s4_s7 0.809 / 10.33 | s7_s6 0.669 / 11.76</p>
+<p>  contaminated 25-seed   s4 mass 0.146 +/- 0.033 tau 40.63 +/- 1.68 (n=3)</p>
+<p>                         s7 mass 0.085 +/- 0.019 tau 46.10 +/- 2.73 (n=3)</p>
+<p>Mean tau_wood 11.9 yr restored vs 43.4 yr contaminated, against measured</p>
+<p>kernel-seed noise of 1.7-2.7 yr: roughly 15x the sampler&#x27;s own scatter. One fit</p>
+<p>(s4 seed 7) reproduces the reference mode summaries almost exactly, 0.809/10.33</p>
+<p>against 0.813/10.36. A single 353-nat seed flips the sampler&#x27;s answer to the</p>
+<p>central scientific question. This is seeding dominance, not a mixing failure.</p>
+<p><b>The distance metric prefers the WRONG answer, and I verified it and found why.</b></p>
+<p>Recomputing per-parameter 1-Wasserstein against the reference for s4 seed 7:</p>
+<p>  contaminated (wrong mode)  W1 median 0.294   closer on 64 of 89 parameters</p>
+<p>  restored     (right mode)  W1 median 0.414</p>
+<p>The mechanism is dimensional dilution. Only 11 of 89 parameters separate the two</p>
+<p>modes by more than 0.5 reference-sd. On those the restored fit is far closer:</p>
+<p>  parameter     mode separation   W1 contaminated   W1 restored</p>
+<p>  phi_WL             1.79 sd           1.19            0.32</p>
+<p>  i_cwd              1.37 sd           1.28            0.48</p>
+<p>  tr_lit2som         1.28 sd           1.19            0.35</p>
+<p>  t_wood             1.07 sd           0.60            0.60</p>
+<p>  LCMA               1.06 sd           0.42            0.36</p>
+<p>  i_labile           1.06 sd           0.96            0.88</p>
+<p>The other 78 parameters are nuisance dimensions where the contaminated fit happens</p>
+<p>to sit closer, and they swamp the median. So the median-over-89 distance is not a</p>
+<p>better metric than G; it fails the same way, by averaging a low-dimensional but</p>
+<p>decisive structure into 89 dimensions of noise. G&#x27;s floor problem and this are the</p>
+<p>same structural error at bottom.</p>
+<p><b>Consequence for the loop record.</b> Any decision made on distance-to-reference at</p>
+<p>sites 183/183B over iterations 28-36 may have been driven the wrong way, on top of</p>
+<p>the seed confound itself. Re-reading those iterations is deferred until all six</p>
+<p>control fits land.</p>
+<p><b>Concrete fix for any restart (revised, see 4h).</b> Report the decisive-subset</p>
+<p>distance alongside, not inside, the 89-parameter average, and use the disagreement</p>
+<p>between them as a cheap alarm. But the GATE should be mode mass and tau_wood</p>
+<p>against the reference. See addendum 4h: the decisive subset fixes the sign of the</p>
+<p>comparison but does not separate the two conditions robustly enough to gate on.</p>
+<h3>Addendum 2026-09-04h: the decisive subset is a diagnostic, not a gate</h3>
+<p>I proposed in 4g that a restart should score on the decisive parameter subset. The</p>
+<p>companion session pushed back, and it is right. Both of us then measured the same</p>
+<p>thing and landed on opposite sides of the boundary, which settles it more firmly</p>
+<p>than either result alone.</p>
+<p>  companion session (12-parameter subset): worst restored 0.600 &gt; best</p>
+<p>      contaminated 0.580, i.e. the conditions OVERLAP</p>
+<p>  this session (11-parameter subset):      worst restored 0.616 &lt; best</p>
+<p>      contaminated 0.629, i.e. clean separation by a margin of 0.013</p>
+<p>The subset definition differs only by where the 0.5-sd threshold falls (11 versus</p>
+<p>12 parameters). A classifier whose verdict flips between &quot;overlapping&quot; and</p>
+<p>&quot;separated&quot; under that benign a choice, on a margin of 0.013, is not fit to gate</p>
+<p>promotions. That is exactly how G went wrong: a number with a real signal in it,</p>
+<p>used at a resolution finer than its own stability.</p>
+<p>What the subset IS good for, confirmed at n=9 here: it explains the inversion. The</p>
+<p>sign flips cleanly on the aggregate (decisive 0.66 contaminated vs 0.49 restored;</p>
+<p>nuisance 0.27 contaminated vs 0.42 restored), which is the dimensional-dilution</p>
+<p>mechanism. And the cross-check stands: if the decisive-subset distance and the</p>
+<p>89-parameter median disagree in sign, distrust the run.</p>
+<p>The direct quantities separate with no overlap and a wide margin, so they are the</p>
+<p>gate:</p>
+<p>  mass_hi    restored 0.57-0.81      contaminated 0.07-0.16</p>
+<p>  tau_wood   restored 10.3-13.9 yr   contaminated 39.3-48.5 yr</p>
+<p>  [OVERTURNED 2026-09-04 by control fits 4 and 5 -- see addendum 4i. The restored</p>
+<p>   range above was n=3; at n=5 it becomes 0.057-0.810 and OVERLAPS the</p>
+<p>   contaminated range. This gate is not clean.]</p>
+<p><b>Rule for a restart:</b> gate on mode mass and tau_wood against the reference;</p>
+<p>report decisive-subset and full-median distances side by side as diagnostics; never</p>
+<p>promote or discard on a margin smaller than the metric&#x27;s own definitional</p>
+<p>sensitivity.</p>
+<p><b>4h refinement (threshold sweep, both sessions).</b> Rather than trading single</p>
+<p>threshold choices, both sessions swept it. The two sweeps agree closely in the</p>
+<p>robust region and disagree exactly where the margins are tiny:</p>
+<p>  thresh  n_par   margin (companion)   margin (this session)   AUC (this session)</p>
+<p>   0.30    17-18       -0.108                -0.100                0.78</p>
+<p>   0.40    13          +0.033                +0.033                1.00</p>
+<p>   0.50    11-12       -0.020                +0.013                1.00</p>
+<p>   0.55    11          +0.013                +0.013                1.00</p>
+<p>   0.65     8          +0.180                +0.180                1.00</p>
+<p>   0.70     7          +0.413                +0.413                1.00</p>
+<p>   0.85     6          +0.456                +0.456                1.00</p>
+<p>Margin = best contaminated minus worst restored, so positive means separated.</p>
+<p>AUC = P(a restored run scores closer than a contaminated one), 1.0 = perfect</p>
+<p>ranking. Below 0.40 the subset genuinely degrades. Between 0.40 and 0.60 the</p>
+<p>verdict is unstable and the two sessions disagree, with every margin under 0.04.</p>
+<p>At 0.65 sd and above, on the 6 to 8 strongest parameters, both sweeps agree</p>
+<p>exactly and margins are an order of magnitude larger.</p>
+<p><b>Two cautions on that robust region, so it is not over-read.</b></p>
+<p>(a) It was identified AFTER seeing which thresholds separate. Adopting it now</p>
+<p>would manufacture a metric that works on the data that built it, which is the</p>
+<p>error this whole addendum series is about.</p>
+<p>(b) The statistic itself is weak at these sample sizes. &quot;Worst restored versus</p>
+<p>best contaminated&quot; is an extreme-order statistic on 3 and 6 points. Even the</p>
+<p>perfect AUC of 1.00 carries a best-achievable p-value of 1/C(9,3) = 0.012 with</p>
+<p>n=3 versus n=6, so neither &quot;overlap&quot; nor &quot;separated&quot; is well determined here.</p>
+<p><b>Recorded as a pre-registered candidate, explicitly NOT a metric in use:</b></p>
+<p>subset = parameters whose two-mode means differ by more than 0.65 reference-sd;</p>
+<p>statistic = AUC over runs, not a min/max margin; to be validated at a different</p>
+<p>site, with more seeds per condition, before it is allowed to gate anything.</p>
+<p>The gate remains mode mass and tau_wood, whose margins are one to two orders of</p>
+<p>magnitude more robust: mass gap +0.409 (3.5x) and tau_wood gap 25.4 yr (2.8x)</p>
+<p>between the worst restored and the best contaminated run.</p>
+<h3>Addendum 2026-09-04i: CORRECTION to 4g and 4h — the gate overlaps too</h3>
+<p>Control fits 4 and 5 landed and overturn the central claim of 4g and the</p>
+<p>recommendation of 4h. Verified independently here by recomputing mode mass from</p>
+<p>every control fit&#x27;s own draws.</p>
+<p>  condition     host   run                          mass_hi</p>
+<p>  restored      h100   s4 seed 6                     0.594</p>
+<p>  restored      h100   s4 seed 7                     0.810</p>
+<p>  restored      h100   s7 seed 6                     0.655</p>
+<p>  restored      kyo    s4 seed 8                     0.110   &lt;- new</p>
+<p>  restored      kyo    s7 seed 7                     0.057   &lt;- new</p>
+<p>  contaminated  h100   s4 seed 6 / s4 seed 7         0.156 / 0.109</p>
+<p>  contaminated  h100   s7 seed 6 / s7 seed 8         0.094 / 0.068</p>
+<p>  contaminated  kyo    s4 seed 8 / s7 seed 7         0.166 / 0.086</p>
+<p><b>What is overturned.</b> 4g reported the restored condition at mass 0.57-0.81</p>
+<p>against contaminated 0.07-0.16, &quot;no overlap, factor-of-three margin&quot;, and 4h made</p>
+<p>that the recommended gate. At n=5 the restored range is 0.057-0.810 and overlaps</p>
+<p>the contaminated range completely. The two new runs read 19 feasible seed points</p>
+<p>from the restored file with rc=0, so they are genuine restored-seed runs that</p>
+<p>collapsed, and they collapsed harder than any contaminated run.</p>
+<p><b>What survives, and the precise logical statement.</b> Pooling with the i014 fits:</p>
+<p>restored recovered the high-allocation mode in 7 of 9 runs, contaminated in 0 of 7</p>
+<p>(Fisher one-sided p = 0.0031). Locally on the controls alone: restored 3/5,</p>
+<p>contaminated 0/6. So seed contamination is a SUFFICIENT cause of failure, and it</p>
+<p>is highly reliable as such; restoring the seeds is NOT sufficient for success. The</p>
+<p>4g headline &quot;one seed flips the answer&quot; holds in one direction only. &quot;Remove the</p>
+<p>seed and the method is correct&quot; does not hold: it is 3/5 on fresh runs.</p>
+<p><b>A second possible factor, confounded with host.</b> Within the restored condition</p>
+<p>the control fits split perfectly by machine: h100 3/3 recovered, kyo 0/2. Pooling</p>
+<p>the companion session&#x27;s wider set gives h100 6/6 and kyo 1/3 (Fisher one-sided</p>
+<p>p = 0.083, suggestive only), and one earlier kyo run did recover, which argues</p>
+<p>against hard hardware determinism. Candidate explanations: GPU numerics, the</p>
+<p>memory-fraction difference (0.3 on h100 vs 0.9 on kyo), or nothing. This matters</p>
+<p>beyond these runs because the loop&#x27;s 39 iterations were spread across both</p>
+<p>machines, so if it is real it is a second confound running through the entire</p>
+<p>record.</p>
+<p><b>Pre-registered test (companion session, before the last fit landed):</b> the final</p>
+<p>control fit is queued on h100 with restored seeds. Host hypothesis predicts mass</p>
+<p>&gt; 0.5 and tau_wood 10-14 yr; seed-only hypothesis predicts roughly 60-70% chance</p>
+<p>of the same. A collapse on h100 kills the host hypothesis and means the method</p>
+<p>simply fails on about 40% of runs.</p>
+<p><b>Consequences.</b> The iterations 28-36 re-read stays deferred, now for two reasons</p>
+<p>rather than one. And the recommended follow-up is 6 to 8 more restored-seed fits</p>
+<p>split deliberately across hosts; neither the host claim nor the irreducible-failure</p>
+<p>claim can be written up without it. That is GPU work beyond the stopped campaign</p>
+<p>and is the user&#x27;s call, not ours.</p>
+<p><b>Method note on us, and the most transferable finding of the campaign.</b> In 4h I</p>
+<p>warned that a min/max margin on 3 and 6 points is an extreme-order statistic and</p>
+<p>that neither verdict was well determined. That warning was aimed at the</p>
+<p>decisive-subset metric; it applied just as much to the gate endorsed in the same</p>
+<p>breath, and the gate is what it broke. Both sessions over-read an n=3 range as a</p>
+<p>clean separation.</p>
+<p>Generalised, agreed by both sessions: in this campaign THREE metrics in turn --</p>
+<p>the calibration gap G, decisive-subset W1, and the mode-mass/tau_wood gate -- each</p>
+<p>looked clean and then failed as n grew. In all three cases the failure was</p>
+<p>predictable in advance from the sample size alone, with no knowledge of the metric.</p>
+<p>So the rule is NOT &quot;prefer direct physical quantities&quot;, which is what the evidence</p>
+<p>appeared to say at 4h. The rule is:</p>
+<p>  STATE THE ACHIEVABLE RESOLUTION BEFORE READING THE VERDICT.</p>
+<p>  Compute what the metric can resolve at the n you have, and refuse to read a</p>
+<p>  margin finer than that, whatever the metric is measuring.</p>
+<p>Applied to this campaign that single rule would have caught the G floor at</p>
+<p>iteration 0, the decisive-subset instability at 4g, and the gate overlap at 4h,</p>
+<p>before any of them was acted on.</p>
+<p><b>4i caution, carried from the companion session.</b> Even if the host split proves</p>
+<p>real, it does not rescue the method. Six of six on one machine is still a sampler</p>
+<p>whose answer to the central scientific question depends on something outside the</p>
+<p>data. It would move the diagnosis from &quot;unreliable&quot; to &quot;unreliable in a way we can</p>
+<p>point at&quot;, which helps debugging but is not evidence that the fast path can replace</p>
+<p>the 33-hour reference. Nothing in the seed or host analysis changes the</p>
+<p>distance-to-reference numbers: every variant in the set remains 10 to 15 times the</p>
+<p>reference&#x27;s split-half floor.</p>
+<p><b>Division of labour agreed:</b> the companion session takes the host-split</p>
+<p>submission and scoring (dispatch state and provenance-aware scorers are there);</p>
+<p>this session takes the iterations 28-36 re-read once the host question is settled</p>
+<p>(that record is this session&#x27;s). Neither is launching GPU work; the host-split</p>
+<p>experiment is with the user.</p>
+<h3>Addendum 2026-09-04j: host hypothesis dead; the real result is variance</h3>
+<p><b>The pre-registered prediction failed, which settles the host question.</b> The</p>
+<p>final control fit ran on h100 with restored seeds and gave mass 0.327, tau_wood</p>
+<p>21.90 yr, against a predicted mass &gt; 0.5 and tau 10-14 yr. It is also a third</p>
+<p>outcome type, neither clean recovery nor the 40-68 yr collapse. Within the restored</p>
+<p>set the host split is now h100 6/7 versus kyo 1/3, Fisher p = 0.18, weaker than</p>
+<p>before. Recorded as TESTED AND NOT SUPPORTED, not as open. Because the prediction</p>
+<p>was registered before the fit landed, this is a real test rather than a story</p>
+<p>fitted afterwards.</p>
+<p><b>The seed effect survives:</b> restored recovered 7 of 10, contaminated 0 of 7,</p>
+<p>Fisher one-sided p = 0.0062.</p>
+<p><b>The headline result is about variance, not location.</b> Verified independently</p>
+<p>here on all twelve control fits, matched variants and matched kernel seeds:</p>
+<p>  restored      n=6  mean 0.426  sd 0.308  range 0.057-0.810</p>
+<p>  contaminated  n=6  mean 0.113  sd 0.039  range 0.068-0.166</p>
+<p>  spread ratio 7.8x;  Levene p = 0.0012;  Mann-Whitney on location p = 0.066</p>
+<p>The variance difference is an order of magnitude better determined than the mean</p>
+<p>difference. The contaminated seed set does not merely bias the answer: it makes the</p>
+<p>method reproducibly wrong, sd 0.039 across independent runs. Restoring the seeds</p>
+<p>does not make it right, it makes it IRREPRODUCIBLE, sd 0.308 spanning nearly the</p>
+<p>whole range. The contamination was masking the instability, and every consistency</p>
+<p>check run during the contaminated period would have looked reassuring for exactly</p>
+<p>the wrong reason.</p>
+<p>This also retires an earlier number: the &quot;kernel-seed noise is small, sd 0.019 to</p>
+<p>0.033&quot; measurement quoted in 4f and 4g was taken entirely inside the collapsed</p>
+<p>state. It measured the reproducibility of a failure mode, not of the sampler.</p>
+<p>The result is threshold-free and needs no subset definition and no gate, which</p>
+<p>after the 4g/4h/4i sequence is the main thing to recommend it.</p>
+<p><b>Re-read feasibility (this session&#x27;s task).</b> Draws for 10 of 11 site-183 fits in</p>
+<p>iterations 30-36 were pruned by loop.py after scoring, so mode mass cannot be</p>
+<p>recomputed from them. It CAN be recovered: the per-fit <code>mode.high_frac</code> survives in</p>
+<p>experiments/NNN/scores/183*.json, and log.txt and result.json survive pruning too,</p>
+<p>so seed set, host and code era remain recoverable per fit. <code>scripts/reread_28_36.py</code></p>
+<p>labels every fit from its own artifacts and falls back to the stored score. Dry run</p>
+<p>over iterations 20-37: 23 jobs, mass available for all 23 (2 from draws, 21 from</p>
+<p>stored scores). The re-read is therefore possible and is no longer blocked by the</p>
+<p>host question, which is now settled.</p>
+<h3>Addendum 2026-09-04k: the iterations 28-36 re-read (this session&#x27;s task, complete)</h3>
+<p>Every site-183 fit in the loop record relabelled from its own artifacts</p>
+<p>(<code>scripts/reread_28_36.py</code>): seed set from the log&#x27;s &quot;N feasible seed points&quot;</p>
+<p>line, host from result.json, mode mass from the fit&#x27;s draws or, where loop.py had</p>
+<p>pruned them, from <code>mode.high_frac</code> in experiments/NNN/scores. 70 jobs, mass</p>
+<p>recovered for all 70 (6 from draws, 64 from stored scores).</p>
+<p><b>The boundary is stark and confirms 4f as corrected.</b> Iterations 0-28 ran on the</p>
+<p>restored 24-row set, 29-37 on the contaminated 25-row set:</p>
+<p>  restored(24)      n=57  mean 0.559  sd 0.234  range 0.014-0.990  recovered 39/57</p>
+<p>  contaminated(25)  n=13  mean 0.251  sd 0.124  range 0.008-0.506  recovered  1/13</p>
+<p>  Mann-Whitney on location p &lt; 0.0001</p>
+<p>Per-iteration means fall off a cliff at the boundary: i028 averages 0.990, i029</p>
+<p>averages 0.008, and no iteration from 29 onward exceeds 0.506. So every conclusion</p>
+<p>drawn at NL-Loo in iterations 29-36 was drawn in the collapsed state. That window</p>
+<p>contains the tempering iterations (33-36), the surgery variants at 31-32 and the</p>
+<p>de64 kernel test at 30.</p>
+<p>**The loop record refutes the host hypothesis far more decisively than the controls</p>
+<p>could.** Within the uncontaminated portion alone, n=57 rather than the controls&#x27;</p>
+<p>n=10:</p>
+<p>  restored on h100  n=23  mean 0.566  sd 0.235  recovered 14/23</p>
+<p>  restored on kyo   n=34  mean 0.554  sd 0.237  recovered 25/34</p>
+<p>The two machines are indistinguishable in both mean and spread. Combined with the</p>
+<p>failed pre-registered prediction in 4j, the host hypothesis is closed.</p>
+<p><b>On the variance result, a caveat in the loop record&#x27;s favour and against it.</b></p>
+<p>The same direction appears here, restored sd 0.234 versus contaminated sd 0.124,</p>
+<p>ratio 1.9x, Levene p = 0.041. But the loop&#x27;s restored runs span many different</p>
+<p>variants, so their spread mixes genuine irreproducibility with real</p>
+<p>variant-to-variant differences. The matched-variant, matched-seed control fits</p>
+<p>(sd 0.308 vs 0.039, ratio 7.8x, Levene p = 0.0012) remain the primary evidence for</p>
+<p>the variance claim; the loop record corroborates its direction only.</p>
+<p><b>Consequence for the campaign&#x27;s conclusions.</b> Iterations 29-36 cannot be compared</p>
+<p>against 0-28 at this site, and the mode-weight gate readings in that window are not</p>
+<p>informative about the variants they were attributed to. Nothing needs re-judging in</p>
+<p>the other direction: no variant was promoted in that window, so the contamination</p>
+<p>did not cause a false acceptance. Its cost was wasted compute and a set of</p>
+<p>conclusions about tempering and late surgery variants that were really conclusions</p>
+<p>about a broken configuration.</p>
+<h3>Addendum 2026-09-04l: three corrections to this record, and a defect in my kernel</h3>
+<p><b>1. &quot;Split-half floor&quot; is the wrong term throughout this document.</b> Splitting the</p>
+<p>reference fleet in half and measuring distance between the halves bounds the</p>
+<p>reference&#x27;s own PRECISION, not its accuracy: any bias shared by all its chains</p>
+<p>survives the split untouched. Everywhere addenda 4d, 4g, 4h, 4i and 4k say</p>
+<p>&quot;split-half floor&quot; or &quot;the reference&#x27;s own noise floor&quot;, read</p>
+<p>&quot;split-half self-consistency benchmark&quot;. The comparative statements are unaffected</p>
+<p>(every variant remains 10 to 15 times that benchmark) but the word &quot;floor&quot; implies</p>
+<p>an accuracy limit that this quantity does not establish.</p>
+<p>**2. The variance result: descriptive claim stands, two-mechanism reading does</p>
+<p>not.** 4j reported &quot;spread ratio 7.8x&quot;; that is an SD ratio, and the variance ratio</p>
+<p>is about 61 here (72 on the companion session&#x27;s set), which should be stated</p>
+<p>explicitly rather than left to be inferred. More importantly, 4j went on to read</p>
+<p>the result as two distinct phenomena, contamination BIASING the answer versus</p>
+<p>restoration making it IRREPRODUCIBLE. That does not follow. Run-level mode mass is</p>
+<p>bounded in [0,1], so its mean and variance move together as basin-capture</p>
+<p>probability changes; Levene achieving a smaller p than Mann-Whitney is not evidence</p>
+<p>of two mechanisms. What stands: the contaminated condition is tightly clustered</p>
+<p>low, the restored condition is dispersed across nearly the whole range, and both</p>
+<p>are described by a single capture-probability shift. The rhetorical framing in 4j</p>
+<p>(&quot;does not merely bias, it makes the method reproducibly wrong&quot;) is withdrawn.</p>
+<p>**3. A non-reversible burn-in heuristic ran in all 39 iterations</p>
+<p>(scripts/sarla_kernels.py:78-90).** Every 500 steps, any walker more than</p>
+<p>restart_gap=100 nats below the current best is HARD-COPIED onto a randomly chosen</p>
+<p>better walker with 1e-3 jitter, with no Metropolis correction. It fires 16 times</p>
+<p>per production run.</p>
+<p>Verified here on the exact defaults: restart_end = restart_until * n_steps =</p>
+<p>0.5 * n_steps and burn_end = burn_frac * n_steps = 0.5 * n_steps, i.e. the copying</p>
+<p>stops precisely when recording begins. So it is NOT a detailed-balance violation of</p>
+<p>the sampling phase, and no copied state is ever recorded. The accurate description</p>
+<p>is a non-reversible burn-in pruning rule. But its consequence is not benign: it</p>
+<p>shapes the walker population entering the sampling phase, and if the kernel cannot</p>
+<p>cross between allocation budgets, the mode composition left at the end of burn-in</p>
+<p>largely determines the recorded mode mass, making it a mechanism that AMPLIFIES</p>
+<p>seeding dominance. [The companion session rightly objected that this middle premise</p>
+<p>was the very thing its running experiment is testing, so the argument assumed its</p>
+<p>own conclusion. The premise has since been measured directly on existing data --</p>
+<p>see 4m -- and it holds: genuine basin transport is 8 chains in 1536. The</p>
+<p>amplification conclusion therefore stands, but on the 4m measurement rather than on</p>
+<p>the assumption made here.]</p>
+<p>A clean negative from the companion session, worth keeping because the rule is a</p>
+<p>natural thing to blame: it does not preferentially cull high-allocation walkers.</p>
+<p>On 5534 reference draws the two modes sit at almost the same level, median HIGH</p>
+<p>-218.3 versus LOW -219.2, a 0.9 nat separation, and at the threshold a real run</p>
+<p>would use the rule removes 1.5% of HIGH and 4.6% of LOW draws, i.e. very slightly</p>
+<p>biased against the LOW mode, the opposite of the proposed mechanism.</p>
+<p><b>4. On the kept-region diagnostic (refining my own 4-outcome suggestion).</b></p>
+<p>keep_regs never enters run_kernel, which I verified independently, so a low</p>
+<p>kept-region fraction diagnoses the INITIALISATION screen rather than the production</p>
+<p>kernel. And nearest-chart assignment is not a coverage measure at all, since every</p>
+<p>point has a nearest chart however distant. Mode-specific nearest Mahalanobis</p>
+<p>distances are the right diagnostic and the companion session is recording them.</p>
+<p><b>5. Power.</b> The stationarity check is a mechanism screen, not certification. With</p>
+<p>six replicates, six successes and zero failures still leaves a one-sided 95% upper</p>
+<p>bound near 39% on the per-run failure probability. Nothing from it should be</p>
+<p>written as &quot;the kernel is fine&quot;.</p>
+<h3>Addendum 2026-09-04m: mode transport measured directly, and a trap in measuring it</h3>
+<p>The companion session objected, correctly, that 4l&#x27;s amplification argument assumed</p>
+<p>the kernel cannot cross between allocation budgets, which is what its running</p>
+<p>stationarity check is testing. The premise is measurable from data already on disk:</p>
+<p>production draws are chain-interleaved (row t*n_chains + c), so per-chain mode</p>
+<p>histories can be reconstructed from any retained fit.</p>
+<p><b>The trap, which I walked into first.</b> Counting sign changes of f_wood across the</p>
+<p>0.5 boundary gives 437 &quot;crossing&quot; chains out of 1536 across twelve fits, which</p>
+<p>looks like free mixing. It is an artefact. In one fit, the 20 chains that &quot;cross&quot;</p>
+<p>spend 24.4% of their draws within 0.05 of the boundary, against 0.3% for the</p>
+<p>non-crossing chains and 2.5% for the reference posterior. Their f_wood runs from</p>
+<p>p10 0.421 to p90 0.758: they sit ON the dividing line and oscillate across it. Not</p>
+<p>one of the 20 spends more than 10% of its draws both below 0.3 and above 0.7.</p>
+<p><b>The measurement, with a hysteresis definition</b> (a chain must spend &gt;10% of draws</p>
+<p>below f_wood 0.3 AND &gt;10% above 0.7):</p>
+<p>  genuine basin-visiting chains:  8 of 1536   (naive 0.5-crossing count: 437)</p>
+<p>  9 of the 12 fits have exactly 0; the other three have 1, 3 and 4</p>
+<p>So mode transport in the production kernel is essentially absent at 89-D, on real</p>
+<p>data, in the recorded phase, and this is now measured rather than inferred from</p>
+<p>seed dependence. 4l&#x27;s amplification conclusion is restored on this basis, and its</p>
+<p>original assumed-premise wording has been corrected in place.</p>
+<p><b>Warning for the running stationarity check.</b> Its mode-crossing counter will hit</p>
+<p>the same artefact if it thresholds at f_wood 0.5. With every walker started on the</p>
+<p>reference posterior, a substantial fraction will sit near the dividing line, and</p>
+<p>naive crossing counts will over-report transport by roughly fifty-fold on this</p>
+<p>evidence. A two-threshold hysteresis definition is required.</p>
+<p><b>A second observation worth following up.</b> The chains that hover near the boundary</p>
+<p>occupy an intermediate region (f_wood roughly 0.42 to 0.76) that the reference</p>
+<p>posterior barely visits, 2.5% of its draws within 0.05 of the boundary. A sixth of</p>
+<p>the walker population sitting in a region the target does not support is a defect in</p>
+<p>its own right, distinct from the mode-weight problem.</p>
+<h3>Addendum 2026-09-04n: why the coverage diagnostic reads 0% vs 100%, and why it matters beyond the diagnostic</h3>
+<p>The companion session&#x27;s reference-start diagnostic prints &quot;0.0% land in a kept</p>
+<p>region&quot;, while assigning the same draws by plain Euclidean distance gives 99-100%.</p>
+<p>The mechanism is identifiable analytically and confirmed from saved artifacts.</p>
+<p><b>Mechanism.</b> Chart proposal variance is capped ABOVE at VAR_CAP = 1.0</p>
+<p>(<code>sarla.py:122</code>: var = 1/lam where lam &gt; 1, else VAR_CAP). Since</p>
+<p>maha2(W) = sum_j ((W-c).e_j)^2 / var_j and every var_j &lt;= 1, Mahalanobis distance</p>
+<p>is always &gt;= squared Euclidean distance, with EQUALITY only for a fully flat chart</p>
+<p>whose var_j = 1 in all 89 directions. Stiff charts inflate distances by 1/var_j =</p>
+<p>lam_j, which can be enormous. So argmin-over-charts of maha2 is systematically</p>
+<p>biased toward the flattest charts, almost independently of where the point is.</p>
+<p><b>Confirmed prediction from fit.npz.</b> [See 4p: &quot;rank&quot; is a spectral-gap split, not</p>
+<p>a plain count below RANK_TAU, so it is an imperfect flatness proxy; and the extreme</p>
+<p>cases are FAILED HESSIANS rather than flat geometry.] If that is the mechanism,</p>
+<p>charts in non-kept regions should be systematically flatter.</p>
+<p>Across five fits with a mixed population:</p>
+<p>  kept charts       rank median 38-39</p>
+<p>  non-kept charts   rank median 43-47, with rank-89 charts present in two fits</p>
+<p>A rank-89 chart is flat in every direction, so its maha2 IS the squared Euclidean</p>
+<p>distance while every other chart inflates. It acts as a universal attractor for the</p>
+<p>argmin. That is sufficient to produce &quot;0% in a kept region&quot; with no coverage</p>
+<p>failure whatever. Neither the 0% nor the 100% should be recorded as a coverage</p>
+<p>finding; the Euclidean number is the more meaningful of the two, and neither is</p>
+<p>coverage.</p>
+<p><b>Why this matters well beyond the diagnostic.</b> The SAME rule chooses the proposal</p>
+<p>in the production kernel: <code>sarla_kernels.py:118</code> does <code>kx = nearest(X)</code> and then</p>
+<p>draws the step from <code>Vs[kx]</code>, <code>E[kx]</code>. So if flat charts win the argmin for most</p>
+<p>walkers, most walkers are proposing isotropic unit-variance steps in 89 dimensions</p>
+<p>instead of locally shaped ones, and the atlas&#x27;s entire purpose is defeated at</p>
+<p>sampling time.</p>
+<p>Two things follow, and the distinction matters:</p>
+<ul>
+<li>This is NOT a correctness bug. The assignment is a deterministic function of</li>
+</ul>
+<p>  position and the MH ratio uses loc_lq at both kx and ky, so detailed balance</p>
+<p>  holds. It is an efficiency and behaviour defect, not an invalid sampler.</p>
+<ul>
+<li>It is a coherent mechanism for what we have measured. Isotropic 89-D proposals</li>
+</ul>
+<p>  have very low acceptance, so the gamma adaptation shrinks the step to hit</p>
+<p>  target_acc 0.23, leaving chains that barely move. That predicts precisely the</p>
+<p>  near-static recorded phase (per-fit drift -0.040 to +0.078), the 8 genuine</p>
+<p>  basin-visiting chains in 1536, and the population of chains parked on the mode</p>
+<p>  boundary.</p>
+<p><b>Status: mechanism identified and strongly supported, not yet demonstrated.</b> The</p>
+<p>direct test is to record, for a production run, the fraction of walkers whose</p>
+<p>assigned chart is one of the flat ones. That is not reproducible from artifacts</p>
+<p>because fit.npz saves centers, chart_ranks, lab and kept_regions but NOT chart var</p>
+<p>or eigvecs. Recommended change to <code>scripts/sarla_fit.py</code>, deliberately NOT applied</p>
+<p>while the stationarity jobs are mid-flight: persist chart var and eigvecs in</p>
+<p>fit.npz. It is cheap, additive, and makes every future fit auditable for this.</p>
+<h3>Addendum 2026-09-04o: flatness bias corrected to graded, and under-dispersion confirmed</h3>
+<p><b>Correction to 4n, from the companion session, accepted.</b> I called the rank-89</p>
+<p>charts &quot;universal attractors&quot;. That is too strong. Since a rank-89 chart&#x27;s maha2 IS</p>
+<p>its squared Euclidean distance while every other chart inflates, such a chart</p>
+<p>necessarily wins the argmin whenever it is Euclidean-nearest, but that is only a</p>
+<p>LOWER bound and it happens for 0.0-0.4% of reference draws. So flat charts are not</p>
+<p>capturing walkers by proximity.</p>
+<p>The correct statement is the graded version: maha2 routes essentially the whole</p>
+<p>population onto the flattest few percent of charts WITHOUT those charts being</p>
+<p>anywhere near, because every stiff chart inflates its distance by 1/var = lam. The</p>
+<p>evidence is the assignment split itself, 0.0% of reference draws to a kept chart</p>
+<p>under maha2 against ~100% under Euclidean, together with non-kept charts being the</p>
+<p>flatter ones. Recorded as a graded flatness bias, not a single attractor.</p>
+<p><b>Verified here, and stronger than either of us had it:</b> all 12 of 12 retained fits</p>
+<p>contain at least one rank-89 chart (flat in all 89 directions), not 2 as I said or</p>
+<p>11 as the companion session said; the twelfth simply has all its charts kept. Kept</p>
+<p>charts have rank median 37-39 and non-kept 43-47 in every fit with a mixed</p>
+<p>population. The companion session&#x27;s reading of rank as the count of FLAT directions</p>
+<p>(sarla.py:76) is correct.</p>
+<p><b>Under-dispersion confirmed, and it is uniform.</b> The companion session observed</p>
+<p>pop-acceptance of 0.001-0.003 in its reference-started DE arm against 0.033-0.037 in</p>
+<p>matched production runs, and proposed that production walkers occupy a region much</p>
+<p>tighter than the posterior. Measured here across all twelve fits, as the median over</p>
+<p>89 dimensions of fit sd divided by reference sd:</p>
+<p>  overall spread ratio            0.610 - 0.691</p>
+<p>  within-step walker spread ratio 0.609 - 0.687   (this is what sets the DE step)</p>
+<p>So production walker populations are consistently about a third narrower than the</p>
+<p>target, in both seed conditions and both variants. That sits alongside the flatness</p>
+<p>result rather than competing with it: both describe a sampler that stays put.</p>
+<p><b>A power problem in the surviving DE arm, raised before its results land.</b> DE</p>
+<p>proposal size scales with the within-step walker spread, so a correctly dispersed</p>
+<p>reference-started population proposes much larger steps. At mix=1.0 every step is a</p>
+<p>DE step and each chain is proposed once per step, so at the observed acceptance of</p>
+<p>0.002 over 16000 steps a chain accepts roughly 32 moves in the entire run, against</p>
+<p>roughly 560 in a matched production run. A chain that moves 32 times cannot</p>
+<p>equilibrate anything, so &quot;mass preserved&quot; from that arm would be the same</p>
+<p>identity-kernel vacuity that the hybrid arm was relaunched to avoid, reached by a</p>
+<p>different route.</p>
+<p>There is a structural reason to expect it, too: on a genuinely bimodal population,</p>
+<p>DE difference vectors are frequently mode-to-mode displacements, which are very poor</p>
+<p>proposals and are almost always rejected. Starting from the true bimodal posterior</p>
+<p>therefore biases a DE arm toward inertness REGARDLESS of the kernel&#x27;s merits, which</p>
+<p>would make &quot;does DE cross more than the hybrid&quot; underpowered by construction rather</p>
+<p>than by accident.</p>
+<h3>Addendum 2026-09-04p: the flat charts are failed Hessians; three code fixes applied</h3>
+<p><b>The extreme charts are numerical failures, not geometry.</b> A second advisor pass</p>
+<p>via the companion session predicted that the count of rank-89 charts would equal</p>
+<p><code>n_degraded</code>, the number of charts whose Hessian came back non-finite and fell back</p>
+<p>to lam=zeros, V=identity. Checked here on all twelve retained fits: it matches in</p>
+<p>every one (1,1,2,1,1,1,3,1,1,1,1,1 against the same n_degraded). So the charts that</p>
+<p>dominate the maha2 assignment are degraded charts that should never have competed as</p>
+<p>trusted local geometry at all. The graded routing bias of 4n/4o stands; its worst</p>
+<p>offenders are now identified as a failure mode rather than a shape.</p>
+<p><b>Two corrections to our shared account, accepted.</b> (a) <code>rank_split</code> (sarla.py:40)</p>
+<p>uses a spectral-gap rule with an absolute fallback, not a plain count below</p>
+<p>RANK_TAU, so rank medians are an imperfect flatness proxy and should be described</p>
+<p>that way. (b) The surgery engine modifies variances after chart construction, so</p>
+<p>var &lt;= VAR_CAP is NOT proven for the final atlas; the maha2 &gt;= Euclidean argument</p>
+<p>holds only where it happens to be true, and we should stop asserting it globally.</p>
+<p><b>A defect in the running experiment, found by the companion session.</b> run_kernel</p>
+<p>jittered supplied start points by 0.01 before use and then silently replaced any</p>
+<p>infeasible result with a jittered atlas centre. Measured on its pair 101: exact</p>
+<p>reference draws are 5.5% infeasible, and after the jitter 16.4%. So about a sixth of</p>
+<p>a &quot;reference start&quot; population was actually atlas-centre starts. The jitter is small</p>
+<p>in distance, RMS 0.094 in W-space, but moves the log-posterior by a median 2.85 nats</p>
+<p>with some to -inf, which says the feasible set is thin enough that a 1%-of-scale</p>
+<p>perturbation matters. Within a pair the contamination is identical, so its pairing</p>
+<p>survives; the absolute claim &quot;walkers start on the reference posterior&quot; does not.</p>
+<p>Per its advisor the runs are being preserved and qualified rather than relaunched a</p>
+<p>third time.</p>
+<p><b>Three fixes applied here (research repo commit 63a7880), same edit region:</b></p>
+<p>1. Supplied <code>init_X</code> states are copied unchanged. Verified on the toy: the initial</p>
+<p>   population now equals the supplied states exactly and is identical across kernel</p>
+<p>   seeds, which it was not before.</p>
+<p>2. Infeasible supplied starts are still replaced, since a chain cannot begin at</p>
+<p>   -inf, but now print a warning and are reported as <code>n_infeasible_supplied</code>.</p>
+<p>3. fit.npz saves <code>chart_var</code> and <code>chart_eigvecs</code>, without which the maha2 assignment</p>
+<p>   that picks every proposal cannot be reproduced from artifacts, plus <code>init_pop</code>,</p>
+<p>   the population before the first transition. The default chart-centre start path</p>
+<p>   is unchanged.</p>
+<p><b>Not deployed.</b> These are local commits only. The code must NOT be synced to the</p>
+<p>GPU hosts until the stationarity runs land, or queued jobs would pick up changed</p>
+<p>behaviour mid-experiment.</p>
+<p><b>Two scoring corrections from the same pass, accepted for the record.</b> The</p>
+<p>hysteresis statistic in 4m counts SUSTAINED occupancy of both basins, so &quot;8 chains</p>
+<p>in 1536&quot; is 8 chains with sustained two-basin occupancy, not 8 chains that</p>
+<p>transported; brief or late passages are missed and it should be described that way.</p>
+<p>And pooling runs across two different kernels into one binomial failure bound is</p>
+<p>invalid, since paired populations across two kernels are not independent trials.</p>
+<p><b>The decisive next test, agreed and needing no new sampling.</b> A fixed-state</p>
+<p>assignment intervention: same saved states, same atlas, same gamma, common random</p>
+<p>numbers, current maha2 assignment versus Euclidean assignment, each arm computing</p>
+<p>its own forward and reverse proposal densities. That tests the routing hypothesis of</p>
+<p>4n directly. It is now possible for future fits because chart_var and chart_eigvecs</p>
+<p>are persisted; it is not possible for the twelve existing ones.</p>
+<h3>Addendum 2026-09-04q: the assignment intervention, and what it cannot show</h3>
+<p><b>Scope limit, written down BEFORE the experiment rather than after.</b> The fixed-state</p>
+<p>assignment intervention can show that maha2 routing harms proposal efficiency. It</p>
+<p>CANNOT by itself show that routing causes the mode-mass error. The full chain is:</p>
+<p>poor routing -&gt; ineffective accepted movement -&gt; initial mode allocation persists.</p>
+<p>Only the first link is under test. Both sessions are invested in the routing</p>
+<p>hypothesis, which is exactly why this is recorded in advance.</p>
+<p><b>Design, per the companion session&#x27;s advisor.</b> Hold the final atlas, target, gamma</p>
+<p>and starting states fixed. Generate proposals under the current maha2 assignment and</p>
+<p>under a Euclidean assignment with COMMON RANDOM NUMBERS, resetting to the starting</p>
+<p>state for each proposal so the arms are genuinely paired. Each arm computes its own</p>
+<p>forward and reverse proposal densities, since the Hastings correction differs between</p>
+<p>assignment rules and getting that wrong would manufacture the result. Report expected</p>
+<p>acceptance from the MH ratio rather than accept/reject coin flips, and</p>
+<p>acceptance-weighted squared movement in one fixed coordinate metric shared across</p>
+<p>arms, because better acceptance with worse movement just means smaller steps.</p>
+<p><b>Feasibility constraint.</b> The twelve existing fits predate chart_var/chart_eigvecs</p>
+<p>persistence, so their exact atlases cannot be reconstructed from artifacts, and the</p>
+<p>surgery engine mutates variances after construction so recomputing Hessians at the</p>
+<p>saved centres would not reproduce them either. The intervention therefore runs on a</p>
+<p>freshly built 89-D atlas on the real NL-Loo data at reduced scale (seed points taken</p>
+<p>directly from the restored seed file rather than re-running L-BFGS), which preserves</p>
+<p>the real geometry and the real degraded-chart failure mode while fitting in local CPU</p>
+<p>time. It is a mechanism test, not a reproduction of any particular fit.</p>
+<h3>Addendum 2026-09-04r: the assignment intervention does NOT support the routing hypothesis</h3>
+<p>Reduced-scale run of the pre-registered design in 4q (89-D, real NL-Loo data, atlas</p>
+<p>built from the restored 24 seed points, 1 round, 128 audit draws, 24 charts of which</p>
+<p>5 degraded, gamma 0.0085, 120 feasible starting states, common random numbers,</p>
+<p>each arm computing its own forward and reverse densities).</p>
+<p>  arm      E[alpha]   E[alpha * d2]   median step^2   routed to degraded   charts used</p>
+<p>  maha2     0.3900      2.510e-03       6.452e-03           100.0%              5 / 24</p>
+<p>  euclid    0.4073      1.151e-03       2.863e-03             5.8%             23 / 24</p>
+<p>  the two rules agree on 5.8% of states; movement ratio euclid/maha2 = 0.46x</p>
+<p><b>The routing is confirmed; the harm is not.</b> maha2 sends 100% of states to a</p>
+<p>degraded chart and uses 5 of 24 charts, against 5.8% and 23 of 24 under Euclidean,</p>
+<p>so the flatness bias of 4n/4o is real and extreme. But on the pre-registered</p>
+<p>efficiency measure, acceptance-weighted squared movement in the shared whitened</p>
+<p>metric, maha2 is BETTER by a factor of 2.2, with essentially the same expected</p>
+<p>acceptance (0.39 versus 0.41). Degraded charts have var = 1 in every direction, so</p>
+<p>they propose larger steps, and those steps are accepted about as often as the</p>
+<p>shaped ones. On this evidence the &quot;poor routing -&gt; ineffective accepted movement&quot;</p>
+<p>link, the first and only link 4q put under test, is NOT supported; the sign is</p>
+<p>against it.</p>
+<p>A reading consistent with both this and the campaign&#x27;s other results: gamma is</p>
+<p>adapted to a target acceptance rate, so whichever proposal shape is used, the step</p>
+<p>size is tuned until roughly 23% are accepted. That makes acceptance rate nearly</p>
+<p>uninformative about proposal quality and leaves step SIZE as the binding constraint.</p>
+<p>The shaped charts are more conservative than the flat ones, so the atlas may be</p>
+<p>making the sampler move less, not more.</p>
+<p><b>Caveats, stated with the result.</b></p>
+<ul>
+<li>Scale. This atlas has 5 degraded charts in 24, about 21%, against roughly 1 in 110</li>
+</ul>
+<p>  (0.9%) in production fits. The routing pressure here is therefore much stronger</p>
+<p>  than production, and the efficiency comparison is between a heavily degraded atlas</p>
+<p>  and itself, not between production atlases.</p>
+<ul>
+<li>One round, no L-BFGS polish, so the non-degraded charts are themselves less well</li>
+</ul>
+<p>  conditioned than production charts.</p>
+<ul>
+<li>This is a single-step probe. It measures one proposal from each state, not the</li>
+</ul>
+<p>  behaviour of a chain over 16000 steps, and expected squared jump is only a proxy</p>
+<p>  for mixing.</p>
+<ul>
+<li>Per 4q, even a positive result here would not have shown that routing causes the</li>
+</ul>
+<p>  mode-mass error. A negative one does not clear routing of everything either; it</p>
+<p>  addresses only the efficiency link.</p>
+<p><b>No full-scale rebuild has been run.</b> Per the user&#x27;s instruction relayed through</p>
+<p>the companion session, both sessions stop when the running jobs land and consult the</p>
+<p>advisor at maximum reasoning effort before starting further work. This reduced-scale</p>
+<p>probe was already in flight and is reported as-is.</p>
+<h3>Addendum 2026-09-04s: not inert, not confined — the chains never decorrelate</h3>
+<h3>[LARGELY WITHDRAWN 2026-09-04 — see 4v. The excursion FRAMING and every number</h3>
+<h3>derived from it are struck: 13.2 is sqrt(2D), a property of standardising to</h3>
+<h3>unit marginal variance, not a distance a chain must travel, and endpoint</h3>
+<h3>displacement SATURATES at that value under a confined stationary distribution.</h3>
+<h3>The declining growth exponent is the signature of that saturation, not of</h3>
+<h3>anomalous diffusion, so extrapolating a power law toward 13.2 was extrapolating</h3>
+<h3>toward an asymptote. The 5-30x and 11x and 4.7x figures are all unsupported.</h3>
+<h3>What survives is only the raw observation of little basin redistribution, which</h3>
+<h3>the crossing counts in 4m already gave.]</h3>
+<p>The companion session instrumented per-chain movement and corrected &quot;inert&quot;: across</p>
+<p>all twelve production fits, consecutive saved states differ for 0.888 to 0.922 of</p>
+<p>thinning intervals, so chains accept moves essentially all the time. Verified here</p>
+<p>(0.904 to 0.922 on six fits). &quot;Inert&quot; is withdrawn from this record.</p>
+<p>But &quot;mobile but confined&quot; is not right either, and the correct statement is sharper</p>
+<p>than both. Measuring per-chain excursion in reference-sd units over the recorded</p>
+<p>phase:</p>
+<p>  mean step between saved states        0.389 - 0.406</p>
+<p>  RMS step between saved states         0.533 - 0.561</p>
+<p>  net displacement over the whole run   6.04 - 6.30</p>
+<p>  free-random-walk expectation          9.34 - 9.82      (net/free 0.63 - 0.65)</p>
+<p>  distance between two INDEPENDENT</p>
+<p>    draws from the reference posterior  13.23</p>
+<p>[CORRECTED. This table first gave the free-walk scale as MEAN step x sqrt(N),</p>
+<p>6.83-7.46, and hence net/free 0.86-0.90. That is wrong: for independent increments</p>
+<p>E[|displacement|^2] = N x E[|step|^2], so the scale is RMS step x sqrt(N), and by</p>
+<p>Jensen rms &gt;= mean, so using the mean understates the free walk and inflates the</p>
+<p>ratio. Caught by the companion session. The corrected ratio is 0.63-0.65.]</p>
+<p>Two things follow.</p>
+<p><b>The chains are not trapped, but they are materially sub-diffusive.</b> Net</p>
+<p>displacement reaches 63-65% of what an unobstructed walk of the same steps would</p>
+<p>achieve, so about a third of the displacement is lost to rejections and step</p>
+<p>correlation. That is consistent with an inefficient random walk, not with a</p>
+<p>barrier: displacement is still growing rather than plateauing (T/4 and T/2 sit at</p>
+<p>0.61-0.65 and 0.80-0.83 of final, against 1.0 for an equilibrated chain). But</p>
+<p>&quot;diffuse almost freely&quot; was an overstatement produced by the normalisation error</p>
+<p>above and is withdrawn.</p>
+<p><b>They simply never get anywhere.</b> Over the ENTIRE recorded run a chain travels</p>
+<p>6.1 in reference-sd units, while two independent draws from the target differ by</p>
+<p>13.2. No chain covers even half the distance to independence from its own starting</p>
+<p>point. The ensemble&#x27;s apparent spread is therefore a picture of where 128 walkers</p>
+<p>were PLACED, smeared by local diffusion, not the result of any walker exploring the</p>
+<p>posterior.</p>
+<p>That single fact explains, without further mechanism, every symptom recorded in this</p>
+<p>campaign: seeding dominance (walkers never leave their starting neighbourhood), the</p>
+<p>under-dispersion at 0.61-0.69, the absence of mode transport (8 sustained</p>
+<p>two-basin chains in 1536), and the chains parked on the f_wood boundary (a walker</p>
+<p>whose small neighbourhood straddles 0.5 oscillates across it forever without</p>
+<p>travelling).</p>
+<p><b>Scale of the shortfall: no single number is defensible.</b> The growth exponent in</p>
+<p>net ~ T^a is not constant, so the extrapolation depends on the fit window, and this</p>
+<p>was the fifth definition-dependent quantity of the day. Measured on refchk:</p>
+<p>  estimator                                 a</p>
+<p>  two-point, T/4 vs T (mine, unstated)   0.315 - 0.359</p>
+<p>  OLS on log net vs log t, full run      0.384 - 0.427</p>
+<p>  OLS, first half                        0.417 - 0.468</p>
+<p>  OLS, second half                       0.271 - 0.315</p>
+<p>The exponent DECLINES through the run, from about 0.47 early to about 0.29 late,</p>
+<p>which is the signature of accumulating step correlation and is a real feature, not</p>
+<p>noise. My 11x came from a two-point estimator whose method I failed to state; the</p>
+<p>companion session&#x27;s 5-6.6x came from a full-run regression. Both are artefacts of</p>
+<p>an unstated window choice.</p>
+<p>Agreed wording: reaching the independence distance requires roughly 5x to 30x more</p>
+<p>sampling steps, depending on whether one extrapolates from early or late trajectory</p>
+<p>behaviour; since the exponent declines, the larger figures are the more relevant and</p>
+<p>the less well determined. Under an optimistic sqrt(T) assumption the factor is 4.7x,</p>
+<p>a lower bound.</p>
+<p><b>What does NOT depend on any of that.</b> On every version of the calculation the</p>
+<p>shortfall is between one and one and a half orders of magnitude in sampling steps,</p>
+<p>and the step size cannot simply be scaled up to compensate: the void arm at six</p>
+<p>times the step scale still reached only 0.36-0.38 of the independence distance.</p>
+<p>Either way it buys ONE independent sample per chain, not a converged posterior. This is a quantitative target rather than a diagnosis of a</p>
+<p>barrier, and it is consistent with 4r: the binding constraint is step size and run</p>
+<p>length, not acceptance and not routing.</p>
+<p><b>Terminology fix for both accounts:</b> neither &quot;inert&quot; nor &quot;confined&quot;. The chains</p>
+<p>move continuously and diffuse, somewhat sub-diffusively; the run is far too short,</p>
+<p>relative to the step size, for any chain to decorrelate from where it started. The</p>
+<p>second clause carries the argument and is unaffected by the normalisation</p>
+<p>correction.</p>
+<h3>Addendum 2026-09-04t: five verdicts have moved under benign analysis choices</h3>
+<p>Recorded as a numbered observation rather than a general remark, because it is the</p>
+<p>most reliable thing established today.</p>
+<p>1. <b>G&#x27;s floor.</b> &quot;0 = perfectly calibrated&quot; versus a measured floor of 0.52; the</p>
+<p>   campaign&#x27;s accept/reject margins sat inside it.</p>
+<p>2. <b>The decisive-subset threshold.</b> Overlap versus clean separation flipped on</p>
+<p>   whether the subset was defined at 0.50 or 0.55 sd, a difference of one parameter,</p>
+<p>   on a margin of 0.013.</p>
+<p>3. <b>The mode-mass / tau_wood gate.</b> &quot;No overlap, factor-of-three margin&quot; at n=3</p>
+<p>   became complete overlap at n=5.</p>
+<p>4. <b>Chart assignment.</b> 0% versus 100% of reference draws in a kept region, under</p>
+<p>   Mahalanobis versus Euclidean distance on the same charts.</p>
+<p>5. <b>The growth exponent.</b> 5x versus 30x more steps, depending on whether the fit</p>
+<p>   window is the early or the late trajectory.</p>
+<p>Four of the five were produced by this pair of sessions rather than found in the</p>
+<p>code under study. In every case the number looked decisive until someone recomputed</p>
+<p>it a slightly different way, and in every case the definitional choice had gone</p>
+<p>unstated. The single rule that would have caught all five: state the estimator and</p>
+<p>the achievable resolution BEFORE reading the verdict, and treat any margin smaller</p>
+<p>than the spread across reasonable definitions as absent.</p>
+<h3>Addendum 2026-09-04u: the stationarity screen&#x27;s answer, and a check on its arithmetic</h3>
+<p><b>Result (companion session, 7 of 9 runs).</b> On the one valid mobile arm, the</p>
+<p>calibrated hybrid, mode mass starts at 0.703 and ends at 0.730, drifting +0.027</p>
+<p>toward the reference&#x27;s 0.813, with 1 sustained two-basin chain in 128. The kernel</p>
+<p>does not destroy reference mass; it holds it, and nudges slightly the right way.</p>
+<p>But it holds it because nothing crosses, not because it learned the weight.</p>
+<p>**Conclusion of the screen: the failure is in FINDING the mode weight, not in</p>
+<p>holding it.** Every mechanism chased today -- chart routing, flat charts, the</p>
+<p>burn-in copying rule -- is downstream of chains that travel 6 units when</p>
+<p>independence needs 13.2. Caveat: this rests on n=1 valid mobile run pending the</p>
+<p>last two, and the start was 0.69 rather than the intended 0.82, so it is a weaker</p>
+<p>preservation test than designed.</p>
+<p><b>The other two arms are frozen, confirming a prediction made before the runs.</b></p>
+<p>Pure DE moves in 2.2-2.6% of thinning intervals and the void 6x-step arm in 7-10%,</p>
+<p>against production&#x27;s 88.8-92.2% and the calibrated hybrid&#x27;s 95.3%. So the DE arm&#x27;s</p>
+<p>preserved mass is vacuous, as argued in 4o from the structural point that difference</p>
+<p>vectors on a bimodal population are mostly mode-to-mode chords. The DE-versus-hybrid</p>
+<p>comparison the design was built on cannot be made: one arm is inert.</p>
+<p><b>Check on the initialisation arithmetic, which the inference needed.</b> The</p>
+<p>companion session inferred from mass@0 = 0.693 against a supplied 0.824 that the</p>
+<p>atlas centres replacing infeasible starts must be essentially all low-allocation. An</p>
+<p>alternative explanation would leave that unidentified: if the INFEASIBLE reference</p>
+<p>draws were themselves disproportionately high-allocation, the loss would be larger</p>
+<p>than a proportional 16.4% and the replacements could carry substantial high mass.</p>
+<p>Tested here on 2000 reference draws under the hard gate:</p>
+<p>  condition                      infeasible   high-alloc share:  infeasible / overall</p>
+<p>  exact draws, no jitter            11.3%                          0.783 / 0.808</p>
+<p>  jittered 0.01 (old behaviour)     17.9%                          0.804 / 0.808</p>
+<p>The infeasible draws are mode-representative, so the alternative is refuted and the</p>
+<p>arithmetic IS identified. Solving 0.824*(1-f) + r*f = 0.693 gives r = 2% at f =</p>
+<p>0.164 and r = 10% at f = 0.179. Either way the atlas centres are overwhelmingly</p>
+<p>low-allocation, 2-10% high against the posterior&#x27;s 81%. That is independent</p>
+<p>evidence, arriving from a completely different direction, that the atlas itself is</p>
+<p>overwhelmingly low-mode.</p>
+<p>Minor discrepancy for the record: infeasibility of the exact draws measures 11.3%</p>
+<p>here on the first 2000 draws against the companion session&#x27;s 5.5% on the 128</p>
+<p>actually selected for pair 101; the jittered figures agree closely (17.9% vs 16.4%).</p>
+<p>Sampling and selection, not material to the conclusion, but it moves r within the</p>
+<p>2-10% range quoted.</p>
+<p><b>Sixth instance of the 4t pattern</b>, theirs: a scorer glob of <code>refstat_*</code> silently</p>
+<p>excluded the relaunched <code>refstat2_*</code> arm, i.e. the only valid one. Caught because</p>
+<p>the calibrated run was missing from the table.</p>
+<h3>Addendum 2026-09-04v: advisor verdict — STOP, and four of our claims are withdrawn</h3>
+<p>Codex astra at maximum reasoning effort, on the joint brief. Verdict: **stop the</p>
+<p>open-ended SARLA repair campaign.** The implementation has failed as a reliable</p>
+<p>45-minute estimator. That does NOT establish that this posterior requires 33 hours,</p>
+<p>nor that faster CARDAMOM needs a better population sampler.</p>
+<p><b>What it endorses as the causal account</b>, replacing ours:</p>
+<p>&gt; At the tested budget, the reported basin weights remain strongly dependent on</p>
+<p>&gt; population construction. Production sampling has not demonstrated sufficient</p>
+<p>&gt; equilibration to estimate those weights reliably.</p>
+<p>It explicitly declines to identify chart routing, the variance cap or step size as</p>
+<p>the cause: the seed intervention changes both population construction AND the</p>
+<p>resulting atlas, so it does not isolate initialisation from kernel geometry.</p>
+<p><b>Four claims withdrawn, all verified here before striking.</b></p>
+<p>1. <b>The excursion headline (4s), mine.</b> For 89 coordinates standardised by their</p>
+<p>   marginal posterior SDs, E||X-Y||^2 = 2D, so the &quot;independence distance&quot; is</p>
+<p>   sqrt(178) = 13.34. Measured RMS over standardised reference draws: 13.38. It is a</p>
+<p>   property of standardisation, not of this posterior, and NOT a distance a chain</p>
+<p>   must travel: a chain can explore extensively and return, and endpoint</p>
+<p>   displacement saturates at exactly that value. The declining exponent IS that</p>
+<p>   saturation. Every derived runtime figure (4.7x, 11x, 5-30x) is unsupported.</p>
+<p>2. <b>The reference-bias question (Q6), mine.</b> A category error.</p>
+<p>   <code>scripts/osse_mode_mass.py</code> defines 0.80 as the GENERATING f_wood value, while</p>
+<p>   0.896 is the posterior probability of f_wood &gt; 0.5. Those are different</p>
+<p>   quantities; comparing them establishes neither a 0.096 bias nor accurate mode</p>
+<p>   weights. The low-mode MAP point fails too: peak density and integrated mass are</p>
+<p>   entirely compatible in opposite modes, and MAP location is</p>
+<p>   parameterisation-dependent. So we have no evidence the reference is biased,</p>
+<p>   which is better news than we had, but both of our reasons for doubting it were</p>
+<p>   invalid.</p>
+<p>3. <b>The DE inertness explanation (4o), mine.</b> With uniform donor selection the</p>
+<p>   cross-mode pair probability is 2w(1-w) = 43% at w = 0.69, not &quot;mostly&quot;. The</p>
+<p>   inertness is real and measured (2.2-2.6% of intervals); the explanation is not</p>
+<p>   established and needs acceptance broken down by donor-mode pairing.</p>
+<p>4. <b>&quot;Preservation of reference mass&quot; (4u), the companion session&#x27;s.</b> The runs show</p>
+<p>   limited drift from the populations that actually entered the recorded phase,</p>
+<p>   which started at 0.69 rather than the intended 0.82.</p>
+<p><b>Live bugs confirmed in code in this session&#x27;s lane</b>, with the advisor&#x27;s exact</p>
+<p>counterexample reproduced here (q = U[0,1], unnormalised target 1_[0,0.25], true</p>
+<p>Z = 0.25):</p>
+<p>  filtered path, as chart_evidence does it   Z = 1.0000</p>
+<p>  unfiltered path                            logZ = -inf</p>
+<p>  fraction of proposal draws with zero target density: 0.76</p>
+<p><code>sarla_evidence.py:105</code> drops infeasible proposal draws before the bridge estimator</p>
+<p>without accounting for the conditioning; <code>_bridge_logr</code> initialises at the median</p>
+<p>log ratio, which is -inf when most proposal draws have zero density;</p>
+<p><code>mode_bridge.py:54</code> uses opposite-half KDEs on the posterior side against a</p>
+<p>full-data KDE on the proposal side, violating the bridge identity. Do not build a</p>
+<p>mode-weight estimator on these helpers.</p>
+<p><b>What survives as findings:</b> seed sensitivity, initialisation replacement,</p>
+<p>curvature defects, and the observed limited basin redistribution.</p>
+<p><b>Next work block, in order, if authorised:</b> (1) reconcile the implemented C and</p>
+<p>production-GPU JAX targets on identical states, starting with the exact reference</p>
+<p>draws that come out infeasible — that unexplained support disagreement comes BEFORE</p>
+<p>any further sampler work; (2) validate normalisation on distributions with known</p>
+<p>integrals, including constrained unequal-weight mixtures; (3) one bounded pilot of</p>
+<p>the two-hill estimate using the ACTUAL posterior density across the Gaussian</p>
+<p>samples rather than only feasibility, i.e. self-normalised importance sampling from</p>
+<p>the fitted mixture with infeasible draws as zero weight. Keep the campaign stopped</p>
+<p>unless a candidate meets a precommitted reopening criterion.</p>
+<p><b>On the deliverable, answering Q5:</b> &quot;You probably spent too long optimizing the</p>
+<p>wrong deliverable. The atlas may be useful for locating modes and constructing</p>
+<p>integration proposals even if its population sampler never becomes competitive.&quot;</p>
+<p>It also gives the scientific tolerance that should drive the work: moving the</p>
+<p>high-mode weight from 0.815 to 0.865 moves the low-mode weight from 0.185 to 0.135,</p>
+<p>a 27% relative reduction, and weight error contributes delta_E[C] = delta_w *</p>
+<p>(mu_H - mu_L) to any future-carbon quantity.</p>
+<p><b>Its section 7, things NOT to do,</b> names most of what we would have done next: do</p>
+<p>not launch a longer run on the displacement extrapolation; do not adopt Euclidean</p>
+<p>routing or a variance floor because they look cleaner; do not describe our runs as</p>
+<p>preserving reference mass; do not tune the estimator toward 0.815; do not treat</p>
+<p>removing the low-mode MAP as a remedy, since that MAP is legitimate information and</p>
+<p>a reliable method must tolerate it.</p>
+<p><b>Not deployed.</b> 63a7880 was cleared for deployment now that all nine jobs have</p>
+<p>landed, but there is nothing to run and the campaign stays stopped, so the code</p>
+<p>fixes remain local. Both sessions are holding for the user&#x27;s decision.</p>
 </body></html>
