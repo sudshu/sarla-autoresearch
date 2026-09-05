@@ -1089,3 +1089,53 @@ freshly built 89-D atlas on the real NL-Loo data at reduced scale (seed points t
 directly from the restored seed file rather than re-running L-BFGS), which preserves
 the real geometry and the real degraded-chart failure mode while fitting in local CPU
 time. It is a mechanism test, not a reproduction of any particular fit.
+
+## Addendum 2026-09-04r: the assignment intervention does NOT support the routing hypothesis
+
+Reduced-scale run of the pre-registered design in 4q (89-D, real NL-Loo data, atlas
+built from the restored 24 seed points, 1 round, 128 audit draws, 24 charts of which
+5 degraded, gamma 0.0085, 120 feasible starting states, common random numbers,
+each arm computing its own forward and reverse densities).
+
+  arm      E[alpha]   E[alpha * d2]   median step^2   routed to degraded   charts used
+  maha2     0.3900      2.510e-03       6.452e-03           100.0%              5 / 24
+  euclid    0.4073      1.151e-03       2.863e-03             5.8%             23 / 24
+
+  the two rules agree on 5.8% of states; movement ratio euclid/maha2 = 0.46x
+
+**The routing is confirmed; the harm is not.** maha2 sends 100% of states to a
+degraded chart and uses 5 of 24 charts, against 5.8% and 23 of 24 under Euclidean,
+so the flatness bias of 4n/4o is real and extreme. But on the pre-registered
+efficiency measure, acceptance-weighted squared movement in the shared whitened
+metric, maha2 is BETTER by a factor of 2.2, with essentially the same expected
+acceptance (0.39 versus 0.41). Degraded charts have var = 1 in every direction, so
+they propose larger steps, and those steps are accepted about as often as the
+shaped ones. On this evidence the "poor routing -> ineffective accepted movement"
+link, the first and only link 4q put under test, is NOT supported; the sign is
+against it.
+
+A reading consistent with both this and the campaign's other results: gamma is
+adapted to a target acceptance rate, so whichever proposal shape is used, the step
+size is tuned until roughly 23% are accepted. That makes acceptance rate nearly
+uninformative about proposal quality and leaves step SIZE as the binding constraint.
+The shaped charts are more conservative than the flat ones, so the atlas may be
+making the sampler move less, not more.
+
+**Caveats, stated with the result.**
+- Scale. This atlas has 5 degraded charts in 24, about 21%, against roughly 1 in 110
+  (0.9%) in production fits. The routing pressure here is therefore much stronger
+  than production, and the efficiency comparison is between a heavily degraded atlas
+  and itself, not between production atlases.
+- One round, no L-BFGS polish, so the non-degraded charts are themselves less well
+  conditioned than production charts.
+- This is a single-step probe. It measures one proposal from each state, not the
+  behaviour of a chain over 16000 steps, and expected squared jump is only a proxy
+  for mixing.
+- Per 4q, even a positive result here would not have shown that routing causes the
+  mode-mass error. A negative one does not clear routing of everything either; it
+  addresses only the efficiency link.
+
+**No full-scale rebuild has been run.** Per the user's instruction relayed through
+the companion session, both sessions stop when the running jobs land and consult the
+advisor at maximum reasoning effort before starting further work. This reduced-scale
+probe was already in flight and is reported as-is.
