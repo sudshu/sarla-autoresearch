@@ -947,3 +947,56 @@ because fit.npz saves centers, chart_ranks, lab and kept_regions but NOT chart v
 or eigvecs. Recommended change to `scripts/sarla_fit.py`, deliberately NOT applied
 while the stationarity jobs are mid-flight: persist chart var and eigvecs in
 fit.npz. It is cheap, additive, and makes every future fit auditable for this.
+
+## Addendum 2026-09-04o: flatness bias corrected to graded, and under-dispersion confirmed
+
+**Correction to 4n, from the companion session, accepted.** I called the rank-89
+charts "universal attractors". That is too strong. Since a rank-89 chart's maha2 IS
+its squared Euclidean distance while every other chart inflates, such a chart
+necessarily wins the argmin whenever it is Euclidean-nearest, but that is only a
+LOWER bound and it happens for 0.0-0.4% of reference draws. So flat charts are not
+capturing walkers by proximity.
+
+The correct statement is the graded version: maha2 routes essentially the whole
+population onto the flattest few percent of charts WITHOUT those charts being
+anywhere near, because every stiff chart inflates its distance by 1/var = lam. The
+evidence is the assignment split itself, 0.0% of reference draws to a kept chart
+under maha2 against ~100% under Euclidean, together with non-kept charts being the
+flatter ones. Recorded as a graded flatness bias, not a single attractor.
+
+**Verified here, and stronger than either of us had it:** all 12 of 12 retained fits
+contain at least one rank-89 chart (flat in all 89 directions), not 2 as I said or
+11 as the companion session said; the twelfth simply has all its charts kept. Kept
+charts have rank median 37-39 and non-kept 43-47 in every fit with a mixed
+population. The companion session's reading of rank as the count of FLAT directions
+(sarla.py:76) is correct.
+
+**Under-dispersion confirmed, and it is uniform.** The companion session observed
+pop-acceptance of 0.001-0.003 in its reference-started DE arm against 0.033-0.037 in
+matched production runs, and proposed that production walkers occupy a region much
+tighter than the posterior. Measured here across all twelve fits, as the median over
+89 dimensions of fit sd divided by reference sd:
+
+  overall spread ratio            0.610 - 0.691
+  within-step walker spread ratio 0.609 - 0.687   (this is what sets the DE step)
+
+So production walker populations are consistently about a third narrower than the
+target, in both seed conditions and both variants. That sits alongside the flatness
+result rather than competing with it: both describe a sampler that stays put.
+
+**A power problem in the surviving DE arm, raised before its results land.** DE
+proposal size scales with the within-step walker spread, so a correctly dispersed
+reference-started population proposes much larger steps. At mix=1.0 every step is a
+DE step and each chain is proposed once per step, so at the observed acceptance of
+0.002 over 16000 steps a chain accepts roughly 32 moves in the entire run, against
+roughly 560 in a matched production run. A chain that moves 32 times cannot
+equilibrate anything, so "mass preserved" from that arm would be the same
+identity-kernel vacuity that the hybrid arm was relaunched to avoid, reached by a
+different route.
+
+There is a structural reason to expect it, too: on a genuinely bimodal population,
+DE difference vectors are frequently mode-to-mode displacements, which are very poor
+proposals and are almost always rejected. Starting from the true bimodal posterior
+therefore biases a DE arm toward inertness REGARDLESS of the kernel's merits, which
+would make "does DE cross more than the hybrid" underpowered by construction rather
+than by accident.
