@@ -1256,3 +1256,54 @@ it a slightly different way, and in every case the definitional choice had gone
 unstated. The single rule that would have caught all five: state the estimator and
 the achievable resolution BEFORE reading the verdict, and treat any margin smaller
 than the spread across reasonable definitions as absent.
+
+## Addendum 2026-09-04u: the stationarity screen's answer, and a check on its arithmetic
+
+**Result (companion session, 7 of 9 runs).** On the one valid mobile arm, the
+calibrated hybrid, mode mass starts at 0.703 and ends at 0.730, drifting +0.027
+toward the reference's 0.813, with 1 sustained two-basin chain in 128. The kernel
+does not destroy reference mass; it holds it, and nudges slightly the right way.
+But it holds it because nothing crosses, not because it learned the weight.
+
+**Conclusion of the screen: the failure is in FINDING the mode weight, not in
+holding it.** Every mechanism chased today -- chart routing, flat charts, the
+burn-in copying rule -- is downstream of chains that travel 6 units when
+independence needs 13.2. Caveat: this rests on n=1 valid mobile run pending the
+last two, and the start was 0.69 rather than the intended 0.82, so it is a weaker
+preservation test than designed.
+
+**The other two arms are frozen, confirming a prediction made before the runs.**
+Pure DE moves in 2.2-2.6% of thinning intervals and the void 6x-step arm in 7-10%,
+against production's 88.8-92.2% and the calibrated hybrid's 95.3%. So the DE arm's
+preserved mass is vacuous, as argued in 4o from the structural point that difference
+vectors on a bimodal population are mostly mode-to-mode chords. The DE-versus-hybrid
+comparison the design was built on cannot be made: one arm is inert.
+
+**Check on the initialisation arithmetic, which the inference needed.** The
+companion session inferred from mass@0 = 0.693 against a supplied 0.824 that the
+atlas centres replacing infeasible starts must be essentially all low-allocation. An
+alternative explanation would leave that unidentified: if the INFEASIBLE reference
+draws were themselves disproportionately high-allocation, the loss would be larger
+than a proportional 16.4% and the replacements could carry substantial high mass.
+Tested here on 2000 reference draws under the hard gate:
+
+  condition                      infeasible   high-alloc share:  infeasible / overall
+  exact draws, no jitter            11.3%                          0.783 / 0.808
+  jittered 0.01 (old behaviour)     17.9%                          0.804 / 0.808
+
+The infeasible draws are mode-representative, so the alternative is refuted and the
+arithmetic IS identified. Solving 0.824*(1-f) + r*f = 0.693 gives r = 2% at f =
+0.164 and r = 10% at f = 0.179. Either way the atlas centres are overwhelmingly
+low-allocation, 2-10% high against the posterior's 81%. That is independent
+evidence, arriving from a completely different direction, that the atlas itself is
+overwhelmingly low-mode.
+
+Minor discrepancy for the record: infeasibility of the exact draws measures 11.3%
+here on the first 2000 draws against the companion session's 5.5% on the 128
+actually selected for pair 101; the jittered figures agree closely (17.9% vs 16.4%).
+Sampling and selection, not material to the conclusion, but it moves r within the
+2-10% range quoted.
+
+**Sixth instance of the 4t pattern**, theirs: a scorer glob of `refstat_*` silently
+excluded the relaunched `refstat2_*` arm, i.e. the only valid one. Caught because
+the calibrated run was missing from the table.
