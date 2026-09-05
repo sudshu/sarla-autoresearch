@@ -561,3 +561,41 @@ gate:
 report decisive-subset and full-median distances side by side as diagnostics; never
 promote or discard on a margin smaller than the metric's own definitional
 sensitivity.
+
+**4h refinement (threshold sweep, both sessions).** Rather than trading single
+threshold choices, both sessions swept it. The two sweeps agree closely in the
+robust region and disagree exactly where the margins are tiny:
+
+  thresh  n_par   margin (companion)   margin (this session)   AUC (this session)
+   0.30    17-18       -0.108                -0.100                0.78
+   0.40    13          +0.033                +0.033                1.00
+   0.50    11-12       -0.020                +0.013                1.00
+   0.55    11          +0.013                +0.013                1.00
+   0.65     8          +0.180                +0.180                1.00
+   0.70     7          +0.413                +0.413                1.00
+   0.85     6          +0.456                +0.456                1.00
+
+Margin = best contaminated minus worst restored, so positive means separated.
+AUC = P(a restored run scores closer than a contaminated one), 1.0 = perfect
+ranking. Below 0.40 the subset genuinely degrades. Between 0.40 and 0.60 the
+verdict is unstable and the two sessions disagree, with every margin under 0.04.
+At 0.65 sd and above, on the 6 to 8 strongest parameters, both sweeps agree
+exactly and margins are an order of magnitude larger.
+
+**Two cautions on that robust region, so it is not over-read.**
+(a) It was identified AFTER seeing which thresholds separate. Adopting it now
+would manufacture a metric that works on the data that built it, which is the
+error this whole addendum series is about.
+(b) The statistic itself is weak at these sample sizes. "Worst restored versus
+best contaminated" is an extreme-order statistic on 3 and 6 points. Even the
+perfect AUC of 1.00 carries a best-achievable p-value of 1/C(9,3) = 0.012 with
+n=3 versus n=6, so neither "overlap" nor "separated" is well determined here.
+
+**Recorded as a pre-registered candidate, explicitly NOT a metric in use:**
+subset = parameters whose two-mode means differ by more than 0.65 reference-sd;
+statistic = AUC over runs, not a min/max margin; to be validated at a different
+site, with more seeds per condition, before it is allowed to gate anything.
+
+The gate remains mode mass and tau_wood, whose margins are one to two orders of
+magnitude more robust: mass gap +0.409 (3.5x) and tau_wood gap 25.4 yr (2.8x)
+between the worst restored and the best contaminated run.
