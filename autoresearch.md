@@ -458,10 +458,21 @@ evaluated on. So dev-G and mode-gate comparisons that straddle iteration 27/28 a
 confounded at that site. Site 183 real-data fits are affected from Sep 3 10:46 too.
 Comparisons within either group, and at the other sites, are unaffected.
 
-**Recovery.** For 183real the pre-edit file survives exactly as
-183realb/seeds.npz. For 183 and 183B no backup exists; I have saved
-`seeds.pre_map_2026-09-03_RECONSTRUCTED.npz` (rows 0-23) in each, labelled as a
-reconstruction, with a provenance file. The reconstruction is supported by the
-untouched sites having exactly 24 rows, by the appended row being an extreme
-density outlier rather than a normal seed, and by the identical edit at 183real
-where the pre-edit file is preserved and is exactly rows 0-23.
+**Recovery (verified, not inferred).** All four site directories share the same
+24 base seeds, and the appended row 24 is bitwise identical across 183, 183B and
+183real. Rows 0-23 of `183/seeds.npz` are bitwise identical to rows 0-23 of
+`183real/seeds.npz`, and the pre-edit file preserved as `183realb/seeds.npz` is
+bitwise identical (uint64 view, shape and dtype) to rows 0-23 of both. So the
+pre-edit seed set is RESTORED, not reconstructed: it is saved as
+`seeds.pre_map_2026-09-03.npz` in 183, 183B and 183real, each verified against the
+preserved copy. Any rerun of a pre-edit variant can use it without caveat.
+
+**Update (4f, same day):** the companion session independently diffed the merged
+variant dicts that sarla_fit.py echoes for a pre-edit and a post-edit run of the
+same variant. The only differences are the seven newly added keys plus the
+kernel seed; no key present in both changed value. That is a stronger check than
+reading the diffs, and it agrees: the code is a no-op at these defaults. The
+companion session has retracted its code-drift claim. With code drift eliminated
+and kernel-seed noise measured at sd 0.019-0.033 in mode mass and 1.7-2.7 yr in
+tau_wood, far too small to move tau_wood from 10 to 45 yr, the seed edit is the
+only surviving explanation for the collapse, pending the control runs.
