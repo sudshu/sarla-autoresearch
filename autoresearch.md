@@ -413,3 +413,55 @@ comparison across the two dates is confounded and cannot be read as a seed effec
 **Rule for any restart:** input data files are immutable once any fit has run
 against them. A change means a new site directory and a new name, never an in-place
 edit.
+
+## Addendum 2026-09-04f: correcting 4e — the seed edit also hit the primary dev site
+
+Two corrections to addendum 4e, both found by following up a companion-session
+report that the Sep-3 code changes had silently altered every variant.
+
+**1. The code-drift claim is wrong; I checked all three diffs.** The three
+SurgeryConfig knobs added on Sep 3 are exactly back-compatible under their
+defaults, so no pre-existing variant changed behaviour:
+- `branch_on_infeasible=True`: old code returned
+  `all(isfinite(lpm)) and lpm.min() > ...`; new code returns
+  `not branch_on_infeasible` when any midpoint is infeasible, i.e. False, then the
+  same comparison. Identical.
+- `connectivity_rule="segment"`: the feasible_path logic is guarded by
+  `== "feasible_path"`, and its RNG draws happen only inside that branch, so the
+  random stream is also unperturbed.
+- `rank_min_diff=0.0`: the added conjunct is `abs(...) >= 0.0 * D`, always true.
+The presence of `sg_branch_on_infeasible` in a run's echoed variant dict is a
+useful PROVENANCE marker for which code version ran, but it is not evidence of a
+behaviour change. Cross-iteration comparisons are not confounded by code drift.
+
+**2. The seed edit is worse than 4e said: it also hit dev site 183.** I checked
+mtimes across all site directories. `183/seeds.npz` and `183B/seeds.npz` were
+edited at the same moment as `183real`, on Sep 3 at 10:46, 24 rows to 25. The
+other dev and holdout sites (58, 26, 71, 55, 57, 82, 178 and their B variants)
+were NOT touched and have 24 rows.
+
+At site 183 the appended row is far more damaging than at 183real:
+
+  appended row 24: f_wood 0.194 (low-allocation), log-posterior -268.6
+  best of the original 24 rows:                    log-posterior -621.4
+
+The injected point is 353 nats denser than every other seed. An L-BFGS seed set
+anchored by such an outlier, in the low-allocation budget, will dominate the atlas
+it produces. Note also that the original 24 rows at this site were mostly
+high-allocation (20 of 24), unlike 183real, so the edit did not merely add a point
+to a poor set: it added a dominating low-allocation attractor to a good one.
+
+**Blast radius.** Iterations 0 to 27 ran before the edit; iterations 28 to 36 ran
+after (boundary Sep 3 10:46; i027 finished 10:33, i028 12:31). Site 183 is one of
+the four development sites and is one of the two sites the mode-weight gate is
+evaluated on. So dev-G and mode-gate comparisons that straddle iteration 27/28 are
+confounded at that site. Site 183 real-data fits are affected from Sep 3 10:46 too.
+Comparisons within either group, and at the other sites, are unaffected.
+
+**Recovery.** For 183real the pre-edit file survives exactly as
+183realb/seeds.npz. For 183 and 183B no backup exists; I have saved
+`seeds.pre_map_2026-09-03_RECONSTRUCTED.npz` (rows 0-23) in each, labelled as a
+reconstruction, with a provenance file. The reconstruction is supported by the
+untouched sites having exactly 24 rows, by the appended row being an extreme
+density outlier rather than a normal seed, and by the identical edit at 183real
+where the pre-edit file is preserved and is exactly rows 0-23.
