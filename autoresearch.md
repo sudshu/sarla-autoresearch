@@ -1159,20 +1159,29 @@ But "mobile but confined" is not right either, and the correct statement is shar
 than both. Measuring per-chain excursion in reference-sd units over the recorded
 phase:
 
-  mean step between saved states        0.39 - 0.43
-  net displacement over the whole run   6.04 - 6.38
-  free-random-walk expectation          6.83 - 7.46      (net/free 0.855 - 0.900)
+  mean step between saved states        0.389 - 0.406
+  RMS step between saved states         0.533 - 0.561
+  net displacement over the whole run   6.04 - 6.30
+  free-random-walk expectation          9.34 - 9.82      (net/free 0.63 - 0.65)
   distance between two INDEPENDENT
-    draws from the reference posterior  13.24
+    draws from the reference posterior  13.23
+
+[CORRECTED. This table first gave the free-walk scale as MEAN step x sqrt(N),
+6.83-7.46, and hence net/free 0.86-0.90. That is wrong: for independent increments
+E[|displacement|^2] = N x E[|step|^2], so the scale is RMS step x sqrt(N), and by
+Jensen rms >= mean, so using the mean understates the free walk and inflates the
+ratio. Caught by the companion session. The corrected ratio is 0.63-0.65.]
 
 Two things follow.
 
-**The chains are not trapped.** Net displacement reaches 86-90% of what an
-unobstructed random walk of the same step size would achieve, and it is still
-growing: displacement at T/4 and T/2 is 0.61-0.65 and 0.80-0.83 of its final value,
-against 0.50 and 0.71 for free diffusion and 1.0 for an equilibrated chain. So the
-walk is mildly sub-diffusive and has NOT plateaued. There is no barrier holding
-these chains in a small neighbourhood.
+**The chains are not trapped, but they are materially sub-diffusive.** Net
+displacement reaches 63-65% of what an unobstructed walk of the same steps would
+achieve, so about a third of the displacement is lost to rejections and step
+correlation. That is consistent with an inefficient random walk, not with a
+barrier: displacement is still growing rather than plateauing (T/4 and T/2 sit at
+0.61-0.65 and 0.80-0.83 of final, against 1.0 for an equilibrated chain). But
+"diffuse almost freely" was an overstatement produced by the normalisation error
+above and is withdrawn.
 
 **They simply never get anywhere.** Over the ENTIRE recorded run a chain travels
 6.1 in reference-sd units, while two independent draws from the target differ by
@@ -1188,14 +1197,18 @@ two-basin chains in 1536), and the chains parked on the f_wood boundary (a walke
 whose small neighbourhood straddles 0.5 oscillates across it forever without
 travelling).
 
-**Scale of the shortfall.** If displacement continued to grow diffusively, reaching
-the independence distance would need (13.24/6.1)^2 = 4.7x the current number of
-steps at the current step size, and that buys ONE independent sample per chain, not
-a converged posterior. Equivalently the steps would need to be about 2.2x larger at
-the same run length. This is a quantitative target rather than a diagnosis of a
+**Scale of the shortfall (revised upward).** Fitting net ~ T^a to the measured
+growth gives a = 0.315-0.359, well below the diffusive 0.5. Reaching the
+independence distance therefore needs (13.23/6.1)^(1/a) = about 11x the current
+number of steps, not the 4.7x that assuming pure diffusion would suggest. The
+optimistic diffusive figure was my own error in the other direction from the one
+the companion session caught, and 4.7x should be read as a lower bound. Either way
+it buys ONE independent sample per chain, not a converged posterior. This is a quantitative target rather than a diagnosis of a
 barrier, and it is consistent with 4r: the binding constraint is step size and run
 length, not acceptance and not routing.
 
 **Terminology fix for both accounts:** neither "inert" nor "confined". The chains
-move continuously and diffuse almost freely; the run is far too short, relative to
-the step size, for any chain to decorrelate from where it started.
+move continuously and diffuse, somewhat sub-diffusively; the run is far too short,
+relative to the step size, for any chain to decorrelate from where it started. The
+second clause carries the argument and is unaffected by the normalisation
+correction.
