@@ -790,3 +790,62 @@ the other direction: no variant was promoted in that window, so the contaminatio
 did not cause a false acceptance. Its cost was wasted compute and a set of
 conclusions about tempering and late surgery variants that were really conclusions
 about a broken configuration.
+
+## Addendum 2026-09-04l: three corrections to this record, and a defect in my kernel
+
+**1. "Split-half floor" is the wrong term throughout this document.** Splitting the
+reference fleet in half and measuring distance between the halves bounds the
+reference's own PRECISION, not its accuracy: any bias shared by all its chains
+survives the split untouched. Everywhere addenda 4d, 4g, 4h, 4i and 4k say
+"split-half floor" or "the reference's own noise floor", read
+"split-half self-consistency benchmark". The comparative statements are unaffected
+(every variant remains 10 to 15 times that benchmark) but the word "floor" implies
+an accuracy limit that this quantity does not establish.
+
+**2. The variance result: descriptive claim stands, two-mechanism reading does
+not.** 4j reported "spread ratio 7.8x"; that is an SD ratio, and the variance ratio
+is about 61 here (72 on the companion session's set), which should be stated
+explicitly rather than left to be inferred. More importantly, 4j went on to read
+the result as two distinct phenomena, contamination BIASING the answer versus
+restoration making it IRREPRODUCIBLE. That does not follow. Run-level mode mass is
+bounded in [0,1], so its mean and variance move together as basin-capture
+probability changes; Levene achieving a smaller p than Mann-Whitney is not evidence
+of two mechanisms. What stands: the contaminated condition is tightly clustered
+low, the restored condition is dispersed across nearly the whole range, and both
+are described by a single capture-probability shift. The rhetorical framing in 4j
+("does not merely bias, it makes the method reproducibly wrong") is withdrawn.
+
+**3. A non-reversible burn-in heuristic ran in all 39 iterations
+(scripts/sarla_kernels.py:78-90).** Every 500 steps, any walker more than
+restart_gap=100 nats below the current best is HARD-COPIED onto a randomly chosen
+better walker with 1e-3 jitter, with no Metropolis correction. It fires 16 times
+per production run.
+
+Verified here on the exact defaults: restart_end = restart_until * n_steps =
+0.5 * n_steps and burn_end = burn_frac * n_steps = 0.5 * n_steps, i.e. the copying
+stops precisely when recording begins. So it is NOT a detailed-balance violation of
+the sampling phase, and no copied state is ever recorded. The accurate description
+is a non-reversible burn-in pruning rule. But its consequence is not benign: it
+shapes the walker population entering the sampling phase, and since this kernel
+demonstrably cannot cross between allocation budgets, the mode composition left at
+the end of burn-in largely determines the recorded mode mass. It is therefore a
+MECHANISM AMPLIFYING seeding dominance, which is the campaign's central failure.
+
+A clean negative from the companion session, worth keeping because the rule is a
+natural thing to blame: it does not preferentially cull high-allocation walkers.
+On 5534 reference draws the two modes sit at almost the same level, median HIGH
+-218.3 versus LOW -219.2, a 0.9 nat separation, and at the threshold a real run
+would use the rule removes 1.5% of HIGH and 4.6% of LOW draws, i.e. very slightly
+biased against the LOW mode, the opposite of the proposed mechanism.
+
+**4. On the kept-region diagnostic (refining my own 4-outcome suggestion).**
+keep_regs never enters run_kernel, which I verified independently, so a low
+kept-region fraction diagnoses the INITIALISATION screen rather than the production
+kernel. And nearest-chart assignment is not a coverage measure at all, since every
+point has a nearest chart however distant. Mode-specific nearest Mahalanobis
+distances are the right diagnostic and the companion session is recording them.
+
+**5. Power.** The stationarity check is a mechanism screen, not certification. With
+six replicates, six successes and zero failures still leaves a one-sided 95% upper
+bound near 39% on the per-run failure probability. Nothing from it should be
+written as "the kernel is fine".
