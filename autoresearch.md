@@ -557,6 +557,10 @@ gate:
   mass_hi    restored 0.57-0.81      contaminated 0.07-0.16
   tau_wood   restored 10.3-13.9 yr   contaminated 39.3-48.5 yr
 
+  [OVERTURNED 2026-09-04 by control fits 4 and 5 -- see addendum 4i. The restored
+   range above was n=3; at n=5 it becomes 0.057-0.810 and OVERLAPS the
+   contaminated range. This gate is not clean.]
+
 **Rule for a restart:** gate on mode mass and tau_wood against the reference;
 report decisive-subset and full-median distances side by side as diagnostics; never
 promote or discard on a margin smaller than the metric's own definitional
@@ -599,3 +603,62 @@ site, with more seeds per condition, before it is allowed to gate anything.
 The gate remains mode mass and tau_wood, whose margins are one to two orders of
 magnitude more robust: mass gap +0.409 (3.5x) and tau_wood gap 25.4 yr (2.8x)
 between the worst restored and the best contaminated run.
+
+## Addendum 2026-09-04i: CORRECTION to 4g and 4h — the gate overlaps too
+
+Control fits 4 and 5 landed and overturn the central claim of 4g and the
+recommendation of 4h. Verified independently here by recomputing mode mass from
+every control fit's own draws.
+
+  condition     host   run                          mass_hi
+  restored      h100   s4 seed 6                     0.594
+  restored      h100   s4 seed 7                     0.810
+  restored      h100   s7 seed 6                     0.655
+  restored      kyo    s4 seed 8                     0.110   <- new
+  restored      kyo    s7 seed 7                     0.057   <- new
+  contaminated  h100   s4 seed 6 / s4 seed 7         0.156 / 0.109
+  contaminated  h100   s7 seed 6 / s7 seed 8         0.094 / 0.068
+  contaminated  kyo    s4 seed 8 / s7 seed 7         0.166 / 0.086
+
+**What is overturned.** 4g reported the restored condition at mass 0.57-0.81
+against contaminated 0.07-0.16, "no overlap, factor-of-three margin", and 4h made
+that the recommended gate. At n=5 the restored range is 0.057-0.810 and overlaps
+the contaminated range completely. The two new runs read 19 feasible seed points
+from the restored file with rc=0, so they are genuine restored-seed runs that
+collapsed, and they collapsed harder than any contaminated run.
+
+**What survives, and the precise logical statement.** Pooling with the i014 fits:
+restored recovered the high-allocation mode in 7 of 9 runs, contaminated in 0 of 7
+(Fisher one-sided p = 0.0031). Locally on the controls alone: restored 3/5,
+contaminated 0/6. So seed contamination is a SUFFICIENT cause of failure, and it
+is highly reliable as such; restoring the seeds is NOT sufficient for success. The
+4g headline "one seed flips the answer" holds in one direction only. "Remove the
+seed and the method is correct" does not hold: it is 3/5 on fresh runs.
+
+**A second possible factor, confounded with host.** Within the restored condition
+the control fits split perfectly by machine: h100 3/3 recovered, kyo 0/2. Pooling
+the companion session's wider set gives h100 6/6 and kyo 1/3 (Fisher one-sided
+p = 0.083, suggestive only), and one earlier kyo run did recover, which argues
+against hard hardware determinism. Candidate explanations: GPU numerics, the
+memory-fraction difference (0.3 on h100 vs 0.9 on kyo), or nothing. This matters
+beyond these runs because the loop's 39 iterations were spread across both
+machines, so if it is real it is a second confound running through the entire
+record.
+
+**Pre-registered test (companion session, before the last fit landed):** the final
+control fit is queued on h100 with restored seeds. Host hypothesis predicts mass
+> 0.5 and tau_wood 10-14 yr; seed-only hypothesis predicts roughly 60-70% chance
+of the same. A collapse on h100 kills the host hypothesis and means the method
+simply fails on about 40% of runs.
+
+**Consequences.** The iterations 28-36 re-read stays deferred, now for two reasons
+rather than one. And the recommended follow-up is 6 to 8 more restored-seed fits
+split deliberately across hosts; neither the host claim nor the irreducible-failure
+claim can be written up without it. That is GPU work beyond the stopped campaign
+and is the user's call, not ours.
+
+**Method note on us.** In 4h I warned that a min/max margin on 3 and 6 points is an
+extreme-order statistic and that neither verdict was well determined. That warning
+was aimed at the decisive-subset metric. It applied just as much to the gate I
+endorsed in the same breath, and the gate is what it broke. Both sessions over-read
+an n=3 range as a clean separation.
