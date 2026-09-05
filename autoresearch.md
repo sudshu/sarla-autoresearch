@@ -908,8 +908,10 @@ whose var_j = 1 in all 89 directions. Stiff charts inflate distances by 1/var_j 
 lam_j, which can be enormous. So argmin-over-charts of maha2 is systematically
 biased toward the flattest charts, almost independently of where the point is.
 
-**Confirmed prediction from fit.npz.** If that is the mechanism, charts in non-kept
-regions should be systematically flatter (higher rank = more directions at the cap).
+**Confirmed prediction from fit.npz.** [See 4p: "rank" is a spectral-gap split, not
+a plain count below RANK_TAU, so it is an imperfect flatness proxy; and the extreme
+cases are FAILED HESSIANS rather than flat geometry.] If that is the mechanism,
+charts in non-kept regions should be systematically flatter.
 Across five fits with a mixed population:
 
   kept charts       rank median 38-39
@@ -1000,3 +1002,62 @@ proposals and are almost always rejected. Starting from the true bimodal posteri
 therefore biases a DE arm toward inertness REGARDLESS of the kernel's merits, which
 would make "does DE cross more than the hybrid" underpowered by construction rather
 than by accident.
+
+## Addendum 2026-09-04p: the flat charts are failed Hessians; three code fixes applied
+
+**The extreme charts are numerical failures, not geometry.** A second advisor pass
+via the companion session predicted that the count of rank-89 charts would equal
+`n_degraded`, the number of charts whose Hessian came back non-finite and fell back
+to lam=zeros, V=identity. Checked here on all twelve retained fits: it matches in
+every one (1,1,2,1,1,1,3,1,1,1,1,1 against the same n_degraded). So the charts that
+dominate the maha2 assignment are degraded charts that should never have competed as
+trusted local geometry at all. The graded routing bias of 4n/4o stands; its worst
+offenders are now identified as a failure mode rather than a shape.
+
+**Two corrections to our shared account, accepted.** (a) `rank_split` (sarla.py:40)
+uses a spectral-gap rule with an absolute fallback, not a plain count below
+RANK_TAU, so rank medians are an imperfect flatness proxy and should be described
+that way. (b) The surgery engine modifies variances after chart construction, so
+var <= VAR_CAP is NOT proven for the final atlas; the maha2 >= Euclidean argument
+holds only where it happens to be true, and we should stop asserting it globally.
+
+**A defect in the running experiment, found by the companion session.** run_kernel
+jittered supplied start points by 0.01 before use and then silently replaced any
+infeasible result with a jittered atlas centre. Measured on its pair 101: exact
+reference draws are 5.5% infeasible, and after the jitter 16.4%. So about a sixth of
+a "reference start" population was actually atlas-centre starts. The jitter is small
+in distance, RMS 0.094 in W-space, but moves the log-posterior by a median 2.85 nats
+with some to -inf, which says the feasible set is thin enough that a 1%-of-scale
+perturbation matters. Within a pair the contamination is identical, so its pairing
+survives; the absolute claim "walkers start on the reference posterior" does not.
+Per its advisor the runs are being preserved and qualified rather than relaunched a
+third time.
+
+**Three fixes applied here (research repo commit 63a7880), same edit region:**
+1. Supplied `init_X` states are copied unchanged. Verified on the toy: the initial
+   population now equals the supplied states exactly and is identical across kernel
+   seeds, which it was not before.
+2. Infeasible supplied starts are still replaced, since a chain cannot begin at
+   -inf, but now print a warning and are reported as `n_infeasible_supplied`.
+3. fit.npz saves `chart_var` and `chart_eigvecs`, without which the maha2 assignment
+   that picks every proposal cannot be reproduced from artifacts, plus `init_pop`,
+   the population before the first transition. The default chart-centre start path
+   is unchanged.
+
+**Not deployed.** These are local commits only. The code must NOT be synced to the
+GPU hosts until the stationarity runs land, or queued jobs would pick up changed
+behaviour mid-experiment.
+
+**Two scoring corrections from the same pass, accepted for the record.** The
+hysteresis statistic in 4m counts SUSTAINED occupancy of both basins, so "8 chains
+in 1536" is 8 chains with sustained two-basin occupancy, not 8 chains that
+transported; brief or late passages are missed and it should be described that way.
+And pooling runs across two different kernels into one binomial failure bound is
+invalid, since paired populations across two kernels are not independent trials.
+
+**The decisive next test, agreed and needing no new sampling.** A fixed-state
+assignment intervention: same saved states, same atlas, same gamma, common random
+numbers, current maha2 assignment versus Euclidean assignment, each arm computing
+its own forward and reverse proposal densities. That tests the routing hypothesis of
+4n directly. It is now possible for future fits because chart_var and chart_eigvecs
+are persisted; it is not possible for the twelve existing ones.
