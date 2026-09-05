@@ -476,3 +476,53 @@ companion session has retracted its code-drift claim. With code drift eliminated
 and kernel-seed noise measured at sd 0.019-0.033 in mode mass and 1.7-2.7 yr in
 tau_wood, far too small to move tau_wood from 10 to 45 yr, the seed edit is the
 only surviving explanation for the collapse, pending the control runs.
+
+## Addendum 2026-09-04g: the seed edit flips the answer, and BOTH metrics hide it
+
+**Control result (companion session, 3 of 6 fits).** Identical code, identical
+kernel seeds, only the seed file swapped (reference mass_hi 0.813, tau_wood
+10.36 yr):
+
+  restored 24-seed set   s4_s6 mass 0.599 tau 13.54 | s4_s7 0.809 / 10.33 | s7_s6 0.669 / 11.76
+  contaminated 25-seed   s4 mass 0.146 +/- 0.033 tau 40.63 +/- 1.68 (n=3)
+                         s7 mass 0.085 +/- 0.019 tau 46.10 +/- 2.73 (n=3)
+
+Mean tau_wood 11.9 yr restored vs 43.4 yr contaminated, against measured
+kernel-seed noise of 1.7-2.7 yr: roughly 15x the sampler's own scatter. One fit
+(s4 seed 7) reproduces the reference mode summaries almost exactly, 0.809/10.33
+against 0.813/10.36. A single 353-nat seed flips the sampler's answer to the
+central scientific question. This is seeding dominance, not a mixing failure.
+
+**The distance metric prefers the WRONG answer, and I verified it and found why.**
+Recomputing per-parameter 1-Wasserstein against the reference for s4 seed 7:
+
+  contaminated (wrong mode)  W1 median 0.294   closer on 64 of 89 parameters
+  restored     (right mode)  W1 median 0.414
+
+The mechanism is dimensional dilution. Only 11 of 89 parameters separate the two
+modes by more than 0.5 reference-sd. On those the restored fit is far closer:
+
+  parameter     mode separation   W1 contaminated   W1 restored
+  phi_WL             1.79 sd           1.19            0.32
+  i_cwd              1.37 sd           1.28            0.48
+  tr_lit2som         1.28 sd           1.19            0.35
+  t_wood             1.07 sd           0.60            0.60
+  LCMA               1.06 sd           0.42            0.36
+  i_labile           1.06 sd           0.96            0.88
+
+The other 78 parameters are nuisance dimensions where the contaminated fit happens
+to sit closer, and they swamp the median. So the median-over-89 distance is not a
+better metric than G; it fails the same way, by averaging a low-dimensional but
+decisive structure into 89 dimensions of noise. G's floor problem and this are the
+same structural error at bottom.
+
+**Consequence for the loop record.** Any decision made on distance-to-reference at
+sites 183/183B over iterations 28-36 may have been driven the wrong way, on top of
+the seed confound itself. Re-reading those iterations is deferred until all six
+control fits land.
+
+**Concrete fix for any restart.** Score on the decisive subset, not the mean over
+all parameters: identify the parameters that separate the reference's modes by
+more than ~0.5 sd (11 here, computable from the reference alone before any fit),
+and report their distances alongside, not inside, the 89-parameter average. Report
+tau_wood and mode mass directly, since they are what the science turns on.
