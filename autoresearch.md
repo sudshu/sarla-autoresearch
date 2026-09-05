@@ -1149,6 +1149,15 @@ advisor at maximum reasoning effort before starting further work. This reduced-s
 probe was already in flight and is reported as-is.
 
 ## Addendum 2026-09-04s: not inert, not confined — the chains never decorrelate
+## [LARGELY WITHDRAWN 2026-09-04 — see 4v. The excursion FRAMING and every number
+## derived from it are struck: 13.2 is sqrt(2D), a property of standardising to
+## unit marginal variance, not a distance a chain must travel, and endpoint
+## displacement SATURATES at that value under a confined stationary distribution.
+## The declining growth exponent is the signature of that saturation, not of
+## anomalous diffusion, so extrapolating a power law toward 13.2 was extrapolating
+## toward an asymptote. The 5-30x and 11x and 4.7x figures are all unsupported.
+## What survives is only the raw observation of little basin redistribution, which
+## the crossing counts in 4m already gave.]
 
 The companion session instrumented per-chain movement and corrected "inert": across
 all twelve production fits, consecutive saved states differ for 0.888 to 0.922 of
@@ -1307,3 +1316,92 @@ Sampling and selection, not material to the conclusion, but it moves r within th
 **Sixth instance of the 4t pattern**, theirs: a scorer glob of `refstat_*` silently
 excluded the relaunched `refstat2_*` arm, i.e. the only valid one. Caught because
 the calibrated run was missing from the table.
+
+## Addendum 2026-09-04v: advisor verdict — STOP, and four of our claims are withdrawn
+
+Codex astra at maximum reasoning effort, on the joint brief. Verdict: **stop the
+open-ended SARLA repair campaign.** The implementation has failed as a reliable
+45-minute estimator. That does NOT establish that this posterior requires 33 hours,
+nor that faster CARDAMOM needs a better population sampler.
+
+**What it endorses as the causal account**, replacing ours:
+> At the tested budget, the reported basin weights remain strongly dependent on
+> population construction. Production sampling has not demonstrated sufficient
+> equilibration to estimate those weights reliably.
+
+It explicitly declines to identify chart routing, the variance cap or step size as
+the cause: the seed intervention changes both population construction AND the
+resulting atlas, so it does not isolate initialisation from kernel geometry.
+
+**Four claims withdrawn, all verified here before striking.**
+
+1. **The excursion headline (4s), mine.** For 89 coordinates standardised by their
+   marginal posterior SDs, E||X-Y||^2 = 2D, so the "independence distance" is
+   sqrt(178) = 13.34. Measured RMS over standardised reference draws: 13.38. It is a
+   property of standardisation, not of this posterior, and NOT a distance a chain
+   must travel: a chain can explore extensively and return, and endpoint
+   displacement saturates at exactly that value. The declining exponent IS that
+   saturation. Every derived runtime figure (4.7x, 11x, 5-30x) is unsupported.
+2. **The reference-bias question (Q6), mine.** A category error.
+   `scripts/osse_mode_mass.py` defines 0.80 as the GENERATING f_wood value, while
+   0.896 is the posterior probability of f_wood > 0.5. Those are different
+   quantities; comparing them establishes neither a 0.096 bias nor accurate mode
+   weights. The low-mode MAP point fails too: peak density and integrated mass are
+   entirely compatible in opposite modes, and MAP location is
+   parameterisation-dependent. So we have no evidence the reference is biased,
+   which is better news than we had, but both of our reasons for doubting it were
+   invalid.
+3. **The DE inertness explanation (4o), mine.** With uniform donor selection the
+   cross-mode pair probability is 2w(1-w) = 43% at w = 0.69, not "mostly". The
+   inertness is real and measured (2.2-2.6% of intervals); the explanation is not
+   established and needs acceptance broken down by donor-mode pairing.
+4. **"Preservation of reference mass" (4u), the companion session's.** The runs show
+   limited drift from the populations that actually entered the recorded phase,
+   which started at 0.69 rather than the intended 0.82.
+
+**Live bugs confirmed in code in this session's lane**, with the advisor's exact
+counterexample reproduced here (q = U[0,1], unnormalised target 1_[0,0.25], true
+Z = 0.25):
+
+  filtered path, as chart_evidence does it   Z = 1.0000
+  unfiltered path                            logZ = -inf
+  fraction of proposal draws with zero target density: 0.76
+
+`sarla_evidence.py:105` drops infeasible proposal draws before the bridge estimator
+without accounting for the conditioning; `_bridge_logr` initialises at the median
+log ratio, which is -inf when most proposal draws have zero density;
+`mode_bridge.py:54` uses opposite-half KDEs on the posterior side against a
+full-data KDE on the proposal side, violating the bridge identity. Do not build a
+mode-weight estimator on these helpers.
+
+**What survives as findings:** seed sensitivity, initialisation replacement,
+curvature defects, and the observed limited basin redistribution.
+
+**Next work block, in order, if authorised:** (1) reconcile the implemented C and
+production-GPU JAX targets on identical states, starting with the exact reference
+draws that come out infeasible — that unexplained support disagreement comes BEFORE
+any further sampler work; (2) validate normalisation on distributions with known
+integrals, including constrained unequal-weight mixtures; (3) one bounded pilot of
+the two-hill estimate using the ACTUAL posterior density across the Gaussian
+samples rather than only feasibility, i.e. self-normalised importance sampling from
+the fitted mixture with infeasible draws as zero weight. Keep the campaign stopped
+unless a candidate meets a precommitted reopening criterion.
+
+**On the deliverable, answering Q5:** "You probably spent too long optimizing the
+wrong deliverable. The atlas may be useful for locating modes and constructing
+integration proposals even if its population sampler never becomes competitive."
+It also gives the scientific tolerance that should drive the work: moving the
+high-mode weight from 0.815 to 0.865 moves the low-mode weight from 0.185 to 0.135,
+a 27% relative reduction, and weight error contributes delta_E[C] = delta_w *
+(mu_H - mu_L) to any future-carbon quantity.
+
+**Its section 7, things NOT to do,** names most of what we would have done next: do
+not launch a longer run on the displacement extrapolation; do not adopt Euclidean
+routing or a variance floor because they look cleaner; do not describe our runs as
+preserving reference mass; do not tune the estimator toward 0.815; do not treat
+removing the low-mode MAP as a remedy, since that MAP is legitimate information and
+a reliable method must tolerate it.
+
+**Not deployed.** 63a7880 was cleared for deployment now that all nine jobs have
+landed, but there is nothing to run and the campaign stays stopped, so the code
+fixes remain local. Both sessions are holding for the user's decision.
