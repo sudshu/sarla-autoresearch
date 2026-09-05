@@ -326,14 +326,22 @@ median relative 0.99, so it was not a mild distortion.
 
 With the corrected curvature the companion session reports the high hill carrying
 2 negative eigenvalues out of 89 and the low hill 0, against the 9 to 13 we
-previously reported, and a two-hill Laplace mass estimate of 0.827 against the
-reference 0.815, from two Hessians in about five minutes (peak height alone gives
-0.007). So "Laplace geometry is unusable for this posterior" was our own bug, and
-that retraction is now itself withdrawn: Laplace geometry works here. Caveats
-carried from the source: the feasibility correction rests on about 4 and 12
-feasible draws out of 400 per hill, and the convention for flat and negative
-directions moves the answer between 0.827 and 0.949. A 20k-draw re-estimate was
-running when this was written.
+previously reported. So "Laplace geometry is unusable for this posterior" was our
+own bug, and that retraction is itself withdrawn.
+
+[CORRECTED. This addendum first recorded a two-hill Laplace mass of 0.827 against
+the reference 0.815, i.e. near-agreement. That was a 400-draw-per-hill first pass
+and is SUPERSEDED. Redone at 20000 draws per hill it is 0.865 [0.835, 0.888]
+against the reference 0.815 [0.794, 0.834]: the intervals are essentially
+non-overlapping, so this is within about 0.05 of the answer, not a match. The 0.827
+figure is retired. Two caveats belong with the corrected number: the feasibility
+correction does nearly all the work, since only 0.6% and 2.5% of each fitted
+Gaussian is feasible, and peak height alone gives 0.007. The estimator is doing
+something delicate, not something robust.]
+
+The practical point survives the correction and is arguably the most useful result
+of the campaign: it reaches within ~0.05 of the reference's mode split for roughly
+1/400th of the cost, from two Hessians in about five minutes.
 
 **2. Mode weighting is NOT the main error (this changes the priority order).**
 Each real-data fit's own draws were reweighted to the reference mode proportions
