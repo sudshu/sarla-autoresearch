@@ -1147,3 +1147,55 @@ making the sampler move less, not more.
 the companion session, both sessions stop when the running jobs land and consult the
 advisor at maximum reasoning effort before starting further work. This reduced-scale
 probe was already in flight and is reported as-is.
+
+## Addendum 2026-09-04s: not inert, not confined — the chains never decorrelate
+
+The companion session instrumented per-chain movement and corrected "inert": across
+all twelve production fits, consecutive saved states differ for 0.888 to 0.922 of
+thinning intervals, so chains accept moves essentially all the time. Verified here
+(0.904 to 0.922 on six fits). "Inert" is withdrawn from this record.
+
+But "mobile but confined" is not right either, and the correct statement is sharper
+than both. Measuring per-chain excursion in reference-sd units over the recorded
+phase:
+
+  mean step between saved states        0.39 - 0.43
+  net displacement over the whole run   6.04 - 6.38
+  free-random-walk expectation          6.83 - 7.46      (net/free 0.855 - 0.900)
+  distance between two INDEPENDENT
+    draws from the reference posterior  13.24
+
+Two things follow.
+
+**The chains are not trapped.** Net displacement reaches 86-90% of what an
+unobstructed random walk of the same step size would achieve, and it is still
+growing: displacement at T/4 and T/2 is 0.61-0.65 and 0.80-0.83 of its final value,
+against 0.50 and 0.71 for free diffusion and 1.0 for an equilibrated chain. So the
+walk is mildly sub-diffusive and has NOT plateaued. There is no barrier holding
+these chains in a small neighbourhood.
+
+**They simply never get anywhere.** Over the ENTIRE recorded run a chain travels
+6.1 in reference-sd units, while two independent draws from the target differ by
+13.2. No chain covers even half the distance to independence from its own starting
+point. The ensemble's apparent spread is therefore a picture of where 128 walkers
+were PLACED, smeared by local diffusion, not the result of any walker exploring the
+posterior.
+
+That single fact explains, without further mechanism, every symptom recorded in this
+campaign: seeding dominance (walkers never leave their starting neighbourhood), the
+under-dispersion at 0.61-0.69, the absence of mode transport (8 sustained
+two-basin chains in 1536), and the chains parked on the f_wood boundary (a walker
+whose small neighbourhood straddles 0.5 oscillates across it forever without
+travelling).
+
+**Scale of the shortfall.** If displacement continued to grow diffusively, reaching
+the independence distance would need (13.24/6.1)^2 = 4.7x the current number of
+steps at the current step size, and that buys ONE independent sample per chain, not
+a converged posterior. Equivalently the steps would need to be about 2.2x larger at
+the same run length. This is a quantitative target rather than a diagnosis of a
+barrier, and it is consistent with 4r: the binding constraint is step size and run
+length, not acceptance and not routing.
+
+**Terminology fix for both accounts:** neither "inert" nor "confined". The chains
+move continuously and diffuse almost freely; the run is far too short, relative to
+the step size, for any chain to decorrelate from where it started.
