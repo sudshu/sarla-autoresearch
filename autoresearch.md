@@ -329,19 +329,17 @@ With the corrected curvature the companion session reports the high hill carryin
 previously reported. So "Laplace geometry is unusable for this posterior" was our
 own bug, and that retraction is itself withdrawn.
 
-[CORRECTED. This addendum first recorded a two-hill Laplace mass of 0.827 against
-the reference 0.815, i.e. near-agreement. That was a 400-draw-per-hill first pass
-and is SUPERSEDED. Redone at 20000 draws per hill it is 0.865 [0.835, 0.888]
-against the reference 0.815 [0.794, 0.834]: the intervals are essentially
-non-overlapping, so this is within about 0.05 of the answer, not a match. The 0.827
-figure is retired. Two caveats belong with the corrected number: the feasibility
-correction does nearly all the work, since only 0.6% and 2.5% of each fitted
-Gaussian is feasible, and peak height alone gives 0.007. The estimator is doing
-something delicate, not something robust.]
+[RETRACTED ENTIRELY — see 4x. Both figures are out. 0.827 was a 400-draw first
+pass; 0.865 was its 20000-draw successor. Neither is an estimate of the mode
+weight. When the estimator was rebuilt to use the ACTUAL posterior density across
+the fitted Gaussians rather than only feasibility, the effective sample size came
+out at 1.00 of 383 feasible draws, with one draw carrying the entire weight, so the
+reported number was that single draw's basin label. The feasibility correction was
+never a correction; it WAS the estimate, and its closeness to 0.815 was
+coincidence.]
 
-The practical point survives the correction and is arguably the most useful result
-of the campaign: it reaches within ~0.05 of the reference's mode split for roughly
-1/400th of the cost, from two Hessians in about five minutes.
+[The "most useful result of the campaign" claim that stood here is withdrawn with
+the numbers. See 4x.]
 
 **2. Mode weighting is NOT the main error (this changes the priority order).**
 Each real-data fit's own draws were reweighted to the reference mode proportions
@@ -1464,3 +1462,49 @@ run today, so it should be a deliberate, logged change rather than a quiet one.
 With this item closed, the advisor's remaining next steps are (2) validate
 normalisation on distributions with known integrals and (3) one bounded
 full-density pilot of the two-hill estimate.
+
+## Addendum 2026-09-04x: the two-hill Laplace estimator is refuted, and no ellipsoid can work
+
+**The pilot fails decisively (companion session).** Rebuilt from scratch rather than
+on the defective helpers, and validated first on a constrained two-component mixture
+with a closed-form answer (recovers 0.482240, bias under 0.001, across matched,
+1.5x-inflated and 0.9/0.1 badly-weighted proposals). On the real posterior, drawing
+from the normalised mixture of the two fitted Gaussians and weighting by the actual
+density:
+
+  20000 proposal draws, 1.92% feasible
+  proposal log-density at its OWN draws        -85.1
+  proposal log-density at the REFERENCE    -11975.4      coverage gap 11890 nats
+  ESS 1.00 of 383 feasible draws; top weight 1.0000
+
+One draw carries all the weight, so the reported w_H (0, 1/3, 2/3 across replicates)
+is just that draw's basin label. Inflating the proposal makes it worse: feasible
+draws fall from 386 to 18.
+
+**Independent corroboration here, by a different route and stronger.** I did not use
+their fitted Gaussians. Instead I asked whether these modes are ellipsoidal at all:
+
+  high mode  n=10398   logpost at the centroid of its own draws  -1436.7   median draw -219.4
+  low mode   n= 2402   logpost at the centroid of its own draws  -1338.7   median draw -219.9
+
+For a Gaussian target the density at the mean EXCEEDS that at a typical draw by
+D/2 = 44.5 nats. Here the centroid of each mode's own draws is about 1200 nats
+BELOW its typical draw, a discrepancy of roughly 1260 nats from Gaussian behaviour.
+The centroid falls off the manifold entirely. And a Gaussian fitted directly to the
+high-mode draws, using their empirical mean and covariance, puts only 12.05% of its
+own samples in the feasible set.
+
+That generalises the refutation. It is not only the mode-centred quadratic that
+fails: no ellipsoid centred anywhere near these modes can represent them, including
+a moment-matched one, because the feasible region is a thin curved sliver rather
+than a convex body. A quadratic expansion describes none of it.
+
+**Consequences.** The advisor's item (3) closes with a negative, and item (2) is
+partly discharged by the pilot's known-answer self-test. Q5 of the brief, whether a
+cheap targeted estimator is the better deliverable, is answered NO for this
+construction. The advisor's broader suggestion may still stand -- the atlas could be
+useful for locating modes and building integration proposals even if its sampler
+never competes -- but the Laplace-proposal route is closed, and any future proposal
+must be validated by effective sample size and weight concentration BEFORE any
+number is quoted from it. That diagnostic, not the agreement with 0.815, is what
+would have caught this at the first pass.
