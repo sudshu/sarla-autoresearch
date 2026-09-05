@@ -1061,3 +1061,31 @@ numbers, current maha2 assignment versus Euclidean assignment, each arm computin
 its own forward and reverse proposal densities. That tests the routing hypothesis of
 4n directly. It is now possible for future fits because chart_var and chart_eigvecs
 are persisted; it is not possible for the twelve existing ones.
+
+## Addendum 2026-09-04q: the assignment intervention, and what it cannot show
+
+**Scope limit, written down BEFORE the experiment rather than after.** The fixed-state
+assignment intervention can show that maha2 routing harms proposal efficiency. It
+CANNOT by itself show that routing causes the mode-mass error. The full chain is:
+poor routing -> ineffective accepted movement -> initial mode allocation persists.
+Only the first link is under test. Both sessions are invested in the routing
+hypothesis, which is exactly why this is recorded in advance.
+
+**Design, per the companion session's advisor.** Hold the final atlas, target, gamma
+and starting states fixed. Generate proposals under the current maha2 assignment and
+under a Euclidean assignment with COMMON RANDOM NUMBERS, resetting to the starting
+state for each proposal so the arms are genuinely paired. Each arm computes its own
+forward and reverse proposal densities, since the Hastings correction differs between
+assignment rules and getting that wrong would manufacture the result. Report expected
+acceptance from the MH ratio rather than accept/reject coin flips, and
+acceptance-weighted squared movement in one fixed coordinate metric shared across
+arms, because better acceptance with worse movement just means smaller steps.
+
+**Feasibility constraint.** The twelve existing fits predate chart_var/chart_eigvecs
+persistence, so their exact atlases cannot be reconstructed from artifacts, and the
+surgery engine mutates variances after construction so recomputing Hessians at the
+saved centres would not reproduce them either. The intervention therefore runs on a
+freshly built 89-D atlas on the real NL-Loo data at reduced scale (seed points taken
+directly from the restored seed file rather than re-running L-BFGS), which preserves
+the real geometry and the real degraded-chart failure mode while fitting in local CPU
+time. It is a mechanism test, not a reproduction of any particular fit.
